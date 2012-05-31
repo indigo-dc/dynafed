@@ -10,6 +10,8 @@ configure_file (
 	       "${PROJECT_BINARY_DIR}/src/UgrConfig.h"
 )
 
+
+# test here, welcome 
 # -------------------------
 # Local targets
 # -------------------------
