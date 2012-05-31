@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 2.6)
 #
 # if geoip is available then we build also a plugin that uses it
 #
-if(GEOIP_FOUND)
+if(GEOIP_LIB)
 
   # The source modules
   set(UgrGeoPlugin_GeoIP_SOURCES UgrGeoPlugin_GeoIP.cc)
@@ -19,7 +19,7 @@ if(GEOIP_FOUND)
 
   SET_TARGET_PROPERTIES(ugrgeoplugin_geoip PROPERTIES LINK_FLAGS "-rdynamic")
 
-  target_link_libraries(ugrgeoplugin_geoip "dl ${DMLITE_LIBRARIES}" ugrconnector)
+  target_link_libraries(ugrgeoplugin_geoip "dl ${DMLITE_LIBRARIES}" ugrconnector ${GEOIP_LIB})
 
 
   # How to install. This is a set of plugins that belong to a specific component
