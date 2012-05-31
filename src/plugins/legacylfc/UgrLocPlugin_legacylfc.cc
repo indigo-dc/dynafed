@@ -21,6 +21,8 @@ void lfcworker(UgrLocPlugin_legacylfc* plugin)
         unique_lock<mutex> qlck(plugin->qmtx);
         
         if (plugin->wrkqueue.size()) {
+
+            Info(SimpleDebug::kLOW, fname, "Processing fileinfo: " << *plugin->wrkqueue.begin());
             plugin->runitem(*plugin->wrkqueue.begin());
             plugin->wrkqueue.pop_front();
         }
@@ -93,56 +95,17 @@ int UgrLocPlugin_legacylfc::do_Stat(UgrFileInfo* fi) {
     }
 
 
-    Info(SimpleDebug::kLOW, fname << name, "Stub!");
+    Info(SimpleDebug::kLOW, fname, "Requested info for " << name);
     return 0;
 };
 
-// Waits max a number of seconds for a stat task to be complete
-// Exit with timeout or if this plugin has finished
-// E.g. this plugin may decide that it has finished if it detected
-// that all the hosts that had to asynchronously respond actually responded
-//
-// A trivial implementation could be a direct sync query, for instance to a DB
-//
-// A more complex implementation could be totally async, where, at the reception
-// of any notification-end, the async task marks the sending host as done for that
-// request
-//
-// Another implementation could just wait N seconds and take what arrived
-//
-// Another implementation could just take the first response that comes
-// (for a stat this could be good, not so for a locate, not at all for a list)
-//
-// Maybe a good middle point could be to wait for at least M responses or
-// N seconds at max, where M is the number of hosts that are known
-//
-// The result will be in the FileInfo object
-
-int UgrLocPlugin_legacylfc::do_waitStat(UgrFileInfo *fi, int tmout) {
-    const char *fname = "UgrLocPlugin_legacylfc::do_waitStat";
-
-    unique_lock<mutex> lck(*fi);
-
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    time_t timelimit = time(0)+tmout;
-
-    while (fi->getStatStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        fi->waitForSomeUpdate(lck, 1);
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-    Info(SimpleDebug::kLOW, fname << name, "Stub!");
-    return 0;
-}
 
 // Start the async location process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
 
 int UgrLocPlugin_legacylfc::do_Locate(UgrFileInfo *fi) {
-    const char *fname = "UgrLocPlugin_legacylfc::do_waitStat";
+    const char *fname = "UgrLocPlugin_legacylfc::do_Locate";
 
 
     // We immediately notify that this plugin is starting a search for this info
@@ -155,31 +118,8 @@ int UgrLocPlugin_legacylfc::do_Locate(UgrFileInfo *fi) {
         wrkqueue.push_back(fi);
         qcond.notify_all();
     }
-    
-    Info(SimpleDebug::kLOW, fname << name, "Stub!");
-    return 0;
-}
 
-// Waits max a number of seconds for a locate process to be complete
-
-int UgrLocPlugin_legacylfc::do_waitLocate(UgrFileInfo *fi, int tmout) {
-    const char *fname = "UgrLocPlugin_legacylfc::do_waitStat";
-
-    unique_lock<mutex> lck(*fi);
-
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    time_t timelimit = time(0)+tmout;
-
-    while (fi->getLocationStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        fi->waitForSomeUpdate(lck, 1);
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-
-
-    Info(SimpleDebug::kLOW, fname << name, "Stub!");
+    Info(SimpleDebug::kLOW, fname, "Requested info for " << name);
     return 0;
 }
 
@@ -188,7 +128,7 @@ int UgrLocPlugin_legacylfc::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // so they act concurrently
 
 int UgrLocPlugin_legacylfc::do_List(UgrFileInfo *fi) {
-    const char *fname = "UgrLocPlugin_legacylfc::do_waitStat";
+    const char *fname = "UgrLocPlugin_legacylfc::do_List";
 
 
     // We immediately notify that this plugin is starting a search for this info
@@ -202,33 +142,10 @@ int UgrLocPlugin_legacylfc::do_List(UgrFileInfo *fi) {
         qcond.notify_all();
     }
 
-    Info(SimpleDebug::kLOW, fname << name, "Stub!");
+    Info(SimpleDebug::kLOW, fname, "Requested info for " << name);
     return 0;
 }
 
-// Waits max a number of seconds for a list process to be complete
-
-int UgrLocPlugin_legacylfc::do_waitList(UgrFileInfo *fi, int tmout) {
-    const char *fname = "UgrLocPlugin_legacylfc::do_waitStat";
-
-    unique_lock<mutex> lck(*fi);
-
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    time_t timelimit = time(0)+tmout;
-
-    while (fi->getLocationStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        fi->waitForSomeUpdate(lck, 2);
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-
-
-
-    Info(SimpleDebug::kLOW, fname, "Stub!");
-    return 0;
-}
 
 
 

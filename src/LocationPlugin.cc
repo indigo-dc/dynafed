@@ -54,6 +54,8 @@ void fakepluginFunc(UgrFileInfo* fi)
 int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     const char *fname = "LocationPlugin::do_Stat";
 
+    Info(SimpleDebug::kHIGHEST, fname, "Entering");
+
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
@@ -62,7 +64,6 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     // This plugin is a fake one, that spawns a thread which populates the result after some time
     boost::thread workerThread(fakepluginFunc, fi);
 
-    Info(SimpleDebug::kLOW, fname, "Stub!");
     return 0;
 };
 
@@ -88,22 +89,13 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
 // The result will be in the FileInfo object
 
 int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
-    //const char *fname = "LocationPlugin::do_waitStat";
+    const char *fname = "LocationPlugin::do_waitStat";
+
+    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    time_t timelimit = time(0)+tmout;
-    
-    while (fi->getStatStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        if (!fi->waitForSomeUpdate(lck, 1)) break;
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-
-    return 0;
+    return fi->waitStat(lck, tmout);
 }
 
 // Start the async location process
@@ -111,8 +103,9 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 // so they act concurrently
 
 int LocationPlugin::do_Locate(UgrFileInfo *fi) {
-    const char *fname = "LocationPlugin::do_waitStat";
+    const char *fname = "LocationPlugin::do_Locate";
 
+    Info(SimpleDebug::kHIGHEST, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -121,32 +114,19 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi) {
 
     // This plugin is a fake one, that spawns a thread which populates the result after some time
     boost::thread workerThread(fakepluginFunc, fi);
-
-    Info(SimpleDebug::kLOW, fname, "Stub!");
     return 0;
 }
 
 // Waits max a number of seconds for a locate process to be complete
 
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
-    const char *fname = "LocationPlugin::do_waitStat";
+    const char *fname = "LocationPlugin::do_waitLocate";
+
+    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    time_t timelimit = time(0)+tmout;
-
-    while (fi->getLocationStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        if (!fi->waitForSomeUpdate(lck, 1)) break;
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-
-
-    Info(SimpleDebug::kLOW, fname, "Stub!");
-    return 0;
+    return fi->waitLocations(lck, tmout);
 }
 
 // Start the async listing process
@@ -154,9 +134,10 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // so they act concurrently
 
 int LocationPlugin::do_List(UgrFileInfo *fi) {
-    const char *fname = "LocationPlugin::do_waitStat";
+    const char *fname = "LocationPlugin::do_List";
 
-    
+    Info(SimpleDebug::kHIGHEST, fname, "Entering");
+
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
@@ -165,32 +146,21 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
     // This plugin is a fake one, that spawns a thread which populates the result after some time
     boost::thread workerThread(fakepluginFunc, fi);
 
-    Info(SimpleDebug::kLOW, fname, "Stub!");
     return 0;
 }
 
 // Waits max a number of seconds for a list process to be complete
 
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
-    const char *fname = "LocationPlugin::do_waitStat";
+    const char *fname = "LocationPlugin::do_waitList";
+
+    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
     // If still pending, we wait for the file object to get a notification
     // then we recheck...
-    time_t timelimit = time(0)+tmout;
-
-    while (fi->getLocationStatus() == UgrFileInfo::InProgress) {
-        // Ignore the timeouts, exit only on an explicit notification
-        if (!fi->waitForSomeUpdate(lck, 2)) break;
-        // On global timeout... stop waiting
-        if (time(0) > timelimit) break;
-    }
-
-
-
-    Info(SimpleDebug::kLOW, fname, "Stub!");
-    return 0;
+    return fi->waitItems(lck, tmout);
 }
 
 

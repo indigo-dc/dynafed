@@ -50,18 +50,13 @@ public:
 
    // Start the async stat process
    virtual int do_Stat(UgrFileInfo *fi);
-   // Waits max a number of seconds for a locate process to be complete
-   virtual int do_waitStat(UgrFileInfo *fi, int tmout=5);
 
    // Start the async location process
    virtual int do_Locate(UgrFileInfo *fi);
-   // Waits max a number of seconds for a locate process to be complete
-   virtual int do_waitLocate(UgrFileInfo *fi, int tmout=5);
 
    // Start the async listing process
    virtual int do_List(UgrFileInfo *fi);
-   // Waits max a number of seconds for a list process to be complete
-   virtual int do_waitList(UgrFileInfo *fi, int tmout=5);
+
 
 };
 

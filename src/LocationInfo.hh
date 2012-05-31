@@ -204,6 +204,9 @@ public:
    // Useful to recheck if what came is what we were waiting for
    // 0 if notif received, nonzero if tmout
    int waitForSomeUpdate(boost::unique_lock<boost::mutex> &l, int sectmout);
+   int waitStat(boost::unique_lock<boost::mutex> &l, int sectmout);
+   int waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout);
+   int waitItems(boost::unique_lock<boost::mutex> &l, int sectmout);
    
    // Signal that something changed
    int signalSomeUpdate();
