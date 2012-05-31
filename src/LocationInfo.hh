@@ -41,7 +41,8 @@ public:
 /// This is the compare functor that keeps them sorted by name
 class UgrFileItemComp {
 public:
-
+	virtual ~UgrFileItemComp(){};
+	
     virtual bool operator()(UgrFileItem s1, UgrFileItem s2) {
         if (s1.name < s2.name)
             return true;
@@ -58,6 +59,7 @@ private:
 public:
 
     UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {};
+    virtual ~UgrFileItemGeoComp(){};
     
     virtual bool operator()(UgrFileItem s1, UgrFileItem s2) {
         if (s1.name < s2.name)

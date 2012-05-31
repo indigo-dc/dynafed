@@ -108,8 +108,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_getReplicas(" << cannonical_name << ")");
-                // do nothing for now
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << cannonical_name << ")");
+                dav_core->stat(cannonical_name, &st);
                 break;
 
             case LocationPlugin::wop_List:
@@ -133,7 +133,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         LocPluginLogErr(fname, " UgrDav plugin request Error: Unknow Error Fatal  ");
     }
 
-    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+
 
 
 
@@ -142,6 +142,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
+		LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);		
         switch (op->wop) {
 
 
@@ -159,26 +160,39 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
-                // disabled
-                break;
+                    it.name = cannonical_name;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
 
-            case LocationPlugin::wop_List:
-                dirent * dent;
-                while ((dent = dav_core->readdir(d)) != NULL) {
-                    UgrFileItem it;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
-                    it.name = std::string(dent->d_name);
-                    it.location.clear();
-
+                    // Process it with the Geo plugin, if needed
+                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
                     {
                         // Lock the file instance
                         unique_lock<mutex> l(*(op->fi));
+
                         op->fi->subitems.insert(it);
                     }
-                }
-                dav_core->closedir(d);
+					op->fi->status_locations = UgrFileInfo::Ok;
+                break;                 
 
-                op->fi->status_items = UgrFileInfo::Ok;
+            case LocationPlugin::wop_List:
+				{
+					dirent * dent;
+					unique_lock<mutex> l(*(op->fi));                
+					while ((dent = dav_core->readdir(d)) != NULL) {
+						UgrFileItem it;
+						LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+						it.name = std::string(dent->d_name);
+						it.location.clear();
+
+						// Lock the file instance
+
+						op->fi->subitems.insert(it);
+
+					}
+					dav_core->closedir(d);
+
+					op->fi->status_items = UgrFileInfo::Ok;
+			   }
                 break;
 
             default:

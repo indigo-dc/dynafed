@@ -1,6 +1,6 @@
 
-/* testlistdir
- * list a directory content by Ugr
+/* testlocate
+ * list replicas  by Ugr
  * 
  */
 
@@ -27,18 +27,18 @@ int main(int argc, char **argv) {
     if (ugr.init(argv[2]))
         return 1;
 
-    cout << "Invoking list " << endl;
+    cout << "Invoking Locate " << endl;
     string fn = argv[3];
 
 	UgrFileInfo* file_infos=NULL;
-    ugr.list(fn, &file_infos);
+    ugr.locate(fn, &file_infos);
 
-    if (file_infos->getItemsStatus() == UgrFileInfo::Ok) {
+    if (file_infos->getLocationStatus() == UgrFileInfo::Ok) {
            for(std::set<UgrFileItem, UgrFileItemComp>::iterator it = file_infos->subitems.begin();
 				it != file_infos->subitems.end();
 				++it)
-				std::cout << "File :  " << it->name << " " << it->location << std::endl;
-    }else if(file_infos->getStatStatus() == UgrFileInfo::NotFound ){
+				std::cout << "Replicas :  " << it->name << " " << it->location << std::endl;
+    }else if(file_infos->getLocationStatus() == UgrFileInfo::NotFound ){
 		std::cerr << "file : " << fn << " " << strerror(ENOENT) << std::endl;
 		return -1;
 	}else{
@@ -46,6 +46,6 @@ int main(int argc, char **argv) {
 		return -2;
 	}
 	
-    cout << "End listdir " << endl;	
+    cout << "End Locate " << endl;	
     return 0;
 }
