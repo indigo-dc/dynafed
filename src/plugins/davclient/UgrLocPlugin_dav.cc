@@ -52,7 +52,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
 
 			case LocationPlugin::wop_Stat:
 				LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << cannonical_name << ")");
-				dav_core->stat(cannonical_name, &st);
+				dav_core->stat(cannonical_name, &st);			
 				break;
 
 			case LocationPlugin::wop_Locate:
@@ -102,7 +102,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
                     op->fi->size = st.st_size;
                     //op->fi->lastupdreqtime = st.st_mtime;
                     op->fi->status_statinfo = UgrFileInfo::Ok;
-                    op->fi->unixflags = st.st_mode | 0775;
+                    op->fi->unixflags = st.st_mode | S_IFDIR;;
                 break;
 
             case LocationPlugin::wop_Locate:
@@ -116,10 +116,12 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
                     UgrFileItem it;					
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
 					it.name = std::string(dent->d_name);
+                    it.location.clear();					
                     op->fi->subitems.insert(it);	
 				}
-                op->fi->status_items = UgrFileInfo::Ok;		
                 dav_core->closedir(d);
+                op->fi->status_statinfo = UgrFileInfo::Ok;                
+                op->fi->status_items = UgrFileInfo::Ok;                   
                 break;
 				
             default:
@@ -141,6 +143,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
                 break;
 
             case LocationPlugin::wop_List:
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");                     
                 op->fi->notifyItemsNotPending();
                 break;
 
