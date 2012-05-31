@@ -39,7 +39,7 @@ ENDIF()
 
 # -----------------------
 # Look for the external packages that are needed, for both the core and the plugins
-find_package( Boost 1.36.0 COMPONENTS date_time filesystem system thread)
+find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread)
 
 # Look for the LFC client
 find_package(LFC 1.8.0)
