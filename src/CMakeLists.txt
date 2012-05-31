@@ -29,7 +29,7 @@ include_directories(${PROJECT_BINARY_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
 
-set(CMAKE_CXX_FLAGS "-O0 -g -Wall")
+set(CMAKE_CXX_FLAGS "-O3 -g -Wall")
 
 
 add_subdirectory(plugins)

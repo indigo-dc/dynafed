@@ -36,6 +36,9 @@ public:
 
    /// Sets, wherever needed the geo information in the replica
    virtual void setReplicaLocation(UgrFileItem &it);
+
+   /// Gets latitude and longitude of a client
+   virtual void getAddrLocation(std::string &clientip, float &ltt, float &lng);
 };
 
 

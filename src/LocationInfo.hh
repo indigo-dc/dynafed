@@ -37,11 +37,29 @@ public:
     float longitude;
 };
 
-/// Instances of UgrFileItem may be kept in a quasi-sorted way. This is the compare functor
+/// Instances of UgrFileItem may be kept in a quasi-sorted way.
+/// This is the compare functor that keeps them sorted by name
 class UgrFileItemComp {
 public:
 
-    bool operator()(UgrFileItem s1, UgrFileItem s2) {
+    virtual bool operator()(UgrFileItem s1, UgrFileItem s2) {
+        if (s1.name < s2.name)
+            return true;
+        else
+            return false;
+    }
+};
+
+/// Instances of UgrFileItem may be kept in a quasi-sorted way.
+/// This is the compare functor that sorts them by distance from a point
+class UgrFileItemGeoComp: public UgrFileItemComp {
+private:
+    float ltt, lng;
+public:
+
+    UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {};
+    
+    virtual bool operator()(UgrFileItem s1, UgrFileItem s2) {
         if (s1.name < s2.name)
             return true;
         else

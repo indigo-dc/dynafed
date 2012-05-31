@@ -403,3 +403,15 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 };
 
 
+std::set<UgrFileItem, UgrFileItemComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
+    float ltt = 0.0, lng = 0.0;
+    
+    if (geoPlugin) {
+        UgrFileItemGeoComp cmp(ltt, lng);
+        geoPlugin->getAddrLocation(clientip, ltt, lng);
+        std::set<UgrFileItem, UgrFileItemComp> newset( nfo->subitems.begin(), nfo->subitems.end(), cmp);
+        return newset;
+    }
+
+    return nfo->subitems;
+}

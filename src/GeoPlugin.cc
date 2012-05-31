@@ -34,6 +34,14 @@ void GeoPlugin::setReplicaLocation(UgrFileItem &it) {
 };
 
 
+void GeoPlugin::getAddrLocation(std::string &clientip, float &ltt, float &lng) {
+
+}
+
+
+
+
+
 
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff

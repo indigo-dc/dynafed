@@ -76,6 +76,7 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
 
     if (gir == NULL) {
         Error(fname, "GeoIP_record_by_name failed: " << srv.c_str());
+        return;
     }
 
     Info(SimpleDebug::kHIGH, fname, "Got geo info: " << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
@@ -90,6 +91,24 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
     GeoIPRecord_delete(gir);
     return;
 };
+
+
+
+void UgrGeoPlugin_GeoIP::getAddrLocation(std::string &clientip, float &ltt, float &lng) {
+    const char *fname = "UgrGeoPlugin::getAddrLocation";
+    GeoIPRecord *gir = GeoIP_record_by_name(gi, (const char *)clientip.c_str());
+
+    if (gir == NULL) {
+        Error(fname, "GeoIP_record_by_name failed: " << clientip.c_str());
+        ltt = lng = 0.0;
+        return;
+    }
+
+    ltt = gir->latitude;
+    lng = gir->longitude;
+
+    GeoIPRecord_delete(gir);
+}
 
 
 

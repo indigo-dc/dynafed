@@ -116,13 +116,19 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     UgrFileInfo *nfo = 0;
 
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
+        const char *clientip = 0;
+        
+        Credentials cred = getSecurityContext().getCredentials();
+        clientip = cred.remote_addr;
 
+        // Request UgrConnector to order a replica set according to proximity to the client
+        std::set<UgrFileItem, UgrFileItemComp> repls = getUgrConnector()->getGeoSortedReplicas(clientip, nfo);
 
         // Populate the vector
         FileReplica r;
         Uri u;
-        for (std::set<UgrFileItem>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i) {
-            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name);
+        for (std::set<UgrFileItem>::iterator i = repls.begin(); i != repls.end(); ++i) {
+            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
             r.fileid = 0;
             r.replicaid = 0;
             r.status = '-';
@@ -141,13 +147,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
             replicas.push_back(r);
         }
 
-        // Remove excluded
-        std::vector<FileReplica>::iterator i;
-        for (i = replicas.begin(); i != replicas.end(); ++i) {
-            if (this->isExcluded(i->replicaid)) {
-                i = replicas.erase(i);
-            }
-        }
+        
     }
 
     // Return
