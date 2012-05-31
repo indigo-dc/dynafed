@@ -88,7 +88,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     std::string cannonical_name = base_url;
     bool bad_answer = true;
     DAVIX_DIR* d = NULL;
-
+    bool listerror = false;
 
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
@@ -148,15 +148,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_Stat:
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-            {
-                // Lock the file instance
-                unique_lock<mutex> l(*(op->fi));
-
-                op->fi->size = st.st_size;
-                //op->fi->lastupdreqtime = st.st_mtime;
-                op->fi->status_statinfo = UgrFileInfo::Ok;
-                op->fi->unixflags = st.st_mode;
-            }
+                op->fi->takeStat(st);
                 break;
 
             case LocationPlugin::wop_Locate:
@@ -165,20 +157,31 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
                 // Process it with the Geo plugin, if needed
                 if (geoPlugin) geoPlugin->setReplicaLocation(it);
-                {
+            {
                 // Lock the file instance
                 unique_lock<mutex> l(*(op->fi));
 
                 op->fi->subitems.insert(it);
-                }
-                op->fi->status_locations = UgrFileInfo::Ok;
+            }
+
                 break;
 
             case LocationPlugin::wop_List:
             {
                 dirent * dent;
-                unique_lock<mutex> l(*(op->fi));
+                long cnt = 0;
                 while ((dent = dav_core->readdir(d)) != NULL) {
+                    unique_lock<mutex> l(*(op->fi));
+
+
+                    if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                        listerror = true;
+                        op->fi->subitems.clear();
+                        break;
+                    }
+
+
                     UgrFileItem it;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
                     it.name = std::string(dent->d_name);
@@ -191,7 +194,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 }
                 dav_core->closedir(d);
 
-                op->fi->status_items = UgrFileInfo::Ok;
+
             }
                 break;
 
@@ -219,10 +222,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_Locate:
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
+                op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
 
             case LocationPlugin::wop_List:
+                if (listerror) {
+                    op->fi->status_items = UgrFileInfo::Error;
+
+                } else
+                    op->fi->status_items = UgrFileInfo::Ok;
+
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
                 op->fi->notifyItemsNotPending();
                 break;
