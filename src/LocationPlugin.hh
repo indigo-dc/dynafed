@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <boost/thread.hpp>
+#include "GeoPlugin.hh"
 
 
 #define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
@@ -51,7 +52,9 @@ protected:
         wop_List
     };
 
-
+    /// This is a pointer to the currently loaded instance of a GeoPlugin, i.e. an object
+    /// that gives GPS coordinates to file replicas
+    GeoPlugin *geoPlugin;
 
     /// The description of an operation to be done asynchronously
     struct worktoken {
@@ -88,6 +91,8 @@ public:
 
    virtual void stop();
    virtual int start();
+
+   virtual void setGeoPlugin(GeoPlugin *gp) { geoPlugin = gp; };
 
    // Calls that characterize the behevior of the plugin
    // In general:

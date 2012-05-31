@@ -15,6 +15,7 @@
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+
 /// The information that we have about a subitem, e.g. an item in a directory listing,
 /// or an item in a list of replicas. Maybe a file or directory
 /// If the owner is a directory then this is a (relative) item of its listing
@@ -22,11 +23,18 @@
 /// This can be used to build the full name of a file and fetch its info separately
 class UgrFileItem {
 public:
+
+    UgrFileItem(): latitude(0.0), longitude(0.0) {};
+    
     // The item's name
     std::string name;
 
     // Some info about the location, e.g. galactic coordinates
     std::string location;
+
+    // Some info about the geographical location
+    float latitude;
+    float longitude;
 };
 
 /// Instances of UgrFileItem may be kept in a quasi-sorted way. This is the compare functor

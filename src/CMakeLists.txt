@@ -16,7 +16,7 @@ configure_file (
 # Local targets
 # -------------------------
 
-set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc UgrConnector.cc /
+set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc GeoPlugin.cc UgrConnector.cc /
   PluginLoader.cc SimpleDebug.cc)
 
 

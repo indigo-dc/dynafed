@@ -15,6 +15,7 @@
 #include "LocationInfoHandler.hh"
 #include "HostsInfoHandler.hh"
 #include "LocationPlugin.hh"
+#include "GeoPlugin.hh"
 
 
 #include <string>
@@ -28,6 +29,10 @@ private:
     boost::thread *ticker;
 
 protected:
+
+    /// This is the currently loaded instance of a GeoPlugin, i.e. an object
+    /// that gives GPS coordinates to file replicas
+    GeoPlugin *geoPlugin;
 
     /// This holds in memory at least the entries that are being processed
     /// Eventually it may grow or demand a more scalable caching to an external entity
@@ -51,21 +56,21 @@ protected:
     /// so they act concurrently
     int do_Stat(UgrFileInfo *fi);
     /// Waits max a number of seconds for a stat process to be complete
-    int do_waitStat(UgrFileInfo *fi, int tmout = 5);
+    int do_waitStat(UgrFileInfo *fi, int tmout = 30);
 
     /// Start the async location process
     /// In practice, trigger all the location plugins, possibly together,
     /// so they act concurrently
     int do_Locate(UgrFileInfo *fi);
     /// Waits max a number of seconds for a locate process to be complete
-    int do_waitLocate(UgrFileInfo *fi, int tmout = 5);
+    int do_waitLocate(UgrFileInfo *fi, int tmout = 30);
 
     /// Start the async listing process
     /// In practice, trigger all the location plugins, possibly together,
     /// so they act concurrently
     int do_List(UgrFileInfo *fi);
     /// Waits max a number of seconds for a list process to be complete
-    int do_waitList(UgrFileInfo *fi, int tmout = 5);
+    int do_waitList(UgrFileInfo *fi, int tmout = 30);
 
     /// Invoked by the ticker thread, gives life to the object
     virtual void tick(int parm);
@@ -78,7 +83,7 @@ protected:
     bool initdone;
 public:
 
-    UgrConnector() : ticker(0), ticktime(10), initdone(false) {
+    UgrConnector() : ticker(0), geoPlugin(0), ticktime(10), initdone(false) {
         const char *fname = "UgrConnector::ctor";
         Info(SimpleDebug::kLOW, fname, "Ctor");
     };

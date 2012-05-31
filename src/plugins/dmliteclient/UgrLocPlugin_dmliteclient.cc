@@ -134,7 +134,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     op->fi->size = st.st_size;
                     op->fi->status_statinfo = UgrFileInfo::Ok;
                     op->fi->unixflags = st.st_mode;
-                    if (st.st_nlink > CFG->GetLong("glb.maxlistitems", 1000)) {
+                    if ((long)st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
                         op->fi->subitems.clear();
                         op->fi->status_items = UgrFileInfo::Error;
                     }
@@ -152,10 +153,14 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                             i++) {
                         it.name = i->unparsed_location;
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->unparsed_location);
-                        it.location.clear();
+      
+                        // Process it with the Geo plugin, if needed
+                        if (geoPlugin) geoPlugin->setLocation(it);
+
                         op->fi->subitems.insert(it);
                     }
                     op->fi->status_locations = UgrFileInfo::Ok;
+
                 }
                 break;
 
@@ -169,7 +174,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     long cnt = 0;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
                     while ((dent = catalog->readDir(d))) {
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 1000)) {
+                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subitems.clear();
                             break;

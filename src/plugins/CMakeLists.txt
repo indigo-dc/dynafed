@@ -7,7 +7,7 @@ add_subdirectory(simpleHTTP)
 add_subdirectory(dmlite)
 add_subdirectory(dmliteclient)
 add_subdirectory(davclient)
-
+# add_subdirectory(geoIP)
 
 
 

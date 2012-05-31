@@ -83,8 +83,7 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
         }
     }
 
-
-
+    geoPlugin = 0;
 
     exiting = false;
     
@@ -182,8 +181,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
 
     if (mytk) {
         LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "got op:" << mytk->wop);
-    } else
-        LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "got no op.");
+    }
 
     return mytk;
 }

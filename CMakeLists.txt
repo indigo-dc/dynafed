@@ -17,7 +17,7 @@ configure_file (
 )
 
 # add configure build options
-SET(PLUGIN_WEBDAV FALSE
+SET(PLUGIN_WEBDAV TRUE 
 	CACHE STRING "enable compilation of the Webdav plugin")
 
 

@@ -101,7 +101,20 @@ int UgrConnector::init(char *cfgfile) {
     ticktime = CFG->GetLong("glb.tick", 10);
 
 
-    // Cycle through the plugins that have to be loaded
+    // Load a GeoPlugin, if specified
+    string s = CFG->GetString("glb.geoplugin", (char *)"");
+    geoPlugin = 0;
+    if (s != "") {
+        vector<string> parms = tokenize(s, " ");
+
+        Info(SimpleDebug::kLOW, fname, "Attempting to load Geo plugin " << s);
+        geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
+                    SimpleDebug::Instance(),
+                    Config::GetInstance(),
+                    parms);
+    }
+
+    // Cycle through the location plugins that have to be loaded
     char buf[1024];
     int i = 0;
 
@@ -116,7 +129,10 @@ int UgrConnector::init(char *cfgfile) {
                     SimpleDebug::Instance(),
                     Config::GetInstance(),
                     parms);
-            if (prod) locPlugins.push_back(prod);
+            if (prod) {
+                prod->setGeoPlugin(geoPlugin);
+                locPlugins.push_back(prod);
+            }
         }
         i++;
     } while (buf[0]);
