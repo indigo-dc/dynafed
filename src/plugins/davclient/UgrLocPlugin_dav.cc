@@ -99,7 +99,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
 					op->fi->size = st.st_size;
 					//op->fi->lastupdreqtime = st.st_mtime;
 					op->fi->status_statinfo = UgrFileInfo::Ok;
-					op->fi->unixflags = st.st_mode | S_IFDIR;;
+					op->fi->unixflags = st.st_mode;
 				break;
 
 			case LocationPlugin::wop_Locate:
