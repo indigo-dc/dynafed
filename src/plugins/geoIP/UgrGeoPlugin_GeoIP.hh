@@ -46,3 +46,4 @@ GeoPlugin *GetGeoPluginClass(char *pluginPath, GetGeoPluginArgs);
 
 
 #endif
+
