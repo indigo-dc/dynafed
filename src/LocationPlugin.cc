@@ -1,7 +1,7 @@
 #include "LocationPlugin.hh"
 #include "PluginLoader.hh"
 #include <time.h>
-
+#include <sys/stat.h>
 
 using namespace boost;
 
@@ -141,14 +141,15 @@ void LocationPlugin::runsearch(struct worktoken *op) {
         op->fi->lastupdtime = time(0);
         op->fi->size = 12345;
         op->fi->status_statinfo = UgrFileInfo::Ok;
-        op->fi->unixflags = 0777;
-
+        op->fi->unixflags = 0775;
+        op->fi->unixflags |= S_IFDIR;
+        
         // Create a fake list information
+        UgrFileItem fit;
         for (int ii = 0; ii < 10; ii++) {
-            UgrFileItem *fit = new UgrFileItem();
-            fit->name = "newhost/myfilepath" + boost::lexical_cast<std::string > (ii);
-            fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
-            op->fi->subitems.push_back(fit);
+            fit.name = "myfilepath" + boost::lexical_cast<std::string > (ii);
+            fit.location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
+            op->fi->subitems.insert(fit);
         }
         op->fi->status_items = UgrFileInfo::Ok;
 

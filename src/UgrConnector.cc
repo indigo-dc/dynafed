@@ -14,51 +14,54 @@
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 using namespace std;
 
+vector<string> tokenize(const string& str, const string& delimiters) {
+    vector<string> tokens;
 
+    // skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
 
-vector<string> tokenize(const string& str,const string& delimiters)
-{
-	vector<string> tokens;
+    // find first "non-delimiter".
+    string::size_type pos = str.find_first_of(delimiters, lastPos);
 
-	// skip delimiters at beginning.
-    	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    while (string::npos != pos || string::npos != lastPos) {
+        // found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
 
-	// find first "non-delimiter".
-    	string::size_type pos = str.find_first_of(delimiters, lastPos);
+        // skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
 
-    	while (string::npos != pos || string::npos != lastPos)
-    	{
-        	// found a token, add it to the vector.
-        	tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
 
-        	// skip delimiters.  Note the "not_of"
-        	lastPos = str.find_first_not_of(delimiters, pos);
-
-        	// find next "non-delimiter"
-        	pos = str.find_first_of(delimiters, lastPos);
-    	}
-
-	return tokens;
+    return tokens;
 }
 
 
-
+void trimpath(std::string &s) {
+    if (*(s.rbegin()) == '/')
+        s.erase(s.size()-1);
+}
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
 
 
 // Invoked by a thread, gives life to the object
+
 void UgrConnector::tick(int parm) {
 
     const char *fname = "UgrConnector::tick";
     Info(SimpleDebug::kLOW, fname, "Ticker started");
 
     ticker->detach();
-    
-    while(!ticker->interruption_requested()) {
+
+    while (!ticker->interruption_requested()) {
         Info(SimpleDebug::kHIGHEST, fname, "Tick.");
         sleep(ticktime);
         locHandler.tick();
@@ -66,7 +69,6 @@ void UgrConnector::tick(int parm) {
 
     Info(SimpleDebug::kLOW, fname, "Ticker exiting");
 }
-
 
 UgrConnector::~UgrConnector() {
     const char *fname = "UgrConnector::~UgrConnector";
@@ -126,7 +128,7 @@ int UgrConnector::init(char *cfgfile) {
             // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
             // An empty string does not load any plugin, just keeps the default behavior
             Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
-            LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *)parms[0].c_str(),
+            LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) parms[0].c_str(),
                     SimpleDebug::Instance(),
                     Config::GetInstance(),
                     parms);
@@ -150,7 +152,7 @@ int UgrConnector::init(char *cfgfile) {
         Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
 
 
-    ticker = new boost::thread( boost::bind( &UgrConnector::tick, this, 0 ));
+    ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
 
     initdone = true;
     return 0;
@@ -176,6 +178,8 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
+    trimpath(lfn);
+    
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
     UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
@@ -192,9 +196,40 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     return 0;
 }
 
+void UgrConnector::statSubdirs(UgrFileInfo *fi) {
+    const char *fname = "UgrConnector::statSubdirs";
+    
+    boost::lock_guard<UgrFileInfo > l(*fi);
+
+    // if it's not a dir then exit
+    if (!(fi->unixflags & S_IFDIR)) return;
+
+    Info(SimpleDebug::kHIGHEST, fname, "Stat-ing all the subitems of " << fi->name);
+
+    // Cycle through all the subdirs (fi is locked)
+    for (std::set<UgrFileItem>::iterator i = fi->subitems.begin();
+            i != fi->subitems.end();
+            i++) {
+
+        std::string cname = fi->name;
+        cname += "/";
+        cname += i->name;
+
+        UgrFileInfo *fi2 = locHandler.getFileInfoOrCreateNewOne(cname);
+        {
+            boost::lock_guard<UgrFileInfo > l(*fi2);
+            if (fi2->getStatStatus() == UgrFileInfo::NoInfo)
+                do_Stat(fi2);
+        }
+
+    }
+
+
+}
+
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
-    
+
 
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_Locate(fi);
@@ -214,6 +249,7 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
+    trimpath(lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -252,6 +288,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
+    trimpath(lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -265,6 +302,9 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     // wait for the search to finish by looking at the pending object
     do_waitList(fi);
+
+    // Stat all the childs in parallel, eventually
+    statSubdirs(fi);
 
     *nfo = fi;
 

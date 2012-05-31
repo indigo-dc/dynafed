@@ -28,7 +28,7 @@ UgrFactory::~UgrFactory() throw (DmException) {
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
     if (!key.compare("Ugr_cfgfile")) {
         cfgfile = value;
-       
+
 
     } else
         throw DmException(DM_UNKNOWN_OPTION, std::string("Unknown option ") + key);
@@ -67,7 +67,7 @@ PluginIdCard plugin_ugr = {
 
 UgrCatalog::UgrCatalog(Catalog* decorates) throw (DmException) :
 DummyCatalog(decorates) {
-    
+
 }
 
 UgrCatalog::~UgrCatalog() throw (DmException) {
@@ -158,16 +158,16 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 
         // Populate the vector
         FileReplica r;
-        for (std::vector<UgrFileItem *>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i) {
+        for (std::set<UgrFileItem>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i) {
 
             r.fileid = 0;
             r.replicaid = 0;
             r.status = '-';
 
-            strncpy(r.unparsed_location, (*i)->name.c_str(), sizeof (r.unparsed_location));
+            strncpy(r.unparsed_location, i->name.c_str(), sizeof (r.unparsed_location));
             r.unparsed_location[sizeof (r.unparsed_location - 1)] = '\0';
 
-            r.location = splitUri((*i)->name);
+            r.location = splitUri(i->name);
             replicas.push_back(r);
         }
 
@@ -187,7 +187,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 }
 
 void UgrCatalog::getIdMap(const std::string &userName, const std::vector<std::string> &groupNames,
-        uid_t *uid, std::vector<gid_t> *gids)  throw (DmException) {
+        uid_t *uid, std::vector<gid_t> *gids) throw (DmException) {
 
     *uid = 0;
     gids->push_back(0);
@@ -272,23 +272,26 @@ struct xstat UgrCatalog::extendedStat(const std::string& path) throw (DmExceptio
 class myDirectory {
   public:
     UgrFileInfo *nfo;
-    unsigned int idx;
+    std::set<UgrFileItem>::iterator idx;
 
     struct direntstat buf;
 
-    myDirectory(UgrFileInfo *finfo) : nfo(finfo), idx(0) {
+    myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
+        idx = finfo->subitems.begin();
         memset(&buf, 0, sizeof (buf));
     }
 
 };
 
 Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
-    myDirectory *d = new myDirectory(0);
-    if (!getUgrConnector()->list((std::string&)path, &(d->nfo)) && d->nfo && (d->nfo->getInfoStatus() != d->nfo->NotFound)) {
+    UgrFileInfo *fi;
+
+    if (!getUgrConnector()->list((std::string&)path, &fi) && fi && (fi->getInfoStatus() != fi->NotFound)) {
+
         // This is just an opaque pointer, we can store what we want
-        return (Directory *) (d);
+        return (Directory *) (new myDirectory(fi));
     }
-    return d;
+    return 0;
 }
 
 void UgrCatalog::closeDir(Directory *opaque) throw (DmException) {
@@ -299,11 +302,13 @@ void UgrCatalog::closeDir(Directory *opaque) throw (DmException) {
 struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
-    if (d->idx >= d->nfo->subitems.size()) return 0;
+    if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->buf.dirent.d_name, d->nfo->subitems[d->idx]->name.c_str(), sizeof (d->buf.dirent.d_name));
+    strncpy(d->buf.dirent.d_name, (d->idx)->name.c_str(), sizeof (d->buf.dirent.d_name));
     d->buf.dirent.d_name[sizeof (d->buf.dirent.d_name) - 1] = '\0';
+
+    d->idx++;
 
     return &(d->buf.dirent);
 }
@@ -311,17 +316,22 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
 struct direntstat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
-    if (d->idx >= d->nfo->subitems.size()) return 0;
+    if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->buf.dirent.d_name, d->nfo->subitems[d->idx]->name.c_str(), sizeof (d->buf.dirent.d_name));
+    strncpy(d->buf.dirent.d_name, (d->idx)->name.c_str(), sizeof (d->buf.dirent.d_name));
     d->buf.dirent.d_name[sizeof (d->buf.dirent.d_name) - 1] = '\0';
 
     std::string s = d->nfo->name;
-    s += "/";
+
+    if (*s.rbegin() != '/')
+        s += "/";
+    
     s += d->buf.dirent.d_name;
 
     d->buf.stat = stat(s);
+
+    d->idx++;
 
     return &(d->buf);
 }

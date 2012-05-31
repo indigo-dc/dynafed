@@ -130,8 +130,8 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
 void UgrFileInfo::print(ostream &out) {
     out << "Name: " << name << endl;
     out << "Size:" << size << endl;
-    for (unsigned int i = 0; i < subitems.size(); i++) {
-        out << "loc: \"" << subitems[i]->location << "\" name: \"" << subitems[i]->name << "\"" << endl;
+    for (std::set<UgrFileItem>::iterator i = subitems.begin(); i != subitems.end(); i++) {
+        out << "loc: \"" << i->location << "\" name: \"" << i->name << "\"" << endl;
     }
 
 }

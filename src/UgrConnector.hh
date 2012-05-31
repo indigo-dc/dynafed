@@ -71,13 +71,15 @@ protected:
     // Invoked by a thread, gives life to the object
     virtual void tick(int parm);
 
+    // Helper func that starts a parallel stat task for all the subdirs of the given dir
+    void statSubdirs(UgrFileInfo *fi);
 
     unsigned int ticktime;
 
     bool initdone;
 public:
 
-    UgrConnector() : ticker(0), initdone(false), ticktime(10) {
+    UgrConnector() : ticker(0), ticktime(10), initdone(false) {
         const char *fname = "UgrConnector::ctor";
         Info(SimpleDebug::kLOW, fname, "Ctor");
     };
