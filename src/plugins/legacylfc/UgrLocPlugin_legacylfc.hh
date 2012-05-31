@@ -10,12 +10,41 @@
 
 #include "../../LocationPlugin.hh"
 
+
+
+
+class UgrLocPlugin_legacylfc;
+void lfcworker(UgrLocPlugin_legacylfc* plugin);
+
+
+
 class UgrLocPlugin_legacylfc: public LocationPlugin {
+protected:
+    // A simple worker queue
+    std::deque<UgrFileInfo *> wrkqueue;
+    // A mutex for this queue
+    boost::mutex qmtx;
+    // A condvar to sleep into
+    boost::condition_variable qcond;
+    // The worker thread
+    boost::thread *worker;
+
+    friend void lfcworker(UgrLocPlugin_legacylfc* plugin);
+
+    void runitem(UgrFileInfo *fi);
 public:
 
    UgrLocPlugin_legacylfc(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms):
         LocationPlugin(dbginstance, cfginstance, parms) {
-            Info(SimpleDebug::kLOW, "UgrLocPlugin_legacylfc", "Created instance named " << name);
+
+            // This plugin is a fake one, that spawns a thread which populates the result after some time
+            worker = new boost::thread(lfcworker, this);
+            if (worker) {
+                Info(SimpleDebug::kLOW, "UgrLocPlugin_legacylfc", "Created instance named " << name);
+            }
+            else {
+                Error("UgrLocPlugin_legacylfc", "Unable to create worker thread.")
+            }
    };
 
 

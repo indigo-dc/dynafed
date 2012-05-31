@@ -4,17 +4,46 @@
 
 
 using namespace boost;
+using namespace std;
 
-void fakepluginFunc(UgrFileInfo* fi)
+void lfcworker(UgrLocPlugin_legacylfc* plugin)
 {
-    const char *fname = "UgrLocPlugin_legacylfc::fakepluginFunc";
+    const char *fname = "UgrLocPlugin_legacylfc::lfcworker";
+    string wrktoken;
 
-    boost::posix_time::seconds workTime(4);
+    posix_time::seconds workTime(4);
 
-    Info(SimpleDebug::kLOW, fname, "Worker: running on " << fi->name);
+    Info(SimpleDebug::kLOW, fname, "Worker: running.");
 
-    // Pretend to do something useful...
-    boost::this_thread::sleep(workTime);
+    do {
+        // Wait for an element
+        system_time const timeout = get_system_time()+posix_time::seconds(1);
+        unique_lock<mutex> qlck(plugin->qmtx);
+        
+        if (plugin->wrkqueue.size()) {
+            plugin->runitem(*plugin->wrkqueue.begin());
+            plugin->wrkqueue.pop_front();
+        }
+        else
+            plugin->qcond.timed_wait(qlck, timeout);
+        
+    } while(1);
+
+    
+    Info(SimpleDebug::kLOW, fname, "Worker: finished");
+
+}
+
+void UgrLocPlugin_legacylfc::runitem(UgrFileInfo *fi) {
+
+    // Contact the LFC, in this simple version just get all the
+    // possible information
+    // Cthread_init
+    // startsession
+    // stat
+    // diropen
+    // listreplicas
+
 
     {
         unique_lock<mutex> l(*fi);
@@ -45,14 +74,9 @@ void fakepluginFunc(UgrFileInfo* fi)
         fi->notifyItemsNotPending();
     }
 
-    Info(SimpleDebug::kLOW, fname, "Worker: finished");
-
 }
-
-
 // Start the async stat process
 // Mark the fileinfo with one more pending stat request (by this plugin)
-
 int UgrLocPlugin_legacylfc::do_Stat(UgrFileInfo* fi) {
     const char *fname = "UgrLocPlugin_legacylfc::do_Stat";
 
@@ -61,8 +85,13 @@ int UgrLocPlugin_legacylfc::do_Stat(UgrFileInfo* fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyStatPending();
 
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
+    // Push the entry to be looked up into the worker's queue
+    {
+        unique_lock<mutex> qlck(qmtx);
+        wrkqueue.push_back(fi);
+        qcond.notify_all();
+    }
+
 
     Info(SimpleDebug::kLOW, fname << name, "Stub!");
     return 0;
@@ -120,10 +149,13 @@ int UgrLocPlugin_legacylfc::do_Locate(UgrFileInfo *fi) {
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
     fi->notifyLocationPending();
-
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
-
+    // Push the entry to be looked up into the worker's queue
+    {
+        unique_lock<mutex> qlck(qmtx);
+        wrkqueue.push_back(fi);
+        qcond.notify_all();
+    }
+    
     Info(SimpleDebug::kLOW, fname << name, "Stub!");
     return 0;
 }
@@ -163,9 +195,12 @@ int UgrLocPlugin_legacylfc::do_List(UgrFileInfo *fi) {
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
     fi->notifyItemsPending();
-
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
+    // Push the entry to be looked up into the worker's queue
+    {
+        unique_lock<mutex> qlck(qmtx);
+        wrkqueue.push_back(fi);
+        qcond.notify_all();
+    }
 
     Info(SimpleDebug::kLOW, fname << name, "Stub!");
     return 0;
