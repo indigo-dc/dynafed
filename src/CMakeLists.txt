@@ -48,6 +48,8 @@ install(TARGETS UgrConnector
   LIBRARY DESTINATION ${LIBDESTINATION}
   COMPONENT Core)
 
+
+
 # Install the include files
 install(FILES UgrConnector.hh
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ

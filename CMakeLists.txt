@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.8)
-project (SEMsg)
+project (Ugr)
 
 # The version number
 set (UGR_VERSION_MAJOR 0)
@@ -43,6 +43,9 @@ find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread)
 
 # Look for the LFC client
 find_package(LFC 1.8.0)
+
+# Look for libDMlite
+find_package(DMLite 0.0)
 # ----------------------
 
 
@@ -80,4 +83,3 @@ ADD_CUSTOM_TARGET(package
   DEPENDS 
   COMMENT "Building packages..."
   VERBATIM)
-
