@@ -232,7 +232,10 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
     boost::lock_guard<UgrFileInfo > l(*fi);
 
     // if it's not a dir then exit
-    if (!(fi->unixflags & S_IFDIR)) return;
+    if (!(fi->unixflags & S_IFDIR)){
+	    Info(SimpleDebug::kMEDIUM, fname, "Try to sub-stat a file that is not a directory !! " << fi->name);	 
+		return;
+	}
 
     Info(SimpleDebug::kMEDIUM, fname, "Stat-ing all the subitems of " << fi->name);
 

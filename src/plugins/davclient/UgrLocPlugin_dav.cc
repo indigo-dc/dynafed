@@ -103,18 +103,20 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << cannonical_name << ")");
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << cannonical_name << ")");
                 dav_core->stat(cannonical_name, &st);
                 break;
 
             case LocationPlugin::wop_Locate:
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << cannonical_name << ")");
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_getReplicas(" << cannonical_name << ")");
                 // do nothing for now
                 break;
 
             case LocationPlugin::wop_List:
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking openDir(" << cannonical_name << ")");
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << cannonical_name << ")");
                 d = dav_core->opendir(cannonical_name);
+                // if reach here -> valid opendir -> specify file as well
+                op->fi->unixflags |= S_IFDIR;
                 break;
 
             default:

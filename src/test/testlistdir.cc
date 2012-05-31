@@ -33,14 +33,19 @@ int main(int argc, char **argv) {
 	UgrFileInfo* file_infos=NULL;
     ugr.list(fn, &file_infos);
 
-    if (file_infos->getStatStatus() == UgrFileInfo::Ok) {
+    if (file_infos->getItemsStatus() == UgrFileInfo::Ok) {
            for(std::set<UgrFileItem, UgrFileItemComp>::iterator it = file_infos->subitems.begin();
 				it != file_infos->subitems.end();
 				++it)
 				std::cout << " " << it->name << " " << it->location << std::endl;
     }else if(file_infos->getStatStatus() == UgrFileInfo::NotFound ){
-		std::cout << "file : " << fn << " " << strerror(ENOENT) << std::endl;
+		std::cerr << "file : " << fn << " " << strerror(ENOENT) << std::endl;
+		return -1;
+	}else{
+		std::cerr << " Unknow FATAL Error ! " << std::endl;
+		return -2;
 	}
 	
     cout << "End listdir " << endl;	
+    return 0;
 }
