@@ -19,7 +19,7 @@
 
 
 #define LocPluginLogInfo(l, n, c) Info(SimpleDebug::kMEDIUM, fname, "LocPlugin: " << this->name << " " << c);
-#define LocPluginLogErr(n, c) Info(fname, "LocPlugin: " << this->name << " " << c);
+#define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << " " << c);
 
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
@@ -31,7 +31,7 @@
 class LocationPlugin {
 
     /// Easy way to get threaded life
-    friend void pluginFunc(LocationPlugin *pl);
+    friend void pluginFunc(LocationPlugin *pl, int myidx);
 
 protected:
     /// The name assigned to this plugin from the creation
@@ -47,11 +47,18 @@ protected:
         wop_Locate,
         wop_List
     };
+
+
+
     /// The description of an operation to be done asynchronously
     struct worktoken {
         UgrFileInfo *fi;
         workOp wop;
     };
+
+    // Workaround for a bug in boost, where interrupt() hangs
+    bool exiting;
+
     /// Queue of the pending operations
     std::deque< struct worktoken *> workqueue;
     /// Condvar for synchronizing the queue
@@ -73,7 +80,7 @@ public:
 
    LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
    virtual ~LocationPlugin();
-
+   void stop();
 
    // Calls that characterize the behevior of the plugin
    // In general:

@@ -10,22 +10,19 @@
 
 using namespace boost;
 
-void pluginFunc(LocationPlugin *pl) {
+void pluginFunc(LocationPlugin *pl, int myidx) {
     const char *fname = "LocationPlugin::pluginFunc";
     Info(SimpleDebug::kMEDIUM, fname, "Worker: started");
 
     // Get some work to do
-    while (1) {
-        struct LocationPlugin::worktoken *op = pl->getOp();
-        if (op) {
+    while (!pl->exiting) {
 
-            
+    
+        struct LocationPlugin::worktoken *op = pl->getOp();
+        if (op && op->fi && op->wop) {
 
             // Run this search, including notifying the various calls
             pl->runsearch(op);
-
-
-
 
         }
     }
@@ -51,23 +48,47 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
         nthreads = 2;
 
     // Create our pool of threads
+    exiting = false;
     LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
-    for (int i = 0; i < nthreads; i++)
-        workers.push_back(new boost::thread(pluginFunc, this));
-
+    for (int i = 0; i < nthreads; i++) {
+        workers.push_back(new boost::thread(pluginFunc, this, i));
+    }
+    
 };
 
-LocationPlugin::~LocationPlugin() {
-
-    for (unsigned int i = 0; i < workers.size(); i++)
-        workers[i]->interrupt();
 
 
+void LocationPlugin::stop() {
+    const char *fname = "LocationPlugin::stop";
+
+    exiting = true;
+
+    /// Note: this tends to hang due to a known bug in boost
+    //for (unsigned int i = 0; i < workers.size(); i++) {
+//        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Interrupting thread: " << i);
+//        workers[i]->interrupt();
+//    }
+
+    for (unsigned int i = 0; i < workers.size(); i++) {
+
+        pushOp(0, wop_Nop);
+    }
+
+    for (unsigned int i = 0; i < workers.size(); i++) {
+        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Joining thread: " << i);
+        workers[i]->join();
+    }
+
+    LocPluginLogInfo(SimpleDebug::kLOW, fname, "Deleting " << workers.size() << " threads. ");
     while (workers.size() > 0) {
-        (*workers.begin())->join();
         delete *workers.begin();
         workers.erase(workers.begin());
     }
+}
+
+
+LocationPlugin::~LocationPlugin() {
+    
 }
 
 // Pushes a new op in the queue
@@ -127,7 +148,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
     boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
-    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: finished processing ");
+    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Starting");
 
     // Now put the results
     {

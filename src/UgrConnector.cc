@@ -58,7 +58,7 @@ void UgrConnector::tick(int parm) {
     const char *fname = "UgrConnector::tick";
     Info(SimpleDebug::kLOW, fname, "Ticker started");
 
-    ticker->detach();
+    //ticker->detach();
 
     while (!ticker->interruption_requested()) {
         Info(SimpleDebug::kHIGHEST, fname, "Tick.");
@@ -84,8 +84,13 @@ UgrConnector::~UgrConnector() {
 
     Info(SimpleDebug::kLOW, fname, "Destroying plugins");
     int cnt = locPlugins.size();
+    
+    for (int i = 0; i < cnt; i++)
+        locPlugins[i]->stop();
+
     for (int i = 0; i < cnt; i++)
         delete locPlugins[i];
+    
     Info(SimpleDebug::kLOW, fname, "Exiting.");
 
 }

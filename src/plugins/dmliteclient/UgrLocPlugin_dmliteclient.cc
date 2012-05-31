@@ -17,15 +17,13 @@ LocationPlugin(dbginstance, cfginstance, parms) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Creating instance named " << name);
 
     pluginManager = 0;
-    catalog = 0;
 
     if (parms.size() > 3) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite cfg: " << parms[3]);
 
         pluginManager = new dmlite::PluginManager();
         pluginManager->loadConfiguration(parms[3]);
-        // Catalog
-        catalog = pluginManager->getCatalogFactory()->createCatalog();
+
     }
 
 
@@ -38,43 +36,51 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
     dmlite::Directory *d;
     bool exc = false;
 
-    if (!catalog) return;
     if (!pluginManager) return;
+
+    // Catalog
+    dmlite::Catalog *catalog = pluginManager->getCatalogFactory()->createCatalog();
+    if (!catalog) {
+        LocPluginLogErr(fname, "Catalog creation failed.");
+        exc = true;
+    }
 
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
-    
-    try {
-        switch (op->wop) {
 
-            case LocationPlugin::wop_Stat:
-                LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking Stat(" << op->fi->name << ")");
-                st = catalog->stat(op->fi->name);
-                break;
+    if (!exc) {
+        try {
+            switch (op->wop) {
 
-            case LocationPlugin::wop_Locate:
-                LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << op->fi->name << ")");
-                repvec = catalog->getReplicas(op->fi->name);
-                break;
+                case LocationPlugin::wop_Stat:
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking Stat(" << op->fi->name << ")");
+                    st = catalog->stat(op->fi->name);
+                    break;
 
-            case LocationPlugin::wop_List:
-                LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking openDir(" << op->fi->name << ")");
-                d = catalog->openDir(op->fi->name);
-                break;
+                case LocationPlugin::wop_Locate:
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << op->fi->name << ")");
+                    repvec = catalog->getReplicas(op->fi->name);
+                    break;
 
-            default:
-                break;
+                case LocationPlugin::wop_List:
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking openDir(" << op->fi->name << ")");
+                    d = catalog->openDir(op->fi->name);
+                    break;
+
+                default:
+                    break;
+            }
+        } catch (dmlite::DmException e) {
+            LocPluginLogErr(fname, "Catched exception: " << e.code() << " what: " << e.what());
+            exc = true;
         }
-    } catch (dmlite::DmException e) {
-        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Catched exception: " << e.code() << " what: " << e.what());
-        exc = true;
+        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
     }
-    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
 
     // Now put the results
     {
         UgrFileItem it;
-        
+
         // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
 
@@ -86,7 +92,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
             case LocationPlugin::wop_Stat:
                 if (exc) {
                     op->fi->status_statinfo = UgrFileInfo::NotFound;
-                   
+
                 } else {
                     op->fi->size = st.st_size;
                     op->fi->status_statinfo = UgrFileInfo::Ok;
@@ -123,7 +129,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                     }
                     op->fi->status_items = UgrFileInfo::Ok;
                 }
-                
+
                 break;
 
             default:
@@ -155,6 +161,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
 
 
     }
+
+    delete catalog;
 
 
 }

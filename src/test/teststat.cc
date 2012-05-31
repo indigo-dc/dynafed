@@ -35,7 +35,15 @@ int main(int argc, char **argv) {
     cout << "Invoking stat" << endl;
     string fn = argv[3];
 
-    for (long long i = 0; i < cnt; i++) {
+    ugr.stat(fn, &fi);
+
+    if (fi->getStatStatus() == UgrFileInfo::Ok) {
+            if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
+            else ugr.locate(fn, &fi);
+    }
+
+    cout << "Invoking stat" << cnt-1 << " times." << endl;
+    for (long long i = 0; i < cnt-1; i++) {
         //char buf[16];
         //sprintf(buf, "%d", i);
         //string fn1 = fn + buf;
@@ -43,10 +51,6 @@ int main(int argc, char **argv) {
 
     }
 
-    if (fi->getStatStatus() == UgrFileInfo::Ok) {
-            if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
-            else ugr.locate(fn, &fi);
-    }
 
     cout << "Results:" << endl;
     fi->print(cout);

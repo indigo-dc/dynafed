@@ -22,7 +22,6 @@ class UgrLocPlugin_dmlite : public LocationPlugin {
 protected:
 
     dmlite::PluginManager *pluginManager;
-    dmlite::Catalog *catalog;
 
 public:
 
