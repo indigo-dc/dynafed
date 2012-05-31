@@ -35,12 +35,12 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
         throw DmException(DM_UNKNOWN_OPTION, std::string("Unknown option ") + key);
 }
 
-Catalog* UgrFactory::createCatalog() throw (DmException) {
+Catalog* UgrFactory::createCatalog(dmlite::StackInstance *st) throw (DmException) {
 
     UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
     if (this->nestedFactory_ != 0x00)
 
-        return new UgrCatalog(this->nestedFactory_->createCatalog());
+        return new UgrCatalog(this->nestedFactory_->createCatalog(st));
     else
         return new UgrCatalog(0x00);
 }
@@ -65,6 +65,19 @@ PluginIdCard plugin_ugr = {
 
 
 // ---------------------------
+SecurityContext* UgrCatalog::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
+
+    Info(SimpleDebug::kHIGHEST, "UgrCatalog::createSecurityCredentials", c.remote_addr);
+    secCredentials = c;
+    
+    return new SecurityContext(c);
+
+}
+
+ void UgrCatalog::setSecurityContext(const SecurityContext*) throw (DmException) {
+
+ }
+
 
 UgrCatalog::UgrCatalog(Catalog* decorates) throw (DmException) :
 DummyCatalog(decorates) {
@@ -101,6 +114,18 @@ void UgrCatalog::set(const std::string& key, va_list vargs) throw (DmException) 
 void UgrCatalog::setSecurityCredentials(const SecurityCredentials& c) throw (DmException) {
     Info(SimpleDebug::kHIGHEST, "UgrCatalog::setSecurityCredentials", c.remote_addr);
     secCredentials = c;
+}
+
+
+std::vector<Uri> UgrCatalog::getReplicasLocation(const std::string& path) throw (DmException) {
+
+    std::vector<FileReplica> r = getReplicas(path);
+    std::vector<Uri> u;
+    for (std::vector<FileReplica>::iterator it = r.begin(); it != r.end(); it++) {
+        u.push_back( splitUri( it->url ));
+    }
+
+    return u;
 }
 
 
@@ -159,14 +184,17 @@ void UgrCatalog::getIdMap(const std::string &userName, const std::vector<std::st
 
 }
 
-FileReplica UgrCatalog::get(const std::string& path) throw (DmException) {
+Uri UgrCatalog::get(const std::string& path) throw (DmException) {
+    
     std::vector<FileReplica> replicas;
 
     // Get all the available
     replicas = this->getReplicas(path);
 
     // The first one is fine
-    return replicas[0];
+    Uri u = splitUri(replicas[0].url);
+
+    return u;
 }
 
 void UgrCatalog::exclude(int64_t replicaId) {

@@ -26,10 +26,15 @@ namespace dmlite {
         // Overloading
         std::string getImplId(void) throw ();
 
+        virtual SecurityContext* createSecurityContext(const SecurityCredentials&) throw (dmlite::DmException);
+        virtual void setSecurityContext(const SecurityContext*) throw (DmException);
+        
         void set(const std::string&, va_list) throw (DmException);
 
+
+        virtual std::vector<Uri> getReplicasLocation(const std::string& path) throw (DmException);
         virtual std::vector<FileReplica> getReplicas(const std::string&) throw (DmException);
-        virtual FileReplica get(const std::string&) throw (DmException);
+        virtual Uri get(const std::string&) throw (DmException);
 
         virtual void getIdMap(const std::string&, const std::vector<std::string>&,
                 uid_t*, std::vector<gid_t>*) throw (DmException);
@@ -81,7 +86,7 @@ namespace dmlite {
         ~UgrFactory() throw (DmException);
 
         virtual void configure(const std::string& key, const std::string& value) throw (DmException);
-        Catalog* createCatalog() throw (DmException);
+        Catalog* createCatalog(dmlite::StackInstance*) throw (DmException);
     protected:
         CatalogFactory* nestedFactory_;
     private:

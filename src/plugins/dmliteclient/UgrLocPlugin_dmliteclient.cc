@@ -61,7 +61,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         catalog = catmap[myidx];
 
         if (!catalog)
-            catalog = catalogfactory->createCatalog();
+            catalog = catalogfactory->createCatalog(NULL);
 
         if (!catalog) {
             LocPluginLogErr(fname, "Catalog creation failed.");
