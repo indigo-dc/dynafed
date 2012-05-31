@@ -107,11 +107,18 @@ int UgrConnector::init(char *cfgfile) {
     if (s != "") {
         vector<string> parms = tokenize(s, " ");
 
-        Info(SimpleDebug::kLOW, fname, "Attempting to load Geo plugin " << s);
+        Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << s);
         geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
                     SimpleDebug::Instance(),
                     Config::GetInstance(),
                     parms);
+
+        if (!geoPlugin) {
+            Error(fname, "Error loading Geo plugin " << s << endl;);
+            return 1;
+        }
+
+
     }
 
     // Cycle through the location plugins that have to be loaded

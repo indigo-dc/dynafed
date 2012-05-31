@@ -22,12 +22,12 @@ GeoPlugin::~GeoPlugin() {
 
 };
 
-int GeoPlugin::init() {
+int GeoPlugin::init(std::vector<std::string> &parms) {
     return 0;
 };
 
 /// Sets, wherever needed the geo information in the replica
-void GeoPlugin::setLocation(UgrFileItem &it) {
+void GeoPlugin::setReplicaLocation(UgrFileItem &it) {
     it.latitude = 0;
     it.longitude = 0;
     it.location = "";
@@ -77,8 +77,15 @@ GeoPlugin *GetGeoPluginClass(char *pluginPath, GetGeoPluginArgs) {
     // Get the Object now
     Info(SimpleDebug::kMEDIUM, fname, "Getting class instance for plugin " << pluginPath);
     GeoPlugin *c = ep(dbginstance, cfginstance, parms);
-    if (!c)
+    if (!c) {
         Info(SimpleDebug::kLOW, fname, "Could not get class instance for plugin " << pluginPath);
+        return NULL;
+    }
+
+    if (c->init(parms)) {
+       Error(fname, "Error initializing Geo plugin " << pluginPath);
+       return NULL;
+    }
     return c;
 
 }

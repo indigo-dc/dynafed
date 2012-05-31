@@ -32,10 +32,10 @@ public:
    virtual ~GeoPlugin();
 
    /// Perform initialization
-   virtual int init();
+   virtual int init(std::vector<std::string> &parms);
 
    /// Sets, wherever needed the geo information in the replica
-   virtual void setLocation(UgrFileItem &it);
+   virtual void setReplicaLocation(UgrFileItem &it);
 };
 
 

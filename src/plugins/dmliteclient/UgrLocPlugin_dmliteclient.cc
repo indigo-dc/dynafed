@@ -155,7 +155,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->unparsed_location);
       
                         // Process it with the Geo plugin, if needed
-                        if (geoPlugin) geoPlugin->setLocation(it);
+                        if (geoPlugin) geoPlugin->setReplicaLocation(it);
 
                         op->fi->subitems.insert(it);
                     }
