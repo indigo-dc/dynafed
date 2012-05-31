@@ -49,8 +49,22 @@ vector<string> tokenize(const string& str,const string& delimiters)
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
 
-UgrConnector::~UgrConnector() {
 
+// Invoked by a thread, gives life to the object
+void UgrConnector::tick(int parm) {
+
+    while(!ticker.interruption_requested()) {
+
+        sleep(ticktime);
+        locHandler.tick();
+    }
+}
+
+
+UgrConnector::~UgrConnector() {
+    ticker.interrupt();
+    ticker.join();
+    
     int cnt = locPlugins.size();
     for (int i = 0; i < cnt; i++)
         delete locPlugins[i];
@@ -59,7 +73,7 @@ UgrConnector::~UgrConnector() {
 }
 
 int UgrConnector::init(char *cfgfile) {
-    const char *fname = "UgrConnector::init()";
+    const char *fname = "UgrConnector::init";
     // Process the config file
     Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
 
@@ -229,4 +243,6 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     *nfo = fi;
 
     return 0;
-}
+};
+
+

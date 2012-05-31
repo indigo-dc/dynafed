@@ -22,6 +22,10 @@
 
 // The class that allows to interact with the system
 class UgrConnector {
+private:
+    // The thread that ticks
+    boost::thread ticker;
+
 protected:
 
    // This holds in memory at least the entries that are being processed
@@ -61,8 +65,21 @@ protected:
    // so they act concurrently
    int do_List(UgrFileInfo *fi);
    // Waits max a number of seconds for a list process to be complete
-   int do_waitList(UgrFileInfo *fi, int tmout=5);   
+   int do_waitList(UgrFileInfo *fi, int tmout=5);
+
+   // Invoked by a thread, gives life to the object
+   virtual void tick(int parm);
+
+
+   unsigned int ticktime;
 public:
+
+    UgrConnector(): ticker( boost::bind( &UgrConnector::tick, this, 0 )) {
+        // Get the tick pace from the config
+        ticktime = CFG->GetLong("glb.tick", 1);
+
+    };
+    
    virtual ~UgrConnector();
 
    int init(char *cfgfile = 0);
