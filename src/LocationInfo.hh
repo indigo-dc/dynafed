@@ -78,21 +78,21 @@ public:
        if (!status_statinfo) return Ok;
        if (pending_statinfo > 0) return InProgress;
       
-       return NoInfo;
+       return status_statinfo;
    }
 
    InfoStatus getLocationStatus() {
        if (pending_locations > 0) return InProgress;
 
        if (status_locations == Ok) return Ok;
-       return NoInfo;
+       return status_locations;
    }
 
    InfoStatus getItemsStatus() {
        if (pending_items > 0) return InProgress;
 
        if (status_items == Ok) return Ok;
-       return NoInfo;
+       return status_items;
    }
 
    // Builds a summary

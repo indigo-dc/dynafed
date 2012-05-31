@@ -30,7 +30,7 @@ include_directories(${Boost_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "-O0 -g -Wall")
 
 
-#add_subdirectory(plugins)
+add_subdirectory(plugins)
 add_subdirectory(test)
 
 

@@ -18,7 +18,30 @@ using namespace std;
 
 
 
+vector<string> tokenize(const string& str,const string& delimiters)
+{
+	vector<string> tokens;
 
+	// skip delimiters at beginning.
+    	string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+
+	// find first "non-delimiter".
+    	string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+    	while (string::npos != pos || string::npos != lastPos)
+    	{
+        	// found a token, add it to the vector.
+        	tokens.push_back(str.substr(lastPos, pos - lastPos));
+
+        	// skip delimiters.  Note the "not_of"
+        	lastPos = str.find_first_not_of(delimiters, pos);
+
+        	// find next "non-delimiter"
+        	pos = str.find_first_of(delimiters, lastPos);
+    	}
+
+	return tokens;
+}
 
 
 
@@ -59,15 +82,18 @@ int UgrConnector::init(char *cfgfile) {
     // Cycle through the plugins that have to be loaded
     char buf[1024];
     int i = 0;
+
     do {
         CFG->ArrayGetString("glb.locplugin", buf, i);
         if (buf[0]) {
-
+            vector<string> parms = tokenize(buf, " ");
             // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
             // An empty string does not load any plugin, just keeps the default behavior
-            LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass(buf,
+            Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
+            LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *)parms[0].c_str(),
                     SimpleDebug::Instance(),
-                    Config::GetInstance());
+                    Config::GetInstance(),
+                    parms);
             if (prod) locPlugins.push_back(prod);
         }
         i++;
@@ -76,8 +102,11 @@ int UgrConnector::init(char *cfgfile) {
     Info(SimpleDebug::kLOW, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
 
     if (!locPlugins.size()) {
+        vector<string> parms;
+        parms.push_back("Unknown");
+
         Info(SimpleDebug::kLOW, fname, "No location plugins available. Using the default one.");
-        LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG);
+        LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG, parms);
         if (prod) locPlugins.push_back(prod);
     }
 
@@ -96,6 +125,9 @@ int UgrConnector::do_Stat(UgrFileInfo *fi) {
 }
 
 int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
+
+    if (fi->getStatStatus() != UgrFileInfo::InProgress) return 0;
+
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitStat(fi, tmout);
 
@@ -121,6 +153,9 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 }
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
+
+    
+
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_Locate(fi);
 
@@ -128,6 +163,9 @@ int UgrConnector::do_Locate(UgrFileInfo *fi) {
 }
 
 int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
+
+    if (fi->getLocationStatus() != UgrFileInfo::InProgress) return 0;
+
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitLocate(fi, tmout);
 
@@ -163,6 +201,9 @@ int UgrConnector::do_List(UgrFileInfo *fi) {
 }
 
 int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
+
+    if (fi->getItemsStatus() != UgrFileInfo::InProgress) return 0;
+
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitList(fi, tmout);
 

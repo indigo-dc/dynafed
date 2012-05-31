@@ -134,7 +134,7 @@ int Config::ProcessFile(char *filename) {
           if (pos2 > 0) {
 	    // it's a string to be added to an array
             strncpy(buf2, token.c_str(), pos2);
-            buf2[pos] = 0;
+            buf2[pos2] = 0;
             token = buf2;
             Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
 	    arrdata[token].push_back(val);

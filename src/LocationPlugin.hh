@@ -15,15 +15,23 @@
 #include "LocationInfo.hh"
 
 #include <string>
+#include <vector>
 #include <map>
 #include <boost/thread.hpp>
 
 class LocationPlugin {
+protected:
+    // The name assigned to this plugin from the creation
+    char *name;
 public:
 
-   LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance) {
+   LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
       SimpleDebug::Instance()->Set(dbginstance);
       CFG->Set(cfginstance);
+
+      if (parms.size() > 1)
+        name = strdup(parms[1].c_str());
+      else name = strdup("Unnamed");
    };
 
 
@@ -51,7 +59,7 @@ public:
 // ------------------------------------------------------------------------------------
 
 // The set of args that have to be passed to the plugin hook function
-#define GetLocationPluginArgs SimpleDebug *dbginstance, Config *cfginstance
+#define GetLocationPluginArgs SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms
 
 // The plugin functionality. This function invokes the plugin loader, looking for the
 // plugin where to call the hook function

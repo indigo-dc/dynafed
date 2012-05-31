@@ -218,7 +218,7 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
 
 LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) {
     const char *fname = "GetLocationPluginClass_local";
-    PluginLoader *myLib;
+    PluginLoader *myLib = 0;
     LocationPlugin * (*ep)(GetLocationPluginArgs);
 
     // If we have no plugin path then return NULL
@@ -229,10 +229,14 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
     // Create a plugin object (we will throw this away without deletion because
     // the library must stay open but we never want to reference it again).
-    Info(SimpleDebug::kMEDIUM, fname, "Loading plugin " << pluginPath);
-    if (!(myLib = new PluginLoader(pluginPath))) {
-        Info(SimpleDebug::kLOW, fname, "Failed loading plugin " << pluginPath);
-        return NULL;
+    if (!myLib) {
+        Info(SimpleDebug::kMEDIUM, fname, "Loading plugin " << pluginPath);
+        if (!(myLib = new PluginLoader(pluginPath))) {
+            Info(SimpleDebug::kLOW, fname, "Failed loading plugin " << pluginPath);
+            return NULL;
+        }
+    } else {
+        Info(SimpleDebug::kMEDIUM, fname, "Plugin " << pluginPath << "already loaded.");
     }
 
     // Now get the entry point of the object creator
@@ -245,7 +249,7 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
     // Get the Object now
     Info(SimpleDebug::kMEDIUM, fname, "Getting class instance for plugin " << pluginPath);
-    LocationPlugin *c = ep(dbginstance, cfginstance);
+    LocationPlugin *c = ep(dbginstance, cfginstance, parms);
     if (!c)
         Info(SimpleDebug::kLOW, fname, "Could not get class instance for plugin " << pluginPath);
     return c;
@@ -257,5 +261,5 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 // for the plugin to be loaded
 
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new LocationPlugin(dbginstance, cfginstance);
+    return (LocationPlugin *)new LocationPlugin(dbginstance, cfginstance, parms);
 }
