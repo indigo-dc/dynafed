@@ -5,47 +5,176 @@
 
 using namespace boost;
 
-void fakepluginFunc(UgrFileInfo* fi)
-{
-    const char *fname = "LocationPlugin::fakepluginFunc";
+void pluginFunc(LocationPlugin *pl) {
+    const char *fname = "LocationPlugin::pluginFunc";
+    Info(SimpleDebug::kMEDIUM, fname, "Worker: started");
 
-    boost::posix_time::seconds workTime(4);
+    // Get some work to do
+    while (1) {
+        struct LocationPlugin::worktoken *op = pl->getOp();
+        if (op) {
 
-    Info(SimpleDebug::kLOW, fname, "Worker: running on " << fi->name);
+            boost::posix_time::seconds workTime(4);
+            Info(SimpleDebug::kMEDIUM, fname, "Worker: processing ");
 
-    // Pretend to do something useful...
-    boost::this_thread::sleep(workTime);
+            // Pretend to do something useful...
+            boost::this_thread::sleep(workTime);
 
-    {
-        unique_lock<mutex> l(*fi);
+            Info(SimpleDebug::kMEDIUM, fname, "Worker: finished processing ");
 
-        // Create a fake stat information
-        fi->lastupdtime = time(0);
-        fi->size = 12345;       
-        fi->status_statinfo = UgrFileInfo::Ok;
-        fi->unixflags = 0777;
+            // Now do it
+            {
 
-        // Create a fake list information
-        for (int ii = 0; ii < 10; ii++) {
-            UgrFileItem *fit = new UgrFileItem();
-            fit->name = "myhost/myfilepath" + boost::lexical_cast<std::string>(ii);
-            fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
-            fi->subitems.push_back(fit);
+                unique_lock<mutex> l(*(op->fi));
+
+                // This fake plugin happens to gather more information than it's requested
+                // ...this may happen, in this case the plugin writes all the info that it has
+                // BUT the notification has to be only for the operation that was requested
+
+                // Create a fake stat information
+                op->fi->lastupdtime = time(0);
+                op->fi->size = 12345;
+                op->fi->status_statinfo = UgrFileInfo::Ok;
+                op->fi->unixflags = 0777;
+
+                // Create a fake list information
+                for (int ii = 0; ii < 10; ii++) {
+                    UgrFileItem *fit = new UgrFileItem();
+                    fit->name = "myhost/myfilepath" + boost::lexical_cast<std::string>(ii);
+                    fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
+                    op->fi->subitems.push_back(fit);
+                }
+                
+                // Anyway the notification has to be correct, not redundant
+                switch (op->wop) {
+
+                    case LocationPlugin::wop_Stat:
+                        op->fi->notifyStatNotPending();
+                        break;
+
+                    case LocationPlugin::wop_Locate:
+                        op->fi->notifyLocationNotPending();
+                        break;
+
+                    case LocationPlugin::wop_List:
+                        op->fi->notifyItemsNotPending();
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+
+            }
+
+
         }
-
-
-
-        // In this fake implementation, we notify here that this plugin
-        // has finished searching for the info
-
-        fi->notifyStatNotPending();
-        fi->notifyLocationNotPending();
-        fi->notifyItemsNotPending();
     }
 
     Info(SimpleDebug::kLOW, fname, "Worker: finished");
 
 }
+
+
+
+LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
+      SimpleDebug::Instance()->Set(dbginstance);
+      CFG->Set(cfginstance);
+
+      if (parms.size() > 1)
+        name = strdup(parms[1].c_str());
+      else name = strdup("Unnamed");
+
+      // Create our pool of threads
+      for (int i = 0; i < 10; i ++)
+          workers.push_back(new boost::thread(pluginFunc, this));
+
+   };
+
+
+
+LocationPlugin::~LocationPlugin() {
+
+    for (unsigned int i = 0; i < workers.size(); i++)
+        workers[i]->interrupt();
+
+    
+    while (workers.size() > 0) {
+        (*workers.begin())->join();
+        delete *workers.begin();
+        workers.erase(workers.begin());
+    }
+}
+
+// Pushes a new op in the queue
+void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
+    const char *fname = "LocationPlugin::pushOp";
+
+    {
+    boost::lock_guard< boost::mutex > l(workmutex);
+
+    worktoken *tk = new(worktoken);
+    tk->fi = fi;
+    tk->wop = wop;
+    workqueue.push_back(tk);
+    }
+
+    Info(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop);
+    
+    workcondvar.notify_one();
+
+}
+
+// Gets an op from the queue, or timeout
+struct LocationPlugin::worktoken *LocationPlugin::getOp() {
+    struct worktoken *mytk = 0;
+    const char *fname = "LocationPlugin::getOp";
+
+    boost::unique_lock< boost::mutex > l(workmutex);
+
+    system_time const timeout = get_system_time()+posix_time::seconds(1);
+
+    while (!mytk) {
+        // Defensive programming...
+        if (workqueue.size() > 0) {
+                mytk = workqueue.front();
+                workqueue.pop_front();
+                break;
+        }
+
+        if (!workcondvar.timed_wait(l, timeout ))
+            break; // timeout
+        
+        
+    }
+
+    if (mytk) {
+        Info(SimpleDebug::kHIGHEST, fname, "got op:" << mytk->wop);
+    }
+    else
+        Info(SimpleDebug::kHIGHEST, fname, "got no op.");
+
+    return mytk;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // Start the async stat process
@@ -61,9 +190,8 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyStatPending();
 
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
-
+    pushOp(fi, wop_Stat);
+    
     return 0;
 };
 
@@ -112,8 +240,8 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyLocationPending();
 
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
+    pushOp(fi, wop_Locate);
+
     return 0;
 }
 
@@ -143,9 +271,8 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyItemsPending();
 
-    // This plugin is a fake one, that spawns a thread which populates the result after some time
-    boost::thread workerThread(fakepluginFunc, fi);
-
+    pushOp(fi, wop_Locate);
+    
     return 0;
 }
 

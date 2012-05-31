@@ -20,19 +20,38 @@
 #include <boost/thread.hpp>
 
 class LocationPlugin {
+
+    friend void pluginFunc(LocationPlugin *pl);
+
 protected:
     // The name assigned to this plugin from the creation
     char *name;
+
+    // We keep a thread pool and a synchronized work queue, in order to always guarantee
+    // pure non blocking behaviour
+    std::vector< boost::thread * > workers;
+
+    enum workOp {
+        wop_Nop = 0,
+        wop_Stat,
+        wop_Locate,
+        wop_List
+    };
+    struct worktoken {
+        UgrFileInfo *fi;
+        workOp wop;
+    };
+    std::deque< struct worktoken *> workqueue;
+    boost::condition_variable workcondvar;
+    boost::mutex workmutex;
+
+    void pushOp(UgrFileInfo *fi, workOp wop);
+    struct worktoken *getOp();
+
 public:
 
-   LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
-      SimpleDebug::Instance()->Set(dbginstance);
-      CFG->Set(cfginstance);
-
-      if (parms.size() > 1)
-        name = strdup(parms[1].c_str());
-      else name = strdup("Unnamed");
-   };
+   LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+   virtual ~LocationPlugin();
 
 
    // Calls that characterize the behevior of the plugin
