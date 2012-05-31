@@ -106,9 +106,16 @@ void LocationInfoHandler::purgeExpired() {
     time_t timelimit = time(0) - maxttl;
     time_t timelimit_neg = time(0) - maxttl_negative;
 
+    bool dodelete = false;
+    std::map< std::string, UgrFileInfo * >::iterator i_deleteme;
 
     for (std::map< std::string, UgrFileInfo * >::iterator i = data.begin();
             i != data.end(); i++) {
+
+        if (dodelete) {
+            data.erase(i_deleteme);
+            dodelete = false;
+        }
 
         UgrFileInfo *fi = i->second;
 
@@ -129,13 +136,19 @@ void LocationInfoHandler::purgeExpired() {
 
 
                 lrudata.right.erase(i->first);
-                data.erase(i);
+                dodelete = true;
+                //data.erase(i);
                 delete(fi);
                 d++;
             }
 
         }
 
+    }
+
+    if (dodelete) {
+            data.erase(i_deleteme);
+            dodelete = false;
     }
 
     if (d > 0)
