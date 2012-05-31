@@ -250,11 +250,16 @@ class myDirectory {
 Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
-    if (!getUgrConnector()->list((std::string&)path, &fi) && fi && (fi->getInfoStatus() != fi->NotFound)) {
+    if (!getUgrConnector()->list((std::string&)path, &fi) && fi && (fi->getInfoStatus() == fi->Ok)) {
 
         // This is just an opaque pointer, we can store what we want
         return (Directory *) (new myDirectory(fi));
     }
+
+    if (fi->getInfoStatus() == fi->Error)
+        throw DmException(DM_TOO_MANY_SYMLINKS, "Error getting directory content (likely the directory is too big to be listed)");
+
+
     return 0;
 }
 

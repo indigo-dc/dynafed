@@ -333,7 +333,9 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
         boost::lock_guard<UgrFileInfo > l(*fi);
         if (fi->getItemsStatus() == UgrFileInfo::NoInfo)
             fi->status_items = UgrFileInfo::NotFound;
-        else fi->status_items = UgrFileInfo::Ok;
+        else
+            if (fi->status_items != UgrFileInfo::Error)
+                fi->status_items = UgrFileInfo::Ok;
     }
 
     // Stat all the childs in parallel, eventually

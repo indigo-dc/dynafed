@@ -134,6 +134,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     op->fi->size = st.st_size;
                     op->fi->status_statinfo = UgrFileInfo::Ok;
                     op->fi->unixflags = st.st_mode;
+                    if (st.st_nlink > CFG->GetLong("glb.maxlistitems", 1000)) {
+                        op->fi->subitems.clear();
+                        op->fi->status_items = UgrFileInfo::Error;
+                    }
                 }
                 break;
 
@@ -160,15 +164,28 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
                     //op->fi->status_items = UgrFileInfo::NotFound;
                 } else {
-
+                    bool listerror = false;
                     dirent *dent;
+                    long cnt = 0;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
                     while ((dent = catalog->readDir(d))) {
+                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 1000)) {
+                            listerror = true;
+                            op->fi->subitems.clear();
+                            break;
+                        }
                         it.name = dent->d_name;
                         it.location.clear();
                         op->fi->subitems.insert(it);
                     }
-                    op->fi->status_items = UgrFileInfo::Ok;
+
+                    catalog->closeDir(d);
+
+                    if (listerror) {
+                        op->fi->status_items = UgrFileInfo::Error;
+
+                    } else
+                        op->fi->status_items = UgrFileInfo::Ok;
                 }
 
                 break;

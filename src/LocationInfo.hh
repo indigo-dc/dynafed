@@ -78,8 +78,9 @@ public:
 
 
     enum InfoStatus {
-        NoInfo = -1,
-        Ok,
+        Error = -2,
+        NoInfo,
+        Ok, // 0
         NotFound,
         InProgress
     };
