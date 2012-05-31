@@ -192,7 +192,14 @@ long Config::GetLong(const char *name, long deflt) {
 }
 
 
-bool Config::GetBool(const char *name, bool deflt) {
+bool Config::GetBool(const char *name, bool deflt) 
+{
+  return GetBool(std::string(name), deflt);
+  
+}
+
+bool Config::GetBool(const string & name, bool deflt) 
+{
   if (data.find(name) == data.end()) return deflt;
 
   if (!strcasecmp(data[name].c_str(), "yes")) return true;
@@ -204,7 +211,12 @@ bool Config::GetBool(const char *name, bool deflt) {
 
 string Config::GetString(const char *name, char *deflt) {
 
-  if (data.find(string(name)) == data.end()) return deflt;
+  return GetString(string(name), string(deflt));
+}
+
+string Config::GetString(const string & name, const string & deflt) {
+
+  if (data.find(name) == data.end()) return deflt;
   return data[name];
 
 }

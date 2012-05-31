@@ -1,3 +1,8 @@
+#pragma once
+#ifndef LOCATIONPLUGIN_SIMPLEHTTP_HH
+#define LOCATIONPLUGIN_SIMPLEHTTP_HH
+
+
 /** 
  * @file   UgrLocPlugin_dav.hh
  * @brief  Plugin that talks to any Webdav compatible endpoint
@@ -5,15 +10,18 @@
  * @date   Feb 2012
  */
 
-#ifndef LOCATIONPLUGIN_SIMPLEHTTP_HH
-#define LOCATIONPLUGIN_SIMPLEHTTP_HH
-
-
 
 #include "../../LocationPlugin.hh"
 
 
-
+/**
+ *  Dav plugin config parameters
+ *  ssl_check : TRUE | FALSE   - enable or disable the CA check for the server certificate
+ *  cli_certificate : path     - path to the credential to use for this endpoint
+ *  cli_password : password    - password to use for this credential
+ *  auth_login : login		   - login to use for basic HTTP authentification
+ *  auth_passwd : password	   - password to use for the basic HTTP authentification
+ * */
 
 
 /** 
@@ -40,7 +48,16 @@ public:
 protected:
 	std::string base_url;
 	std::string pkcs12_credential_path;
+	std::string pkcs12_credential_password;
+	bool ssl_check;
+	std::string login;
+	std::string password;
+	
 	boost::scoped_ptr<Davix::Composition> dav_core;
+	
+	void load_configuration(const std::string & prefix);
+	
+	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err); 	
 };
 
 

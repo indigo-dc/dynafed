@@ -76,12 +76,14 @@ public:
     /// @param val  Char array where to get the result
     /// @param deflt  The default value for the parameter
     void GetString(const char *name, char *val, char *deflt);
+	std::string GetString(const std::string & name, const std::string & deflt);    
 
     /// Get a value of type boolean
     /// This supports also true|false, yes|no
     /// @param name The name of the parameter
     /// @param deflt  The default value for the parameter
     bool GetBool(const char *name, bool deflt = false);
+    bool GetBool(const std::string & name, bool deflt) ;
 
     /// Get a value of type string from an array of values that have the same key
     /// followed by double square brackets[] in the cfg file

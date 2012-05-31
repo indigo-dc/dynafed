@@ -12,7 +12,7 @@
 #include <time.h>
 
 
-
+const std::string CONFIG_PREFIX("glb.locplugin.");
 
 using namespace boost;
 using namespace std;
@@ -40,21 +40,40 @@ using namespace std;
  * 
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
+	g_logger_set_globalfilter(G_LOG_LEVEL_WARNING);
     return (LocationPlugin *)new UgrLocPlugin_dav(dbginstance, cfginstance, parms);
 }
 
 /**
  * Davix callback for Ugr, Allow clicert authentification
  * */
-int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err) {
+int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err) {
     GError * tmp_err = NULL;
+    int ret=-1;
+    UgrLocPlugin_dav* me = static_cast<UgrLocPlugin_dav*>(userdata);   
+    
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Davix request for credential ..... ");
-    int ret = davix_set_pkcs12_auth(token, (const char*) userdata, (const char*) NULL, &tmp_err);
-    if (ret != 0) {
-        Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
-        g_propagate_error(err, tmp_err);
-    }
-
+	
+	switch(t->auth){
+		case DAVIX_CLI_CERT_PKCS12:
+			ret= davix_set_pkcs12_auth(token, me->pkcs12_credential_path.c_str(), 
+					(me->pkcs12_credential_password.size() == 0)?NULL:me->pkcs12_credential_password.c_str(), 
+					&tmp_err);
+			if (ret != 0) {
+				Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
+			}
+			break;
+  		case DAVIX_LOGIN_PASSWORD:  
+  			ret= davix_set_login_passwd_auth(token, me->login.c_str(), me->password.c_str(), &tmp_err);
+			if (ret != 0) {
+				Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set login/password Error : %s", tmp_err->message);
+			}
+			break;
+		default:
+			g_set_error(&tmp_err,g_quark_from_string("UgrLocPlugin_dav::davix_credential_callback"), EFAULT, " Unsupported authentification required by davix ! bug ");
+	}
+	if(tmp_err)
+		g_propagate_error(err, tmp_err);
     return ret;
 }
 
@@ -69,17 +88,40 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::session_create(
     } else {
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
-    if (params_size > 4) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "setup credential path to " << parms[4]);
-        pkcs12_credential_path = parms[4];
-        const char * cred_path = pkcs12_credential_path.c_str();
-        dav_core->getSessionFactory()->set_authentification_controller((void*) cred_path, &davix_credential_callback);
-    }
-    if (params_size > 5) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " SSL CA check for davix is set to  " << parms[5]);
-        dav_core->getSessionFactory()->set_ssl_ca_check((strcasecmp(parms[5].c_str(), "TRUE") == 0) ? true : false);
-    }
+    load_configuration(CONFIG_PREFIX + name);
+    
+    dav_core->getSessionFactory()->set_ssl_ca_check(ssl_check);
+    dav_core->getSessionFactory()->set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
 
+}
+
+void UgrLocPlugin_dav::load_configuration(const std::string & prefix){
+	Config * c = Config::GetInstance();
+	std::string pref_dot = prefix + std::string(".");
+	
+	// get ssl check
+	ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
+	Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " SSL CA check for davix is set to  " + std::string((ssl_check)?"TRUE":"FALSE") );
+	// get credential 
+	pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
+	if(pkcs12_credential_path.size() > 0){
+		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);	
+	}
+	// get credential password
+	pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
+	if(pkcs12_credential_password.size() > 0){	
+		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");		
+	}
+	// auth login
+	login = c->GetString(pref_dot + std::string("auth_login"), "");
+	if(login.size() > 0){	
+		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth login defined  ");		
+	}	
+    // auth password
+	password = c->GetString(pref_dot + std::string("auth_passwd"), "");
+	if(password.size() > 0){	
+		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");		
+	}	    
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
@@ -173,7 +215,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 						unique_lock<mutex> l(*(op->fi));
 
 
-						if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+						if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
 							LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
 							listerror = true;
 							op->fi->subitems.clear();
