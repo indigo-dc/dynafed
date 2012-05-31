@@ -23,19 +23,72 @@ using namespace std;
 // ------------------------------------------------------------------------------------
 
 
+/***
+ * List of arguments for the dav plugin :
+ *  1st one : URL prefix to contact
+ *  2nd : credential path to use
+ *  3rd : mode SSL CA check : TRUE or nothing > secure, FALSE -> disable CA check, insecure ( allow man in the middle attack) * 
+ * 
+ * */
+
 // The hook function. GetLocationPluginClass must be given the name of this function
 // for the plugin to be loaded
+/**
+ * Hook for the dav plugin Location plugin
+ * 
+ * 
+ * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     return (LocationPlugin *)new UgrLocPlugin_dav(dbginstance, cfginstance, parms);
 }
 
+
+
+/**
+ * Davix callback for Ugr, Allow clicert authentification
+ * */
+int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err){
+    GError * tmp_err=NULL;
+	Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Davix request for credential ..... ");    
+    int ret = davix_set_pkcs12_auth(token, (const char*)userdata, (const char*)NULL, &tmp_err);
+    if(ret != 0){
+        Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
+        g_propagate_error(err, tmp_err);
+    }
+
+    return ret;
+}
+
+UgrLocPlugin_dav::UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
+    LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::session_create()){
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Creating instance named " << name);
+		// try to get config
+		const int params_size = parms.size();
+		if( params_size> 3){
+	        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Try to bind UgrLocPlugin_dav with " << parms[3]);		
+			base_url= parms[3];
+		}else{
+	        throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");		
+		}
+		if(params_size > 4){
+			Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "setup credential path to " << parms[4]);
+			pkcs12_credential_path = parms[4];
+			const char * cred_path = pkcs12_credential_path.c_str();	
+			dav_core->getSessionFactory()->set_authentification_controller((void*)cred_path, &davix_credential_callback);
+		}
+		if(params_size > 5){
+	        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " SSL CA check for davix is set to  " << parms[5]);				
+			dav_core->getSessionFactory()->set_ssl_ca_check( (strcasecmp(parms[5].c_str(), "TRUE") == 0)?true:false);
+		}
+			
+}
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
 	struct stat st;
 	static const char * fname = "UgrLocPlugin_dav::runsearch";
 	std::string cannonical_name = base_url;
 	bool bad_answer=true;
-	Davix::DAVIX_DIR* d=NULL;
+	DAVIX_DIR* d=NULL;
 
 
     // We act using the identity of this service, hence we don't need to invoke
@@ -58,7 +111,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
 			case LocationPlugin::wop_Locate:
 				LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << cannonical_name << ")");
 				// do nothing for now
-				return;
 				break;
 
 			case LocationPlugin::wop_List:
@@ -104,7 +156,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx){
 
 			case LocationPlugin::wop_Locate:
 				// disabled
-				return;
 				break;
 
 			case LocationPlugin::wop_List:
