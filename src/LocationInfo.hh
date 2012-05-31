@@ -215,6 +215,11 @@ public:
                 (status_items == Ok))
             return Ok;
 
+        if ((status_statinfo == NotFound) ||
+                (status_locations == NotFound) ||
+                (status_items == NotFound))
+            return NotFound;
+
         return NoInfo;
     };
 

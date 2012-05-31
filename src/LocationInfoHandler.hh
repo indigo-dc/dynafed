@@ -29,8 +29,10 @@ private:
     unsigned long long lrutick;
     /// Max number of items allowed
     unsigned long maxitems;
-    /// Max life for an item that was not recently used
+    /// Max life for an item that was not recently accessed
     unsigned int maxttl;
+    /// Max life for a NEGATIVE item (e.g. a not found) that was not recently accessed
+    unsigned int maxttl_negative;
 
     /// A simple implementation of an lru queue, based on a bimap
     typedef boost::bimap< time_t, std::string > lrudatarepo;
@@ -58,8 +60,10 @@ public:
     LocationInfoHandler() : lrutick(0) {
         // Get the max capacity from the config
         maxitems = CFG->GetLong("infohandler.maxitems", 1000000);
-        // Get the lifetime of an etry
+        // Get the lifetime of an entry
         maxttl = CFG->GetLong("infohandler.itemttl", 86400);
+        maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
+
     };
 
 

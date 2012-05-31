@@ -104,36 +104,47 @@ void LocationInfoHandler::purgeExpired() {
     const char *fname = "LocationInfoHandler::purgeExpired";
     int d = 0;
     time_t timelimit = time(0) - maxttl;
+    time_t timelimit_neg = time(0) - maxttl_negative;
+
 
     for (std::map< std::string, UgrFileInfo * >::iterator i = data.begin();
             i != data.end(); i++) {
 
         UgrFileInfo *fi = i->second;
 
-        if (fi && (i->second->lastupdtime < timelimit)) {
-            // The item is old...
-            Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
 
-            if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
-                Info(SimpleDebug::kLOW, fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
-                continue;
+        if (fi) {
+            time_t tl = timelimit;
+            if (fi->getInfoStatus() == UgrFileInfo::NotFound)
+                tl = timelimit_neg;
+            
+            if (fi->lastupdtime < tl) {
+                // The item is old...
+                Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
+
+                if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
+                    Info(SimpleDebug::kLOW, fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
+                    continue;
+                }
+
+
+                lrudata.right.erase(i->first);
+                data.erase(i);
+                delete(fi);
+                d++;
             }
 
-
-            lrudata.right.erase(i->first);
-            data.erase(i);
-            delete(fi);
-            d++;
         }
 
     }
+
     if (d > 0)
         Info(SimpleDebug::kLOW, fname, "purged " << d << " expired items.");
 }
 
 void LocationInfoHandler::tick() {
     const char *fname = "LocationInfoHandler::tick";
-    Info(SimpleDebug::kHIGH, fname, "tick...");
+    Info(SimpleDebug::kHIGHEST, fname, "tick...");
 
     boost::lock_guard<LocationInfoHandler> l(*this);
 
