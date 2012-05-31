@@ -39,14 +39,14 @@ add_subdirectory(test)
 
 
 
-add_library(UgrConnector SHARED ${Ugr_SOURCES})
-target_link_libraries(UgrConnector "dl" ${Boost_LIBRARIES})
+add_library(ugrconnector SHARED ${Ugr_SOURCES})
+target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES})
 
 # Install directive. This is the library core, to which LFC/DPM should have dependencies
-install(TARGETS UgrConnector
+install(TARGETS ugrconnector
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   LIBRARY DESTINATION ${LIBDESTINATION}
-  COMPONENT Core)
+  COMPONENT core)
 
 
 
@@ -54,12 +54,12 @@ install(TARGETS UgrConnector
 install(FILES UgrConnector.hh
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION include
-  COMPONENT Core)
+  COMPONENT core)
 
 install(FILES ${PROJECT_BINARY_DIR}/src/UgrConfig.h
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
   DESTINATION include
-  COMPONENT Core)
+  COMPONENT core)
 
 # ----------------------------
 

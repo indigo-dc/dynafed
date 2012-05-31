@@ -19,11 +19,11 @@ LocationPlugin(dbginstance, cfginstance, parms) {
     pluginManager = 0;
     catalog = 0;
 
-    if (parms.size() > 1) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite cfg: " << parms[1]);
+    if (parms.size() > 3) {
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite cfg: " << parms[3]);
 
         pluginManager = new dmlite::PluginManager();
-        pluginManager->loadConfiguration(parms[1]);
+        pluginManager->loadConfiguration(parms[3]);
         // Catalog
         catalog = pluginManager->getCatalogFactory()->createCatalog();
     }
@@ -40,6 +40,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
 
     if (!catalog) return;
     if (!pluginManager) return;
+
+    // We act using the identity of this service, hence we don't need to invoke
+    // getIdMap/setUserblahblah
     
     try {
         switch (op->wop) {
@@ -63,7 +66,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                 break;
         }
     } catch (dmlite::DmException e) {
-        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Catched exception: " << e.code());
+        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Catched exception: " << e.code() << " what: " << e.what());
         exc = true;
     }
     LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
@@ -71,6 +74,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
     // Now put the results
     {
         UgrFileItem it;
+        
+        // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
 
         op->fi->lastupdtime = time(0);
@@ -80,39 +85,45 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
 
             case LocationPlugin::wop_Stat:
                 if (exc) {
-                    op->fi->pending_statinfo = UgrFileInfo::NotFound;
-                    return;
+                    op->fi->status_statinfo = UgrFileInfo::NotFound;
+                   
+                } else {
+                    op->fi->size = st.st_size;
+                    op->fi->status_statinfo = UgrFileInfo::Ok;
+                    op->fi->unixflags = st.st_mode;
                 }
-                op->fi->size = st.st_size;
-                op->fi->status_statinfo = UgrFileInfo::Ok;
-                op->fi->unixflags = st.st_mode;
                 break;
 
             case LocationPlugin::wop_Locate:
-                op->fi->status_locations = UgrFileInfo::NotFound;
-                if (exc) return;
+                if (exc)
+                    op->fi->status_locations = UgrFileInfo::NotFound;
+                else {
 
-                for (vector<FileReplica>::iterator i = repvec.begin();
-                        i != repvec.end();
-                        i++) {
-                    it.name = i->unparsed_location;
-                    it.location.clear();
-                    op->fi->subitems.insert(it);
+                    for (vector<FileReplica>::iterator i = repvec.begin();
+                            i != repvec.end();
+                            i++) {
+                        it.name = i->unparsed_location;
+                        it.location.clear();
+                        op->fi->subitems.insert(it);
+                    }
+                    op->fi->status_locations = UgrFileInfo::Ok;
                 }
-                op->fi->status_locations = UgrFileInfo::Ok;
                 break;
 
             case LocationPlugin::wop_List:
-                op->fi->status_items = UgrFileInfo::NotFound;
-                if (exc) return;
+                if (exc)
+                    op->fi->status_items = UgrFileInfo::NotFound;
+                else {
 
-                dirent *dent;
-                while ((dent = catalog->readDir(d))) {
-                    it.name = dent->d_name;
-                    it.location.clear();
-                    op->fi->subitems.insert(it);
+                    dirent *dent;
+                    while ((dent = catalog->readDir(d))) {
+                        it.name = dent->d_name;
+                        it.location.clear();
+                        op->fi->subitems.insert(it);
+                    }
+                    op->fi->status_items = UgrFileInfo::Ok;
                 }
-                op->fi->status_items = UgrFileInfo::Ok;
+                
                 break;
 
             default:

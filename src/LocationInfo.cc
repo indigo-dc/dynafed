@@ -5,7 +5,7 @@
  */
 
 #include "LocationInfo.hh"
-
+#include<iomanip>
 
 using namespace boost;
 using namespace std;
@@ -127,8 +127,18 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
    
 
 void UgrFileInfo::print(ostream &out) {
+    
     out << "Name: " << name << endl;
+
+    if (this->status_statinfo == UgrFileInfo::NotFound) {
+        out << "The file does not exist." << endl;
+        return;
+
+    }
+
     out << "Size:" << size << endl;
+    out << "Flags:" << setbase(8) << unixflags << setbase(10) << endl;
+
     for (std::set<UgrFileItem>::iterator i = subitems.begin(); i != subitems.end(); i++) {
         out << "loc: \"" << i->location << "\" name: \"" << i->name << "\"" << endl;
     }

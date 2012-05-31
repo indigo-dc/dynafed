@@ -11,6 +11,7 @@
 #include <iostream>
 #include "../UgrConnector.hh"
 #include <stdio.h>
+#include <sys/stat.h>
 
 using namespace std;
 
@@ -39,6 +40,12 @@ int main(int argc, char **argv) {
         //sprintf(buf, "%d", i);
         //string fn1 = fn + buf;
         ugr.stat(fn, &fi);
+
+    }
+
+    if (fi->getStatStatus() == UgrFileInfo::Ok) {
+            if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
+            else ugr.locate(fn, &fi);
     }
 
     cout << "Results:" << endl;

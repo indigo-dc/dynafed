@@ -140,7 +140,10 @@ int UgrConnector::init(char *cfgfile) {
 
     if (!locPlugins.size()) {
         vector<string> parms;
-        parms.push_back("Unknown");
+        
+        parms.push_back("static_locplugin");
+        parms.push_back("Unnamed");
+        parms.push_back("1");
 
         Info(SimpleDebug::kLOW, fname, "No location plugins available. Using the default one.");
         LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG, parms);
@@ -190,6 +193,13 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     // wait for the search to finish by looking at the pending object
     do_waitStat(fi);
+
+    // If the status is noinfo, we can mark it as not found
+    {
+        boost::lock_guard<UgrFileInfo > l(*fi);
+        if (fi->getStatStatus() == UgrFileInfo::NoInfo)
+            fi->status_statinfo = UgrFileInfo::NotFound;
+    }
 
     *nfo = fi;
     return 0;

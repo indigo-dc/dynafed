@@ -125,6 +125,7 @@ public:
         // Hence the info is inprogress if there are plugins that are still active
         if (pending_statinfo > 0) return InProgress;
 
+
         return status_statinfo;
     }
 
