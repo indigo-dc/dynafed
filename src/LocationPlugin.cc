@@ -121,7 +121,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
     const char *fname = "LocationPlugin::runsearch";
 
     // Pretend to do something useful...
-    boost::posix_time::seconds workTime(4);
+    boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
     LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: finished processing ");

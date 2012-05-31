@@ -45,6 +45,10 @@ private:
     // Purge the old items from the buffer
     void purgeExpired();
 
+    // Cache in/out
+    int getFileInfoFromCache(UgrFileInfo *fi) { return 0; };
+    int putFileInfoToCache(UgrFileInfo *fi) { return 0; };
+
 public:
 
     LocationInfoHandler() : lrutick(0) {
