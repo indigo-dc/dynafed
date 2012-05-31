@@ -24,7 +24,7 @@ protected:
 
 public:
 
-   UgrLocPlugin_legacylfc(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms):
+   UgrLocPlugin_simpleHTTP(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms):
         LocationPlugin(dbginstance, cfginstance, parms) {
 
         Info(SimpleDebug::kLOW, "UgrLocPlugin_simpleHTTP", "Creating instance named " << name);

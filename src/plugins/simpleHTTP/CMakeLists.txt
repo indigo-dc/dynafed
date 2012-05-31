@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 
 
 # The source modules
-set(UgrLocPlugin_simpleHTTP_SOURCES UgrLocPlugin_simpleHTTP_simpleHTTP.cc)
+set(UgrLocPlugin_simpleHTTP_SOURCES UgrLocPlugin_simpleHTTP.cc)
 
 
 message(STATUS "Going to build target UgrLocPlugin_simpleHTTP${__CURRENT_VERSION_NO_DOTS}")
@@ -16,5 +16,5 @@ SET_TARGET_PROPERTIES(UgrLocPlugin_simpleHTTP${__CURRENT_VERSION_NO_DOTS} PROPER
 # How to install. This is a set of plugins that belong to a specific component
 install(TARGETS UgrLocPlugin_simpleHTTP${__CURRENT_VERSION_NO_DOTS}
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  LIBRARY DESTINATION usr/${LIBDESTINATION} COMPONENT Plugins-simpleHTTP
+  LIBRARY DESTINATION usr/${LIBDESTINATION} COMPONENT Plugins-simpleHTTP)
 

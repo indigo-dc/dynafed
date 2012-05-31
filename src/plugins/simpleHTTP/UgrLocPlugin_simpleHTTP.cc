@@ -28,5 +28,5 @@ using namespace std;
 // for the plugin to be loaded
 
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new UgrLocPlugin_legacylfc(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new UgrLocPlugin_simpleHTTP(dbginstance, cfginstance, parms);
 }
