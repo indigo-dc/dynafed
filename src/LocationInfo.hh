@@ -1,4 +1,4 @@
-/* @file   LocationInfo.hh
+/** @file   LocationInfo.hh
  * @brief  Handling of the info that is kept per each file
  * @author Fabrizio Furano
  * @date   Jul 2011

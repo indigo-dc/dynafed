@@ -1,4 +1,4 @@
-/* @file   LocationInfoHandler.hh
+/** @file   LocationInfoHandler.hh
  * @brief  Handling of the info that is kept per each file
  * @author Fabrizio Furano
  * @date   Oct 2011

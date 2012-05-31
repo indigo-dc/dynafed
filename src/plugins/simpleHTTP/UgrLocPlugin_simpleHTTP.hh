@@ -1,3 +1,9 @@
+/** @file   UgrLocPlugin_simpleHTTP.hh
+ * @brief  Plugin that talks to an HTTP server, simple version
+ * @author Fabrizio Furano
+ * @date   Jan 2012
+ */
+
 #ifndef LOCATIONPLUGIN_SIMPLEHTTP_HH
 #define LOCATIONPLUGIN_SIMPLEHTTP_HH
 
@@ -13,33 +19,34 @@
 
 
 
-class UgrLocPlugin_simpleHTTP;
-void simpleHTTPworker(UgrLocPlugin_simpleHTTP* plugin);
-
-
-
-class UgrLocPlugin_simpleHTTP: public LocationPlugin {
+/** LocationPlugin_simpleHTTP
+ * Plugin that talks to an HTTP server, simple version
+ *
+ *
+ * by Fabrizio Furano, CERN, Jan 2012
+ */
+class UgrLocPlugin_simpleHTTP : public LocationPlugin {
 protected:
 
 
 public:
 
-   UgrLocPlugin_simpleHTTP(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms):
-        LocationPlugin(dbginstance, cfginstance, parms) {
+    UgrLocPlugin_simpleHTTP(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
+    LocationPlugin(dbginstance, cfginstance, parms) {
 
         Info(SimpleDebug::kLOW, "UgrLocPlugin_simpleHTTP", "Creating instance named " << name);
-            
-   };
+
+    };
 
 
-   // Start the async stat process
-   //virtual int do_Stat(UgrFileInfo *fi);
+    // Start the async stat process
+    //virtual int do_Stat(UgrFileInfo *fi);
 
-   // Start the async location process
-   //virtual int do_Locate(UgrFileInfo *fi);
+    // Start the async location process
+    //virtual int do_Locate(UgrFileInfo *fi);
 
-   // Start the async listing process
-   //virtual int do_List(UgrFileInfo *fi);
+    // Start the async listing process
+    //virtual int do_List(UgrFileInfo *fi);
 
 
 };

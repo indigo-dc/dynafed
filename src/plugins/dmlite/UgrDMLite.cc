@@ -1,6 +1,7 @@
-/// @file    plugins/Ugr/UgrDMLite.cpp
+/// @file    UgrDMLite.cc
 /// @brief   Let dmlite use UGR as a plugin.
 /// @author  Fabrizio Furano <furano@cern.ch>
+/// @date    Feb 2012
 #include "UgrDMLite.hh"
 #include <set>
 #include <vector>
@@ -12,7 +13,6 @@
 using namespace dmlite;
 
 UgrConnector *UgrCatalog::conn = 0;
-bool UgrCatalog::initdone = false;
 
 UgrFactory::UgrFactory(CatalogFactory* catalogFactory) throw (DmException) :
 nestedFactory_(catalogFactory) {

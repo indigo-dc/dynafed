@@ -1,11 +1,8 @@
-/* Config
- * A place where to get configuration parameters from
- *
- *
- * by Fabrizio Furano, CERN, Jan 2011
+/** @file   Config.hh
+ * @brief  A helper class that implements a configuration manager. A place where to get configuration parameters from
+ * @author Fabrizio Furano
+ * @date   Jan 2011
  */
-
-
 
 
 #include "Config.hh"

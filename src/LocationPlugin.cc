@@ -1,4 +1,4 @@
-/* @file   LocationPlugin.cc
+/** @file   LocationPlugin.cc
  * @brief  Base class for an UGR location plugin
  * @author Fabrizio Furano
  * @date   Oct 2011

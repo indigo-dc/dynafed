@@ -1,4 +1,4 @@
-/* @file   UgrConnector.cc
+/** @file   UgrConnector.cc
  * @brief  Base class that gives the functionalities of a dynamic, protocol-agnostic redirector
  * @author Fabrizio Furano
  * @date   Jul 2011

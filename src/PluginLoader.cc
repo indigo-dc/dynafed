@@ -1,12 +1,9 @@
-
-
-/* PluginLoader
- * A class that loads a plugin
- * Taken from XrdSysPlugin by A.Hanushevsky
- *
- *
- * by Fabrizio Furano, CERN, Oct 2010
+/** @file   PluginLoader.hh
+ * @brief  A helper class that loads a plugin
+ * @author Fabrizio Furano
+ * @date   Oct 2010
  */
+
 
 #include "PluginLoader.hh"
 #include "SimpleDebug.hh"

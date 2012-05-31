@@ -1,17 +1,13 @@
+/** @file   SimpleDebug.hh
+ * @brief  Singleton used to handle the debug level and the log output plus some useful and handy macros.
+ * @author Fabrizio Furano
+ * @date   Oct 2010
+ */
+
 #ifndef SIMPLEDEBUG_HH
 #define SIMPLEDEBUG_HH
 
-/* SimpleDebug
- * Singleton used to handle the debug level and the log output
- * plus some useful and handy macros.
- *
- * This implementation uses syslog to send the messages, and it is designed
- *  to handle logging for a single process. I.e. no mask-like
- *  behavior for different log sources was implemented here.
- *
- *
- * by Fabrizio Furano, CERN, Oct 2010
- */
+
 
 
 // The singleton instance
@@ -51,7 +47,7 @@ class SimpleDebug;
   SimpleDebug::Instance()->Unlock();                            \
 }                                                               \
 
-                               
+
 // Error logging
 // These error messages are printed regardless of the current local logging level
 #define Error(where, what) {                                                       \
@@ -61,76 +57,113 @@ class SimpleDebug;
 }                                                                                  \
 
 
-// --------------------------------------------------------------
-
-
+/** SimpleDebug
+ * Singleton used to handle the debug level and the log output
+ * plus some useful and handy macros.
+ *
+ * This implementation uses syslog to send the messages, and it is designed
+ *  to handle logging for a single process. I.e. no mask-like
+ *  behavior for different log sources was implemented here.
+ *
+ *
+ * by Fabrizio Furano, CERN, Oct 2010
+ */
 class SimpleDebug {
- private:
-   short        fDbgLevel;
-   std::string  syslogIdent;
+private:
+    short fDbgLevel;
+    std::string syslogIdent;
 
-   void DoLog(const char * s);
+    void DoLog(const char * s);
 
 
 
- protected:
-   SimpleDebug();
-   ~SimpleDebug();
+protected:
+    SimpleDebug();
+    ~SimpleDebug();
 
-  static SimpleDebug *fgInstance;
+    static SimpleDebug *fgInstance;
 
- public:
+public:
 
-   // An helper enum to help following a coherent debug level schema
-   // This is not enforced through strong typing,
-   //  but it's anyway a good idea to comply to it
-   enum {
-      kSILENT     = 0,      // Log absolutely nothing
+    /// An helper enum to help following a coherent debug level schema
+    /// This is not enforced through strong typing,
+    /// it's anyway a good idea to comply to it
 
-      kLOW        = 1,      // Log very basic things, startup and just very high level funcs
-                            //  typical example: "Connected to XYZ"
+    enum {
+        /// Log absolutely nothing
+        kSILENT = 0,
+        
+        /// Log very basic things, startup and just very high level funcs
+        ///  typical example: "Connected to XYZ"
+        kLOW = 1,
 
-      kMEDIUM     = 2,      // Log more things, important to understand what's going on
-                            //  typical example: "Trying to connect to XYZ"
+        /// Log more things, important to understand what's going on
+        ///  typical example: "Trying to connect to XYZ"
+        kMEDIUM = 2,
 
-      kHIGH       = 3,      // Very verbose, log every significant function call
+        /// Very verbose, log every significant function call
+        kHIGH = 3,
 
-      kHIGHEST    = 4       // Log everything that can be logged, protocol dumps, etc.
-   };
+        /// Log everything that can be logged, protocol dumps, etc.
+        kHIGHEST = 4
+    };
 
-   static short        GetLevel() {
-     return Instance()->fDbgLevel;
-   }
 
-   static SimpleDebug *Instance();
-  static void Set(SimpleDebug *i) {
-    fgInstance = i;
-  }
+    /// Returns the current debug level
 
-   void SetIdent(const char *ident) {
-      syslogIdent = ident;
-   }
+    static short GetLevel() {
+        return Instance()->fDbgLevel;
+    }
 
-   void SetLevel(int l) {
-      fDbgLevel = l;
-   }
+    /// We are a singleton
+    static SimpleDebug *Instance();
 
-   void Lock() {};
-   void Unlock() {};
+    /// Quirk for setting this singleton if it's in a plugin
 
-   inline void TraceStream(short DbgLvl, std::ostringstream &s) {
+    static void Set(SimpleDebug *i) {
+        fgInstance = i;
+    }
 
-      if (DbgLvl <= GetLevel())
-         DoLog(s.str().c_str());
+    /// Set the syslog ident
+    /// @param ident the ident to set
 
-      s.str("");
-   }
+    void SetIdent(const char *ident) {
+        syslogIdent = ident;
+    }
 
-   inline void TraceString(short DbgLvl, char * s) {
+    /// Set the debug level
 
-      if (DbgLvl <= GetLevel())
-         DoLog(s);
-   }
+    void SetLevel(int l) {
+        fDbgLevel = l;
+    }
+
+    void Lock() {
+    };
+
+    void Unlock() {
+    };
+
+    /// Log something
+    /// @param DbgLvl the debug level this log request belongs to
+    /// @param s the string to log
+
+    inline void TraceStream(short DbgLvl, std::ostringstream &s) {
+
+        if (DbgLvl <= GetLevel())
+            DoLog(s.str().c_str());
+
+        s.str("");
+    }
+
+    /// Log something
+    /// @param DbgLvl the debug level this log request belongs to
+    /// @param s the string to log
+
+    inline void TraceString(short DbgLvl, char * s) {
+
+        if (DbgLvl <= GetLevel())
+            DoLog(s);
+    }
 
 };
 

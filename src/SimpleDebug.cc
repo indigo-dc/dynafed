@@ -1,13 +1,7 @@
-/* SimpleDebug
- * Singleton used to handle the debug level and the log output
- * plus some useful and handy macros.
- *
- * This implementation uses syslog to send the messages, and it is designed
- *  to handle logging for a single process. I.e. no mask-like
- *  behavior for different log sources was implemented here.
- *
- *
- * by Fabrizio Furano, CERN, Oct 2010
+/** @file   SimpleDebug.hh
+ * @brief  Singleton used to handle the debug level and the log output plus some useful and handy macros.
+ * @author Fabrizio Furano
+ * @date   Oct 2010
  */
 
 #include "SimpleDebug.hh"
@@ -17,7 +11,7 @@
 
 SimpleDebug *SimpleDebug::fgInstance = 0;
 
-//_____________________________________________________________________________
+
 SimpleDebug* SimpleDebug::Instance() {
    // Create unique instance
 
@@ -30,7 +24,7 @@ SimpleDebug* SimpleDebug::Instance() {
    return fgInstance;
 }
 
-//_____________________________________________________________________________
+
 SimpleDebug::SimpleDebug() {
    // Constructor... initialize the syslog stuff
    openlog(syslogIdent.c_str(), LOG_CONS | LOG_PID | LOG_PERROR, LOG_USER);
@@ -38,7 +32,7 @@ SimpleDebug::SimpleDebug() {
    fDbgLevel = kLOW;
 }
 
-//_____________________________________________________________________________
+
 SimpleDebug::~SimpleDebug() {
    // Destructor
    closelog();

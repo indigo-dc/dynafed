@@ -1,4 +1,4 @@
-/* @file   LocationPlugin.hh
+/** @file   LocationPlugin.hh
  * @brief  Base class for an UGR location plugin
  * @author Fabrizio Furano
  * @date   Oct 2011

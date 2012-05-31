@@ -1,17 +1,27 @@
+/** @file   PluginLoader.hh
+ * @brief  A helper class that loads a plugin
+ * @author Fabrizio Furano
+ * @date   Oct 2010
+ */
+
+
 #ifndef PLUGINLOADER_HH
 #define PLUGINLOADER_HH
 
 
-/* PluginLoader
- * A class that loads a plugin
- * Taken from XrdSysPlugin by A.Hanushevsky
- *
- *
- * by Fabrizio Furano, CERN, Oct 2010
- */
+
 
 #include <string.h>
 
+/** PluginLoader
+ * A class that loads a plugin.
+ * A plugin is a shared library that:
+ *  - exports a hook function with predetermined parameters
+ *  - when called, the hook function returns an instance of the class that implements the plugin functionality
+ *
+ * Straightforward stuff, taken from XrdSysPlugin by A.Hanushevsky
+ *
+ */
 class PluginLoader {
 public:
 

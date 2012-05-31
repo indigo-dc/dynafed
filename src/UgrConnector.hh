@@ -1,4 +1,4 @@
-/* @file   UgrConnector.hh
+/** @file   UgrConnector.hh
  * @brief  Base class that gives the functionalities of a dynamic, protocol-agnostic redirector
  * @author Fabrizio Furano
  * @date   Jul 2011
@@ -88,16 +88,6 @@ public:
     /// To be called after the ctor to initialize the object.
     /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
-
-    /// Returns a pointer to the item, after having populated
-    /// the list of the available replicas for the given lfn.
-    /// Sync API that eventually launches a search
-    /// The nfo instance is returned in locked state, only with the purpose
-    /// of copying the values out. The caller
-    /// must release it as soon as possible
-    /// @param lfn  The unique key to the file, typically its logical file name
-    /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
-    virtual int locate(std::string &lfn, UgrFileInfo **nfo);
 
     /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
     /// This could be a list of replicas
