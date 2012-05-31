@@ -56,20 +56,22 @@ void UgrConnector::tick(int parm) {
     const char *fname = "UgrConnector::tick";
     Info(SimpleDebug::kLOW, fname, "Ticker started");
 
-    //ticker->detach();
+    ticker->detach();
     
     while(!ticker->interruption_requested()) {
-
+        Info(SimpleDebug::kHIGHEST, fname, "Tick.");
         sleep(ticktime);
         locHandler.tick();
     }
+
+    Info(SimpleDebug::kLOW, fname, "Ticker exiting");
 }
 
 
 UgrConnector::~UgrConnector() {
     const char *fname = "UgrConnector::~UgrConnector";
 
-    Info(SimpleDebug::kLOW, fname, "Ticker started");
+    Info(SimpleDebug::kLOW, fname, "Stopping ticker.");
     if (ticker) {
         Info(SimpleDebug::kLOW, fname, "Joining ticker");
         ticker->interrupt();
@@ -88,6 +90,8 @@ UgrConnector::~UgrConnector() {
 }
 
 int UgrConnector::init(char *cfgfile) {
+    if (initdone) return -1;
+
     const char *fname = "UgrConnector::init";
     // Process the config file
     Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
@@ -108,7 +112,7 @@ int UgrConnector::init(char *cfgfile) {
     DebugSetLevel(debuglevel);
 
     // Get the tick pace from the config
-    ticktime = CFG->GetLong("glb.tick", 1);
+    ticktime = CFG->GetLong("glb.tick", 10);
 
 
     // Cycle through the plugins that have to be loaded
@@ -148,6 +152,7 @@ int UgrConnector::init(char *cfgfile) {
 
     ticker = new boost::thread( boost::bind( &UgrConnector::tick, this, 0 ));
 
+    initdone = true;
     return 0;
 }
 

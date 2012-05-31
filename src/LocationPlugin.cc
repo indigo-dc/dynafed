@@ -149,6 +149,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
             fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
             op->fi->subitems.push_back(fit);
         }
+        op->fi->status_items = UgrFileInfo::Ok;
 
         // Anyway the notification has to be correct, not redundant
         switch (op->wop) {
@@ -284,7 +285,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyItemsPending();
 
-    pushOp(fi, wop_Locate);
+    pushOp(fi, wop_List);
 
     return 0;
 }

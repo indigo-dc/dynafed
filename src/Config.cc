@@ -111,6 +111,8 @@ int Config::ProcessFile(char *filename) {
       val = "";
 
       char *p = strchr((char *)line.c_str(), (int)':');
+      if (!p) continue;
+
       int pos = p-line.c_str();
       if (pos > 0) {
 	char buf[1024];
@@ -131,7 +133,7 @@ int Config::ProcessFile(char *filename) {
           char *p2 = strstr((char *)token.c_str(), "[]");
           char buf2[1024];
           int pos2 = p2-token.c_str();
-          if (pos2 > 0) {
+          if (p2 && (pos2 > 0)) {
 	    // it's a string to be added to an array
             strncpy(buf2, token.c_str(), pos2);
             buf2[pos2] = 0;
