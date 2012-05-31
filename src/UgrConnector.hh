@@ -51,6 +51,11 @@ protected:
     /// When a location process is started, all the plugins are triggered in parallel
     std::vector<LocationPlugin *> locPlugins;
 
+    /// Info needed for a simple implementation of n2n functionalities
+    /// Prefix to substitute and new prefix
+    std::string n2n_pfx, n2n_newpfx;
+    void do_n2n(std::string &path);
+
     /// Start the async stat process
     /// In practice, trigger all the location plugins, possibly together,
     /// so they act concurrently

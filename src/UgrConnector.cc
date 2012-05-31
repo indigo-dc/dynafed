@@ -19,13 +19,16 @@
 using namespace std;
 
 
-
+/// Clean up a path
 void trimpath(std::string &s) {
     
     
     if (*(s.rbegin()) == '/')
         s.erase(s.size()-1);
+
+
 }
+
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
@@ -170,9 +173,29 @@ int UgrConnector::init(char *cfgfile) {
             Error(fname, "Could not start plugin " << i);
     }
     Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
+
+
+    n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *)"");
+    n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *)"");
+    trimpath(n2n_pfx);
+    trimpath(n2n_newpfx);
+    Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'") ;
+
     initdone = true;
     return 0;
 }
+
+
+void UgrConnector::do_n2n(std::string &path) {
+    if ( (n2n_pfx.size() == 0) || (path.find(n2n_pfx) == 0) ) {
+
+        if ( (n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0) )
+            path = n2n_newpfx + path.substr(n2n_pfx.size());
+
+    }
+}
+
+
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
@@ -196,6 +219,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     const char *fname = "UgrConnector::stat";
 
     trimpath(lfn);
+    do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, fname, "Stating " << lfn);
 
@@ -283,6 +307,7 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     trimpath(lfn);
+    do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, "UgrConnector::locate", "Locating " << lfn);
 
@@ -336,6 +361,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     trimpath(lfn);
+    do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, "UgrConnector::list", "Listing " << lfn);
 

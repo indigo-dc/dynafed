@@ -18,7 +18,7 @@ LocationPlugin(dbginstance, cfginstance, parms) {
 
     pluginManager = 0;
     catalogfactory = 0;
-    
+
     if (parms.size() > 3) {
         Info(SimpleDebug::kHIGH, "UgrLocPlugin_dmlite", "Initializing dmlite client. cfg: " << parms[3]);
 
@@ -47,6 +47,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     bool exc = false;
     std::string xname;
     dmlite::Catalog *catalog = 0;
+    bool listerror = false;
 
     if (!pluginManager) return;
     if (!catalogfactory) return;
@@ -113,94 +114,112 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
     }
 
-    // Now put the results
-    {
-        UgrFileItem it;
 
+
+    //
+    // Now put the results
+    //
+
+
+
+    UgrFileItem it;
+
+    
+
+    op->fi->lastupdtime = time(0);
+
+    switch (op->wop) {
+
+
+        case LocationPlugin::wop_Stat:
+            if (exc) {
+                //op->fi->status_statinfo = UgrFileInfo::NotFound;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
+            } else {
+                // Lock the file instance
+                unique_lock<mutex> l(*(op->fi));
+
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                op->fi->size = st.st_size;
+                op->fi->status_statinfo = UgrFileInfo::Ok;
+                op->fi->unixflags = st.st_mode;
+                if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+                    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
+                    op->fi->subitems.clear();
+                    op->fi->status_items = UgrFileInfo::Error;
+                }
+            }
+            break;
+
+        case LocationPlugin::wop_Locate:
+            if (exc) {
+                //op->fi->status_locations = UgrFileInfo::NotFound;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
+            } else {
+
+                for (vector<FileReplica>::iterator i = repvec.begin();
+                        i != repvec.end();
+                        i++) {
+                    it.name = i->url;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->url);
+
+                    // Process it with the Geo plugin, if needed
+                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
+
+                    {
+                        // Lock the file instance
+                        unique_lock<mutex> l(*(op->fi));
+
+                        op->fi->subitems.insert(it);
+                    }
+                }
+
+
+                
+
+            }
+            break;
+
+        case LocationPlugin::wop_List:
+            if (exc) {
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
+                //op->fi->status_items = UgrFileInfo::NotFound;
+            } else {
+
+                dirent *dent;
+                long cnt = 0;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
+                while ((dent = catalog->readDir(d))) {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
+
+                    if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                        listerror = true;
+                        op->fi->subitems.clear();
+                        break;
+                    }
+                    it.name = dent->d_name;
+                    it.location.clear();
+                    op->fi->subitems.insert(it);
+                }
+
+                catalog->closeDir(d);
+
+
+            }
+
+            break;
+
+        default:
+            break;
+    }
+
+    // We have modified the data, hence set the dirty flag
+
+    {
         // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
-
-        op->fi->lastupdtime = time(0);
-
-        switch (op->wop) {
-
-
-            case LocationPlugin::wop_Stat:
-                if (exc) {
-                    //op->fi->status_statinfo = UgrFileInfo::NotFound;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
-                } else {
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-                    op->fi->size = st.st_size;
-                    op->fi->status_statinfo = UgrFileInfo::Ok;
-                    op->fi->unixflags = st.st_mode;
-                    if ((long)st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
-                        op->fi->subitems.clear();
-                        op->fi->status_items = UgrFileInfo::Error;
-                    }
-                }
-                break;
-
-            case LocationPlugin::wop_Locate:
-                if (exc) {
-                    //op->fi->status_locations = UgrFileInfo::NotFound;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
-                } else {
-
-                    for (vector<FileReplica>::iterator i = repvec.begin();
-                            i != repvec.end();
-                            i++) {
-                        it.name = i->url;
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->url);
-      
-                        // Process it with the Geo plugin, if needed
-                        if (geoPlugin) geoPlugin->setReplicaLocation(it);
-
-                        op->fi->subitems.insert(it);
-                    }
-                    op->fi->status_locations = UgrFileInfo::Ok;
-
-                }
-                break;
-
-            case LocationPlugin::wop_List:
-                if (exc) {
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
-                    //op->fi->status_items = UgrFileInfo::NotFound;
-                } else {
-                    bool listerror = false;
-                    dirent *dent;
-                    long cnt = 0;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
-                    while ((dent = catalog->readDir(d))) {
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-                            listerror = true;
-                            op->fi->subitems.clear();
-                            break;
-                        }
-                        it.name = dent->d_name;
-                        it.location.clear();
-                        op->fi->subitems.insert(it);
-                    }
-
-                    catalog->closeDir(d);
-
-                    if (listerror) {
-                        op->fi->status_items = UgrFileInfo::Error;
-
-                    } else
-                        op->fi->status_items = UgrFileInfo::Ok;
-                }
-
-                break;
-
-            default:
-                break;
-        }
-
-        // We have modified the data, hence set the dirty flag
         op->fi->dirty = true;
 
         // Anyway the notification has to be correct, not redundant
@@ -211,10 +230,17 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
+                op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
 
             case LocationPlugin::wop_List:
+                if (listerror) {
+                    op->fi->status_items = UgrFileInfo::Error;
+
+                } else
+                    op->fi->status_items = UgrFileInfo::Ok;
+                
                 op->fi->notifyItemsNotPending();
                 break;
 
@@ -222,9 +248,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 break;
         }
 
-
-
     }
+
+
 
     {
         boost::unique_lock< boost::mutex > l(dmlitemutex);
