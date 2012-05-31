@@ -114,7 +114,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_List:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << cannonical_name << ")");
-                d = dav_core->opendir(cannonical_name);
+                d = dav_core->opendirpp(cannonical_name);
                 // if reach here -> valid opendir -> specify file as well
                 op->fi->unixflags |= S_IFDIR;
                 break;
@@ -125,8 +125,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         bad_answer = false; // reach here -> request complete
     } catch (Glib::Error & e) {
         LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << " name: " << g_quark_to_string(e.domain()) << " Catched exception: " << e.code() << " what: " << e.what());
-        if (d)
-            dav_core->closedir(d);
     } catch (std::exception & e) {
         LocPluginLogErr(fname, " UgrDav plugin request Error : Unexcepted Error, FATAL  what: " << e.what());
     } catch (...) {
@@ -142,69 +140,80 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
-        switch (op->wop) {
+		try {		
+			LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+			switch (op->wop) {
+
+				case LocationPlugin::wop_Stat:
+					LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+					op->fi->takeStat(st);
+					break;
+
+				case LocationPlugin::wop_Locate:
+					it.name = cannonical_name;
+					LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
+
+					// Process it with the Geo plugin, if needed
+					if (geoPlugin) geoPlugin->setReplicaLocation(it);
+				{
+					// Lock the file instance
+					unique_lock<mutex> l(*(op->fi));
+
+					op->fi->subitems.insert(it);
+				}
+
+					break;
+
+				case LocationPlugin::wop_List:
+				{
+					dirent * dent;
+					long cnt = 0;
+					struct stat st;
+					while ((dent = dav_core->readdirpp(d, &st)) != NULL) {
+						unique_lock<mutex> l(*(op->fi));
 
 
-            case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-                op->fi->takeStat(st);
-                break;
+						if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+							LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+							listerror = true;
+							op->fi->subitems.clear();
+							break;
+						}
 
-            case LocationPlugin::wop_Locate:
-                it.name = cannonical_name;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
-
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(it);
-            {
-                // Lock the file instance
-                unique_lock<mutex> l(*(op->fi));
-
-                op->fi->subitems.insert(it);
-            }
-
-                break;
-
-            case LocationPlugin::wop_List:
-            {
-                dirent * dent;
-                long cnt = 0;
-                while ((dent = dav_core->readdir(d)) != NULL) {
-                    unique_lock<mutex> l(*(op->fi));
+						// create new items
+						UgrFileItem it;
+						LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+						it.name = std::string(dent->d_name);
+						it.location.clear();
+						// populate answer
+						op->fi->subitems.insert(it);
+						// add childrens
+						string child = op->fi->name + "/" + it.name ;
+						UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child);
+						LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirpp stat info for  " << dent->d_name << ", flags " << st.st_mode << " size : " << st.st_size);						
+						if (fi) fi->takeStat(st);
+					}
+					dav_core->closedirpp(d);
 
 
-                    if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-                        listerror = true;
-                        op->fi->subitems.clear();
-                        break;
-                    }
+				}
+					break;
+
+				default:
+					break;
+			}
 
 
-                    UgrFileItem it;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
-                    it.name = std::string(dent->d_name);
-                    it.location.clear();
-
-                    // Lock the file instance
-
-                    op->fi->subitems.insert(it);
-
-                }
-                dav_core->closedir(d);
-
-
-            }
-                break;
-
-            default:
-                break;
-        }
-
-
-        // We have modified the data, hence set the dirty flag
-        op->fi->dirty = true;
+			// We have modified the data, hence set the dirty flag
+			op->fi->dirty = true;
+        
+		} catch (Glib::Error & e) {
+			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << " name: " << g_quark_to_string(e.domain()) << " Catched exception: " << e.code() << " what: " << e.what());
+		} catch (std::exception & e) {
+			LocPluginLogErr(fname, " UgrDav plugin request Error : Unexcepted Error, FATAL  what: " << e.what());
+		} catch (...) {
+			LocPluginLogErr(fname, " UgrDav plugin request Error: Unknow Error Fatal  ");
+		}        
     }
 
 
