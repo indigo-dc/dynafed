@@ -16,6 +16,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sys/stat.h>
 
+#include <iostream>
+
 /// The information that we have about a subitem, e.g. an item in a directory listing,
 /// or an item in a list of replicas. Maybe a file or directory
 /// If the owner is a directory then this is a (relative) item of its listing
@@ -53,26 +55,34 @@ public:
 
 /// Instances of UgrFileItem may be kept in a quasi-sorted way.
 /// This is the compare functor that sorts them by distance from a point
-class UgrFileItemGeoComp: public UgrFileItemComp {
+class UgrFileItemGeoComp {
 private:
     float ltt, lng;
 public:
 
-    UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {};
+    UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {
+        //std::cout << "geocomp" << std::endl;
+    };
     virtual ~UgrFileItemGeoComp(){};
     
-    virtual bool operator()(UgrFileItem &s1, UgrFileItem &s2) {
+    virtual bool operator()(const UgrFileItem &s1, const UgrFileItem &s2) {
         float x, y, d1, d2;
+
+        //std::cout << "client" << ltt << " " << lng << std::endl;
 
         // Distance client->repl1
         x = (s1.longitude-lng) * cos( (ltt+s1.latitude)/2 );
         y = (s1.latitude-ltt);
         d1 = x*x + y*y;
 
+        //std::cout << "d1 " << d1 << std::endl;
+
         // Distance client->repl2
         x = (s2.longitude-lng) * cos( (ltt+s2.latitude)/2 );
         y = (s2.latitude-ltt);
         d2 = x*x + y*y;
+
+        //std::cout << "d2 " << d2 << std::endl;
 
 
         if (d1 < d2)

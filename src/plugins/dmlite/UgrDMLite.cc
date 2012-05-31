@@ -115,7 +115,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
 		Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to order / choose a proper one");
         // Request UgrConnector to order a replica set according to proximity to the client
-        std::set<UgrFileItem, UgrFileItemComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
+        std::set<UgrFileItem, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
 
         // Populate the vector
         FileReplica r;

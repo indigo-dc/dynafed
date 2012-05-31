@@ -131,7 +131,7 @@ public:
     virtual int stat(std::string &lfn, UgrFileInfo **nfo);
 
     /// Return the replica set sorted by increasing distance to the client IP given
-    std::set<UgrFileItem, UgrFileItemComp> getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo);
+    std::set<UgrFileItem, UgrFileItemGeoComp> getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo);
 };
 
 

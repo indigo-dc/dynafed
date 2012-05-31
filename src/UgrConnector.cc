@@ -400,22 +400,23 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     return 0;
 };
 
-std::set<UgrFileItem, UgrFileItemComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
-    if (nfo) {
+std::set<UgrFileItem, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
+    
 
-        
         float ltt = 0.0, lng = 0.0;
 
-        if (geoPlugin) {
-            geoPlugin->getAddrLocation(clientip, ltt, lng);
-            UgrFileItemGeoComp cmp(ltt, lng);
-            Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
-            std::set<UgrFileItem, UgrFileItemComp> newset(nfo->subitems.begin(), nfo->subitems.end(), cmp);
-            return newset;
+        if (geoPlugin) geoPlugin->getAddrLocation(clientip, ltt, lng);
+
+        UgrFileItemGeoComp cmp(ltt, lng);
+        Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
+        std::set<UgrFileItem, UgrFileItemGeoComp> newset(cmp);
+
+        if (nfo) {
+            for (std::set<UgrFileItem>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i)
+                newset.insert((UgrFileItem &)(*i));
         }
 
-        return nfo->subitems;
-    }
+        return newset;
 
-    return set<UgrFileItem, UgrFileItemComp>();
+    
 }
