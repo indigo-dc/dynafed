@@ -136,6 +136,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
         // ...this may happen, in this case the plugin writes all the info that it has
         // BUT the notification has to be only for the operation that was requested
 
+
         // Create a fake stat information
         op->fi->lastupdtime = time(0);
         op->fi->size = 12345;
@@ -145,11 +146,14 @@ void LocationPlugin::runsearch(struct worktoken *op) {
         // Create a fake list information
         for (int ii = 0; ii < 10; ii++) {
             UgrFileItem *fit = new UgrFileItem();
-            fit->name = "myhost/myfilepath" + boost::lexical_cast<std::string > (ii);
+            fit->name = "newhost/myfilepath" + boost::lexical_cast<std::string > (ii);
             fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
             op->fi->subitems.push_back(fit);
         }
         op->fi->status_items = UgrFileInfo::Ok;
+
+        // We have modified the data, hence set the dirty flag
+        op->fi->dirty = true;
 
         // Anyway the notification has to be correct, not redundant
         switch (op->wop) {

@@ -55,7 +55,7 @@ public:
         
 
         // Get the lifetime of an etry
-        maxttl = CFG->GetLong("infohandler.tick", 86400);
+        maxttl = CFG->GetLong("infohandler.itemttl", 86400);
     };
 
 

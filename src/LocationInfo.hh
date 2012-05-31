@@ -51,6 +51,12 @@ public:
       lastupdreqtime = time(0);
    }
 
+   // Indicates that this entry was modified since the last time it was
+   // pushed to an eventual external caching thing
+   // This flag has to be set to true by any plugin that modifies
+   // the content of the object
+   bool dirty;
+
    // The filename this record refers to (the lfn)
    // associated to its stat information
    std::string name;
