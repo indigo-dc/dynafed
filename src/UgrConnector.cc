@@ -403,12 +403,13 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 std::set<UgrFileItem, UgrFileItemComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
     if (nfo) {
 
-        Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " -> try to order replicas by geo-location ");
+        
         float ltt = 0.0, lng = 0.0;
 
         if (geoPlugin) {
-            UgrFileItemGeoComp cmp(ltt, lng);
             geoPlugin->getAddrLocation(clientip, ltt, lng);
+            UgrFileItemGeoComp cmp(ltt, lng);
+            Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
             std::set<UgrFileItem, UgrFileItemComp> newset(nfo->subitems.begin(), nfo->subitems.end(), cmp);
             return newset;
         }
