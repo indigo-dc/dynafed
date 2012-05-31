@@ -35,6 +35,18 @@ public:
    };
 
 
+   // Calls that characterize the behevior of the plugin
+   // In general:
+   //  do_XXX triggers the start of an async task that gathers a specific kind of info
+   //   it's not serialized, and it has to return immediately, exposing a non-blocking behavior
+   //  do_waitXXX waits for the completion of the task that was triggered by the corresponding
+   //   invokation of do_XXX. This is a blocking function, that must honour the timeout value that
+   //   is given
+      
+   // The async stat process will put (asynchronously) the required info directly in the data fields of
+   // the given instance of UgrFileInfo. Access to this data struct has to be serialized, since it's
+   // a shared thing
+
    // Start the async stat process
    virtual int do_Stat(UgrFileInfo *fi);
    // Waits max a number of seconds for a locate process to be complete

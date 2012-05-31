@@ -73,15 +73,24 @@ public:
    int pending_locations;
    int pending_items;
 
-
+ 
    InfoStatus getStatStatus() {
+       // To stat successfully a file we just need one plugin to answer positively
+       // Hence, if we have the stat info here, we just return Ok, regardless
+       // of how many plugins are still active 
        if (!status_statinfo) return Ok;
+
+       // If we have no stat info, then the file was not found or it's early to tell
+       // Hence the info is inprogress if there are plugins that are still active
        if (pending_statinfo > 0) return InProgress;
       
        return status_statinfo;
    }
 
    InfoStatus getLocationStatus() {
+       // In the case of a pending op that tries to find all the locations, we need to
+       // get the response from all the plugins
+       // Hence, this info is inprogress if there are still plugins that are active on it
        if (pending_locations > 0) return InProgress;
 
        if (status_locations == Ok) return Ok;
@@ -196,9 +205,10 @@ public:
    int encodeToString(std::string &str) { str = ""; return 0; };
    int decodeFromString(std::string &str) { str = ""; return 0; };
 
-   // Selects the replica that looks best for the given client. Here we use geoip and ev.
-   // the info we have about that server
+   // Selects the replica that looks best for the given client. Here we don't make assumptions
+   // on the method that we apply to choose one, since it could be implemented as a plugin
    int getBestReplicaIdx(std::string &clientlocation);
+
 
    // Wait until any notification update comes
    // Useful to recheck if what came is what we were waiting for
