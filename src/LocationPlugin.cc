@@ -177,7 +177,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
             fit.location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
             op->fi->subitems.insert(fit);
         }
-        op->fi->status_items = UgrFileInfo::Ok;
+        
 
         // We have modified the data, hence set the dirty flag
         op->fi->dirty = true;
@@ -190,10 +190,12 @@ void LocationPlugin::runsearch(struct worktoken *op) {
                 break;
 
             case LocationPlugin::wop_Locate:
+                op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
 
             case LocationPlugin::wop_List:
+                op->fi->status_items = UgrFileInfo::Ok;
                 op->fi->notifyItemsNotPending();
                 break;
 

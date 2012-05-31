@@ -212,7 +212,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     *nfo = fi;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Stat-ed " << lfn << " Status: " << fi->getStatStatus() <<
+    Info(SimpleDebug::kLOW, fname, "Stat-ed " << lfn << "sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
@@ -286,8 +286,18 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
     do_waitLocate(fi);
 
 
+    // If the status is noinfo, we can mark it as not found
+    {
+        boost::lock_guard<UgrFileInfo > l(*fi);
+        if (fi->getLocationStatus() == UgrFileInfo::NoInfo)
+            fi->status_locations = UgrFileInfo::NotFound;
+        else fi->status_locations = UgrFileInfo::Ok;
+    }
 
     *nfo = fi;
+
+    Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->subitems.size() << " Status: " << fi->getLocationStatus() <<
+            " status_statinfo: " << fi->status_locations << " pending_statinfo: " << fi->pending_locations);
 
     return 0;
 }
@@ -328,11 +338,21 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
 
 
+    // If the status is noinfo, we can mark it as not found
+    {
+        boost::lock_guard<UgrFileInfo > l(*fi);
+        if (fi->getItemsStatus() == UgrFileInfo::NoInfo)
+            fi->status_items = UgrFileInfo::NotFound;
+        else fi->status_items = UgrFileInfo::Ok;
+    }
 
     // Stat all the childs in parallel, eventually
     statSubdirs(fi);
 
     *nfo = fi;
+
+    Info(SimpleDebug::kLOW, "UgrConnector::list", "Located " << lfn << "items:" << fi->subitems.size() << " Status: " << fi->getItemsStatus() <<
+            " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
 };
