@@ -29,12 +29,14 @@ if(DMLITE_FOUND)
   # How to install. This is a set of plugins that belong to a specific component
   install(TARGETS ugrlocplugin_dmliteclient
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    LIBRARY DESTINATION usr/${LIBDESTINATION} COMPONENT plugins-dmliteclient)
+    LIBRARY DESTINATION ${LIBDESTINATION} COMPONENT plugins-dmliteclient)
 
   # Install the config files
-  install(FILES ugrdmliteclient.conf
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    DESTINATION /etc
-    COMPONENT plugins-dmliteclient)
+  if (NOT EXISTS /etc/ugrdmliteclient.conf)
+    install(FILES ugrdmliteclient.conf
+      PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+      DESTINATION /etc
+      COMPONENT plugins-dmliteclient)
+  endif()
 
 ENDIF()

@@ -18,7 +18,7 @@
 #include <boost/thread.hpp>
 
 
-#define LocPluginLogInfo(l, n, c) Info(SimpleDebug::kMEDIUM, fname, "LocPlugin: " << this->name << " " << c);
+#define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
 #define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << " " << c);
 
 /** LocationPlugin
@@ -30,6 +30,8 @@
  */
 class LocationPlugin {
 
+    int nthreads;
+    
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
 
@@ -74,13 +76,17 @@ protected:
     /// The method that performs the operation
     /// This has to be overridden in the true plugins
     virtual void runsearch(struct worktoken *wtk);
-    
+
+    // The simple, default global name translation
+    std::string xlatepfx_from, xlatepfx_to;
 
 public:
 
    LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
    virtual ~LocationPlugin();
-   void stop();
+
+   virtual void stop();
+   virtual int start();
 
    // Calls that characterize the behevior of the plugin
    // In general:

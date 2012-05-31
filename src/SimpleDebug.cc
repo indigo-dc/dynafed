@@ -47,3 +47,5 @@ void SimpleDebug::DoLog(const char * s) {
    syslog(LOG_DEBUG, "%s", s);
    //std::cout << s;
 }
+
+

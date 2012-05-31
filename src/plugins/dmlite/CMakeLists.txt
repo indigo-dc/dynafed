@@ -22,9 +22,11 @@ if(DMLITE_FOUND)
     COMPONENT ugrdmlite)
 
   # Install the config files
-  install(FILES ugrdmlite.conf
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION /etc
-  COMPONENT plugins-dmlite)
+  if (NOT EXISTS /etc/ugrdmlite.conf)
+    install(FILES ugrdmlite.conf
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DESTINATION /etc
+    COMPONENT plugins-dmlite)
+  endif()
 
 endif()

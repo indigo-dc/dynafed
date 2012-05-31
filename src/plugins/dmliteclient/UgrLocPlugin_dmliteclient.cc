@@ -19,10 +19,18 @@ LocationPlugin(dbginstance, cfginstance, parms) {
     pluginManager = 0;
 
     if (parms.size() > 3) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite cfg: " << parms[3]);
+        Info(SimpleDebug::kHIGH, "UgrLocPlugin_dmlite", "Initializing dmlite client. cfg: " << parms[3]);
 
-        pluginManager = new dmlite::PluginManager();
-        pluginManager->loadConfiguration(parms[3]);
+        try {
+            pluginManager = new dmlite::PluginManager();
+            pluginManager->loadConfiguration(parms[3]);
+
+        } catch (int e) {
+            Error("UgrLocPlugin_dmlite", "Catched exception: " << e);
+           
+        }
+
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite plugin manager loaded. cfg: " << parms[3]);
 
     }
 
@@ -35,10 +43,13 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
     std::vector<FileReplica> repvec;
     dmlite::Directory *d;
     bool exc = false;
+    std::string xname;
 
     if (!pluginManager) return;
 
     // Catalog
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
+
     dmlite::Catalog *catalog = pluginManager->getCatalogFactory()->createCatalog();
     if (!catalog) {
         LocPluginLogErr(fname, "Catalog creation failed.");
@@ -48,30 +59,41 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
 
+    // Now xlate the name , by applying the default xlation
+    xname = op->fi->name;
+    if ( (xlatepfx_from.size() > 0) && ((op->fi->name.size() == 0) || (op->fi->name.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0)) ) {
+
+        if (op->fi->name.size() == 0)
+            xname = xlatepfx_to;
+        else
+            xname = xlatepfx_to + op->fi->name.substr(xlatepfx_from.length());
+
+    }
+
     if (!exc) {
         try {
             switch (op->wop) {
 
                 case LocationPlugin::wop_Stat:
-                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking Stat(" << op->fi->name << ")");
-                    st = catalog->stat(op->fi->name);
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking Stat(" << xname << ")");
+                    st = catalog->stat(xname);
                     break;
 
                 case LocationPlugin::wop_Locate:
-                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << op->fi->name << ")");
-                    repvec = catalog->getReplicas(op->fi->name);
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << xname << ")");
+                    repvec = catalog->getReplicas(xname);
                     break;
 
                 case LocationPlugin::wop_List:
-                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking openDir(" << op->fi->name << ")");
-                    d = catalog->openDir(op->fi->name);
+                    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "invoking openDir(" << xname << ")");
+                    d = catalog->openDir(xname);
                     break;
 
                 default:
                     break;
             }
         } catch (dmlite::DmException e) {
-            LocPluginLogErr(fname, "Catched exception: " << e.code() << " what: " << e.what());
+            LocPluginLogErr(fname, "op: " << op->wop << " name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
             exc = true;
         }
         LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
@@ -105,8 +127,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                 if (exc) {
                     //op->fi->status_locations = UgrFileInfo::NotFound;
                     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
-                }
-                else {
+                } else {
 
                     for (vector<FileReplica>::iterator i = repvec.begin();
                             i != repvec.end();
@@ -124,8 +145,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                 if (exc) {
                     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
                     //op->fi->status_items = UgrFileInfo::NotFound;
-                }
-                else {
+                } else {
 
                     dirent *dent;
                     while ((dent = catalog->readDir(d))) {

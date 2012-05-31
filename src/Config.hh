@@ -91,5 +91,12 @@ public:
     void ArrayGetString(const char *name, char *val, int pos);
 };
 
+
+
+
+// Utility to tokenize compound lines
+std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);
+
+
 #endif
 

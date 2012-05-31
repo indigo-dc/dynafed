@@ -9,10 +9,11 @@
 #include <sys/stat.h>
 
 using namespace boost;
+using namespace std;
 
 void pluginFunc(LocationPlugin *pl, int myidx) {
     const char *fname = "LocationPlugin::pluginFunc";
-    Info(SimpleDebug::kMEDIUM, fname, "Worker: started");
+    Info(SimpleDebug::kHIGHEST, fname, "Worker: started");
 
     // Get some work to do
     while (!pl->exiting) {
@@ -27,7 +28,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
         }
     }
 
-    Info(SimpleDebug::kLOW, fname, "Worker: finished");
+    Info(SimpleDebug::kHIGHEST, fname, "Worker: finished");
 
 }
 
@@ -36,7 +37,7 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     CFG->Set(cfginstance);
 
     const char *fname = "LocationPlugin::LocationPlugin";
-    int nthreads = 0;
+    nthreads = 0;
 
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
@@ -44,15 +45,49 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
 
     if (parms.size() > 2)
         nthreads = atoi(parms[2].c_str());
-    if ((nthreads < 0) || (nthreads > 1000))
-        nthreads = 2;
 
-    // Create our pool of threads
-    exiting = false;
-    LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
-    for (int i = 0; i < nthreads; i++) {
-        workers.push_back(new boost::thread(pluginFunc, this, i));
+    if (nthreads < 0) {
+        Error(fname, "Fixing nthreads: " << nthreads << "-->2");
+        nthreads = 2;
     }
+
+    if (nthreads > 10000) {
+        Error(fname, "Fixing nthreads: " << nthreads << "-->10000")
+        nthreads = 10000;
+    }
+
+
+    // Now get from the config any item built as:
+    // locplugin.<name>.variablename
+    // or
+    // locplugin.<name>.arrayname[]
+    // es.
+    // locplugin.dmlite1.xlatepfx /dpm/cern.ch/ /
+    // locplugin.http1.host[] http://exthost.y.z/path_pfx_to_strip
+
+    std::string s = "locplugin.";
+    s += name;
+    s += ".xlatepfx";
+    
+    std::string v;
+    v = CFG->GetString(s.c_str(), (char *)"");
+
+    if (v.size() > 0) {
+        vector<string> parms = tokenize(v, " ");
+        if (parms.size() < 2) {
+            Error(fname, "Bad xlatepfx: '" << v << "'");
+        }
+        else {
+            xlatepfx_from = parms[0];
+            xlatepfx_to = parms[1];
+        }
+    }
+
+
+
+
+    exiting = false;
+    
     
 };
 
@@ -84,6 +119,18 @@ void LocationPlugin::stop() {
         delete *workers.begin();
         workers.erase(workers.begin());
     }
+}
+
+int LocationPlugin::start() {
+    const char *fname = "LocationPlugin::start";
+
+    // Create our pool of threads
+    LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
+    for (int i = 0; i < nthreads; i++) {
+            workers.push_back(new boost::thread(pluginFunc, this, i));
+    }
+
+    return 0;
 }
 
 

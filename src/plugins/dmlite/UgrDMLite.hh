@@ -35,7 +35,7 @@ namespace dmlite {
                 uid_t*, std::vector<gid_t>*) throw (DmException);
 
         virtual struct stat stat(const std::string&) throw (DmException);
-        virtual struct xstat extendedStat(const std::string&) throw (DmException);
+        virtual struct xstat extendedStat(const std::string&, bool) throw (DmException);
 
         virtual Directory* openDir(const std::string&) throw (DmException);
         virtual void closeDir(Directory*) throw (DmException);

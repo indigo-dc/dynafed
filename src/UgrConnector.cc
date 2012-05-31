@@ -18,31 +18,11 @@
 
 using namespace std;
 
-vector<string> tokenize(const string& str, const string& delimiters) {
-    vector<string> tokens;
-
-    // skip delimiters at beginning.
-    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
-
-    // find first "non-delimiter".
-    string::size_type pos = str.find_first_of(delimiters, lastPos);
-
-    while (string::npos != pos || string::npos != lastPos) {
-        // found a token, add it to the vector.
-        tokens.push_back(str.substr(lastPos, pos - lastPos));
-
-        // skip delimiters.  Note the "not_of"
-        lastPos = str.find_first_not_of(delimiters, pos);
-
-        // find next "non-delimiter"
-        pos = str.find_first_of(delimiters, lastPos);
-    }
-
-    return tokens;
-}
 
 
 void trimpath(std::string &s) {
+    
+    
     if (*(s.rbegin()) == '/')
         s.erase(s.size()-1);
 }
@@ -161,6 +141,12 @@ int UgrConnector::init(char *cfgfile) {
 
     ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
 
+    Info(SimpleDebug::kHIGH, fname, "Starting the plugins.");
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (locPlugins[i]->start())
+            Error(fname, "Could not start plugin " << i);
+    }
+    Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
     initdone = true;
     return 0;
 }
@@ -188,7 +174,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     trimpath(lfn);
 
-    Info(SimpleDebug::kHIGHEST, fname, "Stat-ing " << lfn);
+    Info(SimpleDebug::kMEDIUM, fname, "Stating " << lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -272,6 +258,8 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     trimpath(lfn);
 
+    Info(SimpleDebug::kMEDIUM, "UgrConnector::locate", "Locating " << lfn);
+
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
     UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
@@ -323,6 +311,8 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     trimpath(lfn);
 
+    Info(SimpleDebug::kMEDIUM, "UgrConnector::list", "Listing " << lfn);
+
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
     UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
@@ -351,7 +341,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     *nfo = fi;
 
-    Info(SimpleDebug::kLOW, "UgrConnector::list", "Located " << lfn << "items:" << fi->subitems.size() << " Status: " << fi->getItemsStatus() <<
+    Info(SimpleDebug::kLOW, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subitems.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;

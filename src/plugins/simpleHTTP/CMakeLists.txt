@@ -16,6 +16,6 @@ target_link_libraries(ugrlocplugin_simplehttp ugrconnector)
 # How to install. This is a set of plugins that belong to a specific component
 install(TARGETS ugrlocplugin_simplehttp
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-  LIBRARY DESTINATION usr/${LIBDESTINATION}
+  LIBRARY DESTINATION ${LIBDESTINATION}
   COMPONENT plugins-simplehttp)
 

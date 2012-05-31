@@ -251,7 +251,7 @@ struct stat UgrCatalog::stat(const std::string& path) throw (DmException) {
     throw DmException(DM_NO_SUCH_FILE, "File not found");
 }
 
-struct xstat UgrCatalog::extendedStat(const std::string& path) throw (DmException) {
+struct xstat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
     struct xstat st;
     UgrFileInfo *nfo = 0;
     if (!getUgrConnector()->stat((std::string&)path, &nfo) && nfo && (nfo->getInfoStatus() != nfo->NotFound)) {
