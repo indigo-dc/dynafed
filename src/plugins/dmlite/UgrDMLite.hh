@@ -37,16 +37,14 @@ namespace dmlite {
         virtual struct stat stat(const std::string&) throw (DmException);
         virtual struct xstat extendedStat(const std::string&) throw (DmException);
 
-
-        virtual void setUserId(uid_t, gid_t, const std::string&) throw (DmException);
-
-
         virtual Directory* openDir(const std::string&) throw (DmException);
         virtual void closeDir(Directory*) throw (DmException);
 
         virtual struct dirent* readDir(Directory*) throw (DmException);
         virtual struct direntstat* readDirx(Directory*) throw (DmException);
 
+        virtual void setUserId(uid_t, gid_t, const std::string&) throw (DmException);
+        virtual void setVomsData(const std::string&, const std::vector<std::string>&) throw (DmException);
 
         static UgrConnector *getUgrConnector() {
             if (!UgrCatalog::conn) UgrCatalog::conn = new UgrConnector();
@@ -65,6 +63,11 @@ namespace dmlite {
         // We use only one instance of this
         static UgrConnector *conn;
         static bool initdone;
+
+        // User info
+        std::string userdn;
+        std::string voms_vo;
+        std::vector<std::string> voms_fqans;
     };
 
 

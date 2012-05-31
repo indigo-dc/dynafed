@@ -96,8 +96,15 @@ void UgrCatalog::set(const std::string& key, va_list vargs) throw (DmException) 
 }
 
 void UgrCatalog::setUserId(uid_t uid, gid_t gid, const std::string& dn) throw (DmException) {
-    if (this->decorated_)
-        this->decorated_->setUserId(uid, gid, dn);
+
+    userdn = dn;
+
+}
+
+void UgrCatalog::setVomsData(const std::string &vo, const std::vector<std::string> &fqans) throw (DmException) {
+
+    voms_vo = vo;
+    voms_fqans = fqans;
 }
 
 Uri splitUri(const std::string& uri) {
