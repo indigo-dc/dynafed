@@ -24,7 +24,7 @@
 class UgrConnector {
 private:
     // The thread that ticks
-    boost::thread ticker;
+    boost::thread *ticker;
 
 protected:
 
@@ -74,9 +74,8 @@ protected:
    unsigned int ticktime;
 public:
 
-    UgrConnector(): ticker( boost::bind( &UgrConnector::tick, this, 0 )) {
-        // Get the tick pace from the config
-        ticktime = CFG->GetLong("glb.tick", 1);
+    UgrConnector(): ticker(0) {
+        
 
     };
     

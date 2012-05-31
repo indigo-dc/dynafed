@@ -46,6 +46,9 @@ public:
       pending_locations = 0;
       pending_items = 0;
       name = lfn;
+
+      lastupdtime = time(0);
+      lastupdreqtime = time(0);
    }
 
    // The filename this record refers to (the lfn)

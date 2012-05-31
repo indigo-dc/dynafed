@@ -53,7 +53,12 @@ vector<string> tokenize(const string& str,const string& delimiters)
 // Invoked by a thread, gives life to the object
 void UgrConnector::tick(int parm) {
 
-    while(!ticker.interruption_requested()) {
+    const char *fname = "UgrConnector::tick";
+    Info(SimpleDebug::kLOW, fname, "Ticker started");
+
+    //ticker->detach();
+    
+    while(!ticker->interruption_requested()) {
 
         sleep(ticktime);
         locHandler.tick();
@@ -62,13 +67,23 @@ void UgrConnector::tick(int parm) {
 
 
 UgrConnector::~UgrConnector() {
-    ticker.interrupt();
-    ticker.join();
-    
+    const char *fname = "UgrConnector::~UgrConnector";
+
+    Info(SimpleDebug::kLOW, fname, "Ticker started");
+    if (ticker) {
+        Info(SimpleDebug::kLOW, fname, "Joining ticker");
+        ticker->interrupt();
+        ticker->join();
+        delete ticker;
+        ticker = 0;
+        Info(SimpleDebug::kLOW, fname, "Joined.");
+    }
+
+    Info(SimpleDebug::kLOW, fname, "Destroying plugins");
     int cnt = locPlugins.size();
     for (int i = 0; i < cnt; i++)
         delete locPlugins[i];
-
+    Info(SimpleDebug::kLOW, fname, "Exiting.");
 
 }
 
@@ -91,6 +106,9 @@ int UgrConnector::init(char *cfgfile) {
     long debuglevel = CFG->GetLong("glb.debug", 1);
 
     DebugSetLevel(debuglevel);
+
+    // Get the tick pace from the config
+    ticktime = CFG->GetLong("glb.tick", 1);
 
 
     // Cycle through the plugins that have to be loaded
@@ -126,6 +144,9 @@ int UgrConnector::init(char *cfgfile) {
 
     if (!locPlugins.size())
         Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
+
+
+    ticker = new boost::thread( boost::bind( &UgrConnector::tick, this, 0 ));
 
     return 0;
 }
