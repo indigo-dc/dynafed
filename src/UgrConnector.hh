@@ -1,12 +1,13 @@
+/* @file   UgrConnector.hh
+ * @brief  Base class that gives the functionalities of a dynamic, protocol-agnostic redirector
+ * @author Fabrizio Furano
+ * @date   Jul 2011
+ */
+
 #ifndef UGRCONNECTOR_HH
 #define UGRCONNECTOR_HH
 
-/* UgrConnector
- * Base class that gives the functionalities of a redirector
- *
- *
- * by Fabrizio Furano, CERN, Jul 2011
- */
+
 
 #include "SimpleDebug.hh"
 #include "Config.hh"
@@ -20,62 +21,60 @@
 
 
 
-// The class that allows to interact with the system
-
+/// The main class that allows to interact with the system
 class UgrConnector {
 private:
-    // The thread that ticks
+    /// The thread that ticks
     boost::thread *ticker;
 
 protected:
 
-    // This holds in memory at least the entries that are being processed
-    // Eventually it may grow or demand a more scalable caching to an external entity
-    // This has to be mutex-protected
+    /// This holds in memory at least the entries that are being processed
+    /// Eventually it may grow or demand a more scalable caching to an external entity
+    /// This has to be mutex-protected
     LocationInfoHandler locHandler;
 
-    // This handles the information that we have about a host that participates to the thing
-    // Having no info about a host is technically allowed
-    // At app level, this will probably be forbidden
-    // This has to be mutex-protected
+    /// This handles the information that we have about a host that participates to the thing
+    /// Having no info about a host is technically allowed
+    /// At app level, this will probably be forbidden
+    /// This has to be mutex-protected
     HostsInfoHandler hostHandler;
 
-    // The location plugins that we have loaded
-    //
-    // E.g. SEMsg, NativeLFC, WhateverDB, WhateverMessaging, VanillaHTTP
-    // Each plugin is able to modify the info in LocHandler and HostHandler, asynchronously
-    // When a location process is started, all the plugins are triggered in parallel
+    /// The location plugins that we have loaded
+    /// E.g. SimpleHTTP, MultiHTTP, SEMsg, WhateverDB, WhateverMessaging
+    /// Each plugin is able to modify the info in LocHandler and HostHandler, asynchronously
+    /// When a location process is started, all the plugins are triggered in parallel
     std::vector<LocationPlugin *> locPlugins;
 
-    // Start the async stat process
-    // In practice, trigger all the location plugins, possibly together,
-    // so they act concurrently
+    /// Start the async stat process
+    /// In practice, trigger all the location plugins, possibly together,
+    /// so they act concurrently
     int do_Stat(UgrFileInfo *fi);
-    // Waits max a number of seconds for a locate process to be complete
+    /// Waits max a number of seconds for a stat process to be complete
     int do_waitStat(UgrFileInfo *fi, int tmout = 5);
 
-    // Start the async location process
-    // In practice, trigger all the location plugins, possibly together,
-    // so they act concurrently
+    /// Start the async location process
+    /// In practice, trigger all the location plugins, possibly together,
+    /// so they act concurrently
     int do_Locate(UgrFileInfo *fi);
-    // Waits max a number of seconds for a locate process to be complete
+    /// Waits max a number of seconds for a locate process to be complete
     int do_waitLocate(UgrFileInfo *fi, int tmout = 5);
 
-    // Start the async listing process
-    // In practice, trigger all the location plugins, possibly together,
-    // so they act concurrently
+    /// Start the async listing process
+    /// In practice, trigger all the location plugins, possibly together,
+    /// so they act concurrently
     int do_List(UgrFileInfo *fi);
-    // Waits max a number of seconds for a list process to be complete
+    /// Waits max a number of seconds for a list process to be complete
     int do_waitList(UgrFileInfo *fi, int tmout = 5);
 
-    // Invoked by a thread, gives life to the object
+    /// Invoked by the ticker thread, gives life to the object
     virtual void tick(int parm);
 
-    // Helper func that starts a parallel stat task for all the subdirs of the given dir
+    /// Helper func that starts a parallel stat task for all the subdirs of the given dir
+    /// This reduces the latencies in processing a directory listing
     void statSubdirs(UgrFileInfo *fi);
 
     unsigned int ticktime;
-
     bool initdone;
 public:
 
@@ -86,29 +85,49 @@ public:
 
     virtual ~UgrConnector();
 
+    /// To be called after the ctor to initialize the object.
+    /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
 
-    // Returns a pointer to the item, after having populated
-    // the list of the available replicas for the given lfn.
-    // Sync API that eventually launches a search
-    // The nfo instance is returned in locked state, only with the purpose
-    // of copying the values out. The caller
-    // must release it as soon as possible
+    /// Returns a pointer to the item, after having populated
+    /// the list of the available replicas for the given lfn.
+    /// Sync API that eventually launches a search
+    /// The nfo instance is returned in locked state, only with the purpose
+    /// of copying the values out. The caller
+    /// must release it as soon as possible
+    /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
     virtual int locate(std::string &lfn, UgrFileInfo **nfo);
 
-    // Returns a pointer to the item with the list of the content of the given lfn (ls).
-    // Waits for some time that at least nitemswait items have arrived, ev returns TIMEOUT
-    // If the search process terminates and there are no (more) items, returns OK
-    // The nfo instance is returned in locked state, only with the purpose
-    // of copying the values out. The caller
-    // must release it as soon as possible
+    /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
+    /// This could be a list of replicas
+    /// Waits for some time that at least nitemswait items have arrived, ev returns TIMEOUT
+    /// If the search process terminates and there are no (more) items, returns OK
+    /// The nfo instance is returned in locked state, only with the purpose
+    /// of copying the values out. The caller
+    /// must release it as soon as possible
+    /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
+    virtual int locate(std::string &lfn, UgrFileInfo **nfo);
+
+    /// Returns a pointer to the item with the list of the content of the given lfn (ls).
+    /// Waits for some time that at least nitemswait items have arrived, ev returns TIMEOUT
+    /// If the search process terminates and there are no (more) items, returns OK
+    /// The nfo instance is returned in locked state, only with the purpose
+    /// of copying the values out. The caller
+    /// must release it as soon as possible
+    /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
+    /// @param nitemswait Wait for at least N items to have arrived. 0 to wait for the whole set
     virtual int list(std::string &lfn, UgrFileInfo **nfo, int nitemswait = 0);
 
-    // Returns a pointer to the item, after having made sure that
-    // its stat information is populated. Eventually populate it before returning.
-    // The nfo instance is returned in locked state, only with the purpose
-    // of copying the values out. The caller
-    // must release it as soon as possible
+    /// Returns a pointer to the item, after having made sure that
+    /// its stat information was populated. Eventually populate it before returning.
+    /// The nfo instance is returned in locked state, only with the purpose
+    /// of copying the values out. The caller
+    /// must release it as soon as possible
+    /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
     virtual int stat(std::string &lfn, UgrFileInfo **nfo);
 
 

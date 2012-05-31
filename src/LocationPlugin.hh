@@ -1,14 +1,12 @@
+/* @file   LocationPlugin.hh
+ * @brief  Base class for an UGR location plugin
+ * @author Fabrizio Furano
+ * @date   Oct 2011
+ */
 #ifndef LOCATIONPLUGIN_HH
 #define LOCATIONPLUGIN_HH
 
-/* LocationPlugin
- * Base class for a plugin which gathers info about files from some source
- * If not properly subclassed, this acts as a default fake plugin, putting test data
- * as responses
- *
- *
- * by Fabrizio Furano, CERN, Oct 2011
- */
+
 
 #include "Config.hh"
 #include "SimpleDebug.hh"
@@ -23,16 +21,24 @@
 #define LocPluginLogInfo(l, n, c) Info(SimpleDebug::kMEDIUM, fname, "LocPlugin: " << this->name << " " << c);
 #define LocPluginLogErr(n, c) Info(fname, "LocPlugin: " << this->name << " " << c);
 
+/** LocationPlugin
+ * Base class for a plugin which gathers info about files from some source. No assumption
+ * is made about what source is this.
+ * This base implementation acts as a default fake plugin, that puts test data
+ * as responses. Very useful for testing.
+ * 
+ */
 class LocationPlugin {
 
+    /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl);
 
 protected:
-    // The name assigned to this plugin from the creation
+    /// The name assigned to this plugin from the creation
     char *name;
 
-    // We keep a thread pool and a synchronized work queue, in order to always guarantee
-    // pure non blocking behaviour
+    /// We keep a private thread pool and a synchronized work queue, in order to provide
+    /// pure non blocking behaviour
     std::vector< boost::thread * > workers;
 
     enum workOp {
@@ -41,17 +47,25 @@ protected:
         wop_Locate,
         wop_List
     };
+    /// The description of an operation to be done asynchronously
     struct worktoken {
         UgrFileInfo *fi;
         workOp wop;
     };
+    /// Queue of the pending operations
     std::deque< struct worktoken *> workqueue;
+    /// Condvar for synchronizing the queue
     boost::condition_variable workcondvar;
+    /// Mutex for protecting the queue
     boost::mutex workmutex;
 
+    /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
     void pushOp(UgrFileInfo *fi, workOp wop);
+    /// Gets the next op to perform
     struct worktoken *getOp();
 
+    /// The method that performs the operation
+    /// This has to be overridden in the true plugins
     virtual void runsearch(struct worktoken *wtk);
     
 
@@ -70,22 +84,31 @@ public:
    //   is given
       
    // The async stat process will put (asynchronously) the required info directly in the data fields of
-   // the given instance of UgrFileInfo. Access to this data struct has to be serialized, since it's
+   // the given instance of UgrFileInfo. Access to this data struct has to be properly protected, since it's
    // a shared thing
 
-   // Start the async stat process
+   /// Start the async stat process
+   /// @param fi UgrFileInfo instance to populate
    virtual int do_Stat(UgrFileInfo *fi);
-   // Waits max a number of seconds for a locate process to be complete
+   /// Waits max a number of seconds for a stat process to be complete
+   /// @param fi UgrFileInfo instance to wait for
+   /// @param tmout Timeout for waiting
    virtual int do_waitStat(UgrFileInfo *fi, int tmout=5);
 
-   // Start the async location process
+   /// Start the async location process
+   /// @param fi UgrFileInfo instance to populate
    virtual int do_Locate(UgrFileInfo *fi);
-   // Waits max a number of seconds for a locate process to be complete
+   /// Waits max a number of seconds for a locate process to be complete
+   /// @param fi UgrFileInfo instance to wait for
+   /// @param tmout Timeout for waiting
    virtual int do_waitLocate(UgrFileInfo *fi, int tmout=5);
 
-   // Start the async listing process
+   /// Start the async listing process
+   /// @param fi UgrFileInfo instance to populate
    virtual int do_List(UgrFileInfo *fi);
-   // Waits max a number of seconds for a list process to be complete
+   /// Waits max a number of seconds for a list process to be complete
+   /// @param fi UgrFileInfo instance to wait for
+   /// @param tmout Timeout for waiting
    virtual int do_waitList(UgrFileInfo *fi, int tmout=5);
 
 };
@@ -96,11 +119,11 @@ public:
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
 
-// The set of args that have to be passed to the plugin hook function
+/// The set of args that have to be passed to the plugin hook function
 #define GetLocationPluginArgs SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms
 
-// The plugin functionality. This function invokes the plugin loader, looking for the
-// plugin where to call the hook function
+/// The plugin functionality. This function invokes the plugin loader, looking for the
+/// plugin where to call the hook function
 LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs);
 
 

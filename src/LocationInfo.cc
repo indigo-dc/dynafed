@@ -1,8 +1,7 @@
-/* LocationInfo
- * Handling of the info that is kept per each file
- *
- *
- * by Fabrizio Furano, CERN, Jul 2011
+/* @file   LocationInfo.cc
+ * @brief  Handling of the info that is kept per each file
+ * @author Fabrizio Furano
+ * @date   Jul 2011
  */
 
 #include "LocationInfo.hh"

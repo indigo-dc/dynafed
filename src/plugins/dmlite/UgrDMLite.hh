@@ -1,6 +1,7 @@
 /// @file    plugins/dmlite/UgrDMLite.hh
 /// @brief   Let dmlite use UGR as a plugin.
 /// @author  Fabrizio Furano <furano@cern.ch>
+/// @date    Feb 2012
 #ifndef UGRDMLITECATALOG_HH
 #define UGRDMLITECATALOG_HH
 
@@ -12,8 +13,7 @@
 
 namespace dmlite {
 
-    /// Librarian plugin
-
+    /// Inherits from DummyCatalog, in order to treat there the non implemented methods
     class UgrCatalog : public DummyCatalog {
     public:
         /// Constructor
@@ -60,13 +60,17 @@ namespace dmlite {
 
         friend class UgrFactory;
 
-        // We use only one instance of this
+        /// The instance of UGRConnector in use. Must be only one, so that the
+        /// internal buffers can be shared
         static UgrConnector *conn;
-        static bool initdone;
 
-        // User info
+        /// User dn to be kept for this session
         std::string userdn;
+
+        /// VO name to be kept for this session
         std::string voms_vo;
+
+        /// FQANS to be kept for this session
         std::vector<std::string> voms_fqans;
     };
 

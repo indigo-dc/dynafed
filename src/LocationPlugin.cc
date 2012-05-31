@@ -1,3 +1,8 @@
+/* @file   LocationPlugin.cc
+ * @brief  Base class for an UGR location plugin
+ * @author Fabrizio Furano
+ * @date   Oct 2011
+ */
 #include "LocationPlugin.hh"
 #include "PluginLoader.hh"
 #include <time.h>
@@ -66,7 +71,6 @@ LocationPlugin::~LocationPlugin() {
 }
 
 // Pushes a new op in the queue
-
 void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
     const char *fname = "LocationPlugin::pushOp";
 
@@ -86,7 +90,6 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
 }
 
 // Gets an op from the queue, or timeout
-
 struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     struct worktoken *mytk = 0;
     const char *fname = "LocationPlugin::getOp";
@@ -198,7 +201,6 @@ void LocationPlugin::runsearch(struct worktoken *op) {
 
 // Start the async stat process
 // Mark the fileinfo with one more pending stat request (by this plugin)
-
 int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     const char *fname = "LocationPlugin::do_Stat";
 
@@ -234,7 +236,6 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
 // N seconds at max, where M is the number of hosts that are known
 //
 // The result will be in the FileInfo object
-
 int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitStat";
 
@@ -248,7 +249,6 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 // Start the async location process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
-
 int LocationPlugin::do_Locate(UgrFileInfo *fi) {
     const char *fname = "LocationPlugin::do_Locate";
 
@@ -265,7 +265,6 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi) {
 }
 
 // Waits max a number of seconds for a locate process to be complete
-
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitLocate";
 
@@ -279,7 +278,6 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // Start the async listing process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
-
 int LocationPlugin::do_List(UgrFileInfo *fi) {
     const char *fname = "LocationPlugin::do_List";
 
@@ -296,7 +294,6 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
 }
 
 // Waits max a number of seconds for a list process to be complete
-
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitList";
 
@@ -331,7 +328,6 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
 
 // The plugin functionality. This function invokes the plugin loader, looking for the
 // plugin where to call the hook function
-
 LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) {
     const char *fname = "GetLocationPluginClass_local";
     PluginLoader *myLib = 0;
@@ -373,9 +369,8 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 }
 
 
-// The hook function. GetLocationPluginClass must be given the name of this function
-// for the plugin to be loaded
-
+/// The plugin hook function. GetLocationPluginClass must be given the name of this function
+/// for the plugin to be loaded
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     return (LocationPlugin *)new LocationPlugin(dbginstance, cfginstance, parms);
 }

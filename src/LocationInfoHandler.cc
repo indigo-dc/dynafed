@@ -1,8 +1,7 @@
-/* LocationInfoHandler
- * Handling of the info that is kept per each file
- *
- *
- * by Fabrizio Furano, CERN, Oct 2011
+/* @file   LocationInfoHandler.cc
+ * @brief  Handling of the info that is kept per each file
+ * @author Fabrizio Furano
+ * @date   Oct 2011
  */
 
 

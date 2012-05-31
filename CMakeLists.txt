@@ -9,6 +9,15 @@ execute_process( COMMAND uname -m
   OUTPUT_VARIABLE ARCH
   OUTPUT_STRIP_TRAILING_WHITESPACE)
 
+
+# Build the Doxygen cfg
+configure_file (
+	       "${PROJECT_SOURCE_DIR}/Doxyfile.in"
+	       "${PROJECT_BINARY_DIR}/Doxyfile.cfg"
+)
+
+
+
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (eg MacroOutOfSourceBuild.cmake):
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
@@ -58,6 +67,8 @@ add_subdirectory(src)
 
 enable_testing()
 
+ADD_CUSTOM_TARGET(doc
+  doxygen "${PROJECT_BINARY_DIR}/Doxyfile.cfg")
 
 #######################################################
 # Configure an 'uninstall' target

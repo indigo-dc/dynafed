@@ -1,8 +1,7 @@
-/* UgrConnector
- * Base class that gives the functionalities of a redirector
- *
- *
- * by Fabrizio Furano, CERN, Jul 2011
+/* @file   UgrConnector.cc
+ * @brief  Base class that gives the functionalities of a dynamic, protocol-agnostic redirector
+ * @author Fabrizio Furano
+ * @date   Jul 2011
  */
 
 
