@@ -105,7 +105,7 @@ void LocationPlugin::stop() {
 
     for (unsigned int i = 0; i < workers.size(); i++) {
 
-        pushOp(0, wop_Nop);
+        pushOp(0, 0, wop_Nop);
     }
 
     for (unsigned int i = 0; i < workers.size(); i++) {
@@ -138,7 +138,7 @@ LocationPlugin::~LocationPlugin() {
 }
 
 // Pushes a new op in the queue
-void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
+void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop) {
     const char *fname = "LocationPlugin::pushOp";
 
     {
@@ -147,6 +147,7 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
         worktoken *tk = new(worktoken);
         tk->fi = fi;
         tk->wop = wop;
+        tk->handler = handler;
         workqueue.push_back(tk);
     }
 
@@ -271,7 +272,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
 
 // Start the async stat process
 // Mark the fileinfo with one more pending stat request (by this plugin)
-int LocationPlugin::do_Stat(UgrFileInfo* fi) {
+int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_Stat";
 
     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
@@ -281,7 +282,7 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyStatPending();
 
-    pushOp(fi, wop_Stat);
+    pushOp(fi, handler, wop_Stat);
 
     return 0;
 };
@@ -319,7 +320,7 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 // Start the async location process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
-int LocationPlugin::do_Locate(UgrFileInfo *fi) {
+int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_Locate";
 
     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
@@ -329,7 +330,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyLocationPending();
 
-    pushOp(fi, wop_Locate);
+    pushOp(fi, handler, wop_Locate);
 
     return 0;
 }
@@ -348,7 +349,7 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // Start the async listing process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
-int LocationPlugin::do_List(UgrFileInfo *fi) {
+int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_List";
 
     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
@@ -358,7 +359,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
     // in a parallel thread, or inside do_waitstat
     fi->notifyItemsPending();
 
-    pushOp(fi, wop_List);
+    pushOp(fi, handler, wop_List);
 
     return 0;
 }

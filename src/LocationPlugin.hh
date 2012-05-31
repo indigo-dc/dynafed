@@ -10,7 +10,7 @@
 
 #include "Config.hh"
 #include "SimpleDebug.hh"
-#include "LocationInfo.hh"
+#include "LocationInfoHandler.hh"
 
 #include <string>
 #include <vector>
@@ -60,6 +60,7 @@ protected:
     struct worktoken {
         UgrFileInfo *fi;
         workOp wop;
+        LocationInfoHandler *handler;
     };
 
     // Workaround for a bug in boost, where interrupt() hangs
@@ -73,7 +74,7 @@ protected:
     boost::mutex workmutex;
 
     /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
-    void pushOp(UgrFileInfo *fi, workOp wop);
+    void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop);
     /// Gets the next op to perform
     struct worktoken *getOp();
 
@@ -108,7 +109,7 @@ public:
 
    /// Start the async stat process
    /// @param fi UgrFileInfo instance to populate
-   virtual int do_Stat(UgrFileInfo *fi);
+   virtual int do_Stat(UgrFileInfo *fi, LocationInfoHandler *handler);
    /// Waits max a number of seconds for a stat process to be complete
    /// @param fi UgrFileInfo instance to wait for
    /// @param tmout Timeout for waiting
@@ -116,7 +117,7 @@ public:
 
    /// Start the async location process
    /// @param fi UgrFileInfo instance to populate
-   virtual int do_Locate(UgrFileInfo *fi);
+   virtual int do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler);
    /// Waits max a number of seconds for a locate process to be complete
    /// @param fi UgrFileInfo instance to wait for
    /// @param tmout Timeout for waiting
@@ -124,7 +125,7 @@ public:
 
    /// Start the async listing process
    /// @param fi UgrFileInfo instance to populate
-   virtual int do_List(UgrFileInfo *fi);
+   virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
    /// Waits max a number of seconds for a list process to be complete
    /// @param fi UgrFileInfo instance to wait for
    /// @param tmout Timeout for waiting

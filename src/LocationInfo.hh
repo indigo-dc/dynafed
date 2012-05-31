@@ -14,7 +14,7 @@
 #include <boost/thread.hpp>
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
-
+#include <sys/stat.h>
 
 /// The information that we have about a subitem, e.g. an item in a directory listing,
 /// or an item in a list of replicas. Maybe a file or directory
@@ -304,6 +304,8 @@ public:
 
     // Useful for debugging
     void print(std::ostream &out);
+
+    void takeStat(struct stat &st);
 
 };
 

@@ -200,7 +200,7 @@ void UgrConnector::do_n2n(std::string &path) {
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
     for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_Stat(fi);
+        locPlugins[i]->do_Stat(fi, &locHandler);
 
     return 0;
 }
@@ -289,7 +289,7 @@ int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
 
     for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_Locate(fi);
+        locPlugins[i]->do_Locate(fi, &locHandler);
 
     return 0;
 }
@@ -343,7 +343,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
 int UgrConnector::do_List(UgrFileInfo *fi) {
     for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_List(fi);
+        locPlugins[i]->do_List(fi, &locHandler);
 
     return 0;
 }
@@ -391,7 +391,8 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     }
 
     // Stat all the childs in parallel, eventually
-    statSubdirs(fi);
+    if (CFG->GetBool("glb.statsubdirs", false))
+        statSubdirs(fi);
 
     *nfo = fi;
 

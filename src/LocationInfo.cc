@@ -16,12 +16,12 @@ int UgrFileInfo::getBestReplicaIdx(std::string &clientlocation) {
 
 int UgrFileInfo::waitForSomeUpdate(unique_lock<mutex> &l, int sectmout) {
 
-    system_time const timeout = get_system_time()+posix_time::seconds(sectmout);
+    system_time const timeout = get_system_time() + posix_time::seconds(sectmout);
 
 
     // I am still skeptical on the possibility of having so many condition variables
     // Maybe this has to be taken from a pool of condvars, for the moment it stays as it is
-    if (!condvar.timed_wait(l, timeout ))
+    if (!condvar.timed_wait(l, timeout))
         return 1; // timeout
     else
         return 0; // signal catched
@@ -40,7 +40,7 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
 
     // If still pending, we wait for the file object to get a notification
     // then we recheck...
-    time_t timelimit = time(0)+sectmout;
+    time_t timelimit = time(0) + sectmout;
 
     Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getStatStatus() <<
             " status_statinfo: " << status_statinfo << " pending_statinfo: " << pending_statinfo);
@@ -61,17 +61,17 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // We are here if the plugins have finished OR in the case of timeout
     // If the stat is still marked as in progress it means that some plugin is very late.
     if ((getStatStatus() == InProgress) && (status_statinfo == NoInfo))
-            status_statinfo = NotFound;
+        status_statinfo = NotFound;
 
     return 0;
 }
 
 int UgrFileInfo::waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout) {
-const char *fname = "UgrFileInfo::waitLocations";
+    const char *fname = "UgrFileInfo::waitLocations";
 
     // If still pending, we wait for the file object to get a notification
     // then we recheck...
-    time_t timelimit = time(0)+sectmout;
+    time_t timelimit = time(0) + sectmout;
 
     Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getLocationStatus() <<
             " status_locations: " << status_locations << " pending_locations: " << pending_locations);
@@ -92,7 +92,7 @@ const char *fname = "UgrFileInfo::waitLocations";
     // We are here if the plugins have finished OR in the case of timeout
     // If the loc is still marked as in progress it means that some plugin is very late.
     if ((getLocationStatus() == InProgress) && (status_locations == NoInfo))
-            status_locations = NotFound;
+        status_locations = NotFound;
 
     return 0;
 }
@@ -102,7 +102,7 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
 
     // If still pending, we wait for the file object to get a notification
     // then we recheck...
-    time_t timelimit = time(0)+sectmout;
+    time_t timelimit = time(0) + sectmout;
 
     Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getItemsStatus() <<
             " status_items: " << status_items << " pending_items: " << pending_items);
@@ -123,14 +123,13 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // We are here if the plugins have finished OR in the case of timeout
     // If the loc is still marked as in progress it means that some plugin is very late.
     if ((getItemsStatus() == InProgress) && (status_items == NoInfo))
-            status_items = NotFound;
+        status_items = NotFound;
 
     return 0;
 }
-   
 
 void UgrFileInfo::print(ostream &out) {
-    
+
     out << "Name: " << name << endl;
 
     if (this->status_statinfo == UgrFileInfo::NotFound) {
@@ -148,3 +147,21 @@ void UgrFileInfo::print(ostream &out) {
 
 }
 
+void UgrFileInfo::takeStat(struct stat &st) {
+    const char *fname = "UgrFileInfo::takeStat";
+    unique_lock<mutex> l2(*this);
+
+    status_statinfo = Ok;
+
+    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+    size = st.st_size;
+    status_statinfo = UgrFileInfo::Ok;
+    unixflags = st.st_mode;
+    if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
+        subitems.clear();
+        status_items = UgrFileInfo::Error;
+    }
+
+
+}

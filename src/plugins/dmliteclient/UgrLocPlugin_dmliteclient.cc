@@ -124,7 +124,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     UgrFileItem it;
 
-    
+
 
     op->fi->lastupdtime = time(0);
 
@@ -135,20 +135,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
             if (exc) {
                 //op->fi->status_statinfo = UgrFileInfo::NotFound;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
-            } else {
-                // Lock the file instance
-                unique_lock<mutex> l(*(op->fi));
+            } else
+                op->fi->takeStat(st);
 
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-                op->fi->size = st.st_size;
-                op->fi->status_statinfo = UgrFileInfo::Ok;
-                op->fi->unixflags = st.st_mode;
-                if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-                    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
-                    op->fi->subitems.clear();
-                    op->fi->status_items = UgrFileInfo::Error;
-                }
-            }
+
             break;
 
         case LocationPlugin::wop_Locate:
@@ -175,7 +165,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 }
 
 
-                
+
 
             }
             break;
@@ -186,10 +176,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 //op->fi->status_items = UgrFileInfo::NotFound;
             } else {
 
-                dirent *dent;
+                ExtendedStat *dent;
                 long cnt = 0;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
-                while ((dent = catalog->readDir(d))) {
+                while ((dent = catalog->readDirx(d))) {
                     // Lock the file instance
                     unique_lock<mutex> l(*(op->fi));
 
@@ -199,9 +189,18 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         op->fi->subitems.clear();
                         break;
                     }
-                    it.name = dent->d_name;
+                    it.name = dent->name;
                     it.location.clear();
                     op->fi->subitems.insert(it);
+
+
+                    // We have some info to add to the cache
+                    if (op->handler) {
+                        string newlfn = op->fi->name + "/" + dent->name;
+                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn);
+                        if (fi) fi->takeStat(dent->stat);
+                    }
+
                 }
 
                 catalog->closeDir(d);
@@ -240,7 +239,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                 } else
                     op->fi->status_items = UgrFileInfo::Ok;
-                
+
                 op->fi->notifyItemsNotPending();
                 break;
 
