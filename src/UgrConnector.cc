@@ -404,8 +404,9 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
 
 std::set<UgrFileItem, UgrFileItemComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
+     Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas(", "   -> try to order replicas by geo-location ");	
     float ltt = 0.0, lng = 0.0;
-    
+
     if (geoPlugin) {
         UgrFileItemGeoComp cmp(ltt, lng);
         geoPlugin->getAddrLocation(clientip, ltt, lng);
