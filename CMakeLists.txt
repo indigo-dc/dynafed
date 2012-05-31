@@ -62,6 +62,8 @@ find_package(LFC 1.8.0)
 find_package(DMLite 0.0)
 # ----------------------
 
+# generic pkgconfig module for Davix & co
+find_package(PkgConfig REQUIRED)
 
 
 

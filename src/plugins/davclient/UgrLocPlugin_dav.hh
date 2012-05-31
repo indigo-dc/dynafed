@@ -30,10 +30,16 @@ public:
 	 * 
 	 * */
     UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-    LocationPlugin(dbginstance, cfginstance, parms) {
+    LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::session_create()) {
 
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_simpleHTTP", "Creating instance named " << name);
-
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Creating instance named " << name);
+		// try to get config
+		if(parms.size() > 3){
+	        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Try to bind UgrLocPlugin_dav with " << parms[3]);		
+			base_url= parms[3];
+		}else{
+	        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "No correct parameter for this Plugin : Unable to load properly ");		
+		}
     };
 
 
@@ -41,7 +47,9 @@ public:
      *     
      **/
      virtual void runsearch(struct worktoken *op, int myidx);
-
+protected:
+	std::string base_url;
+	boost::scoped_ptr<Davix::Composition> dav_core;
 };
 
 

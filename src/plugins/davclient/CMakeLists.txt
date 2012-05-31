@@ -10,11 +10,14 @@ FILE(GLOB src_dav_plugin "*.cc")
 
 message(STATUS "Building the DAV plugin")
 
+pkg_check_modules(DAVIX_PKG REQUIRED davix)
+
+include_directories(${DAVIX_PKG_INCLUDE_DIRS})
 # Configure the target for the consumer shared library that we want to provide
 add_library(ugrlocplugin_dav SHARED ${src_dav_plugin})
 SET_TARGET_PROPERTIES(ugrlocplugin_dav PROPERTIES LINK_FLAGS "-rdynamic")
 
-target_link_libraries(ugrlocplugin_dav ugrconnector)
+target_link_libraries(ugrlocplugin_dav ugrconnector ${DAVIX_PKG_LIBRARIES})
 
 
 # How to install. This is a set of plugins that belong to a specific component
