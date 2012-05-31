@@ -42,7 +42,8 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // then we recheck...
     time_t timelimit = time(0)+sectmout;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name);
+    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getStatStatus() <<
+            " status_statinfo: " << status_statinfo << " pending_statinfo: " << pending_statinfo);
 
     while (getStatStatus() == InProgress) {
         // Ignore the timeouts, exit only on an explicit notification
@@ -72,7 +73,8 @@ const char *fname = "UgrFileInfo::waitLocations";
     // then we recheck...
     time_t timelimit = time(0)+sectmout;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name);
+    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getLocationStatus() <<
+            " status_locations: " << status_locations << " pending_locations: " << pending_locations);
 
     while (getLocationStatus() == InProgress) {
         // Ignore the timeouts, exit only on an explicit notification
@@ -102,7 +104,8 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // then we recheck...
     time_t timelimit = time(0)+sectmout;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name);
+    Info(SimpleDebug::kHIGHEST, fname, "Starting check-wait. Name: " << name << " Status: " << getItemsStatus() <<
+            " status_items: " << status_items << " pending_items: " << pending_items);
 
     while (getItemsStatus() == UgrFileInfo::InProgress) {
         // Ignore the timeouts, exit only on an explicit notification

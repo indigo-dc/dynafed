@@ -153,7 +153,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     // Get all of them
     UgrFileInfo *nfo = 0;
 
-    if (!getUgrConnector()->list((std::string&)path, &nfo) && nfo) {
+    if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
 
 
         // Populate the vector
@@ -165,8 +165,9 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
             r.status = '-';
 
             strncpy(r.unparsed_location, i->name.c_str(), sizeof (r.unparsed_location));
-            r.unparsed_location[sizeof (r.unparsed_location - 1)] = '\0';
+            r.unparsed_location[sizeof(r.unparsed_location) - 1] = '\0';
 
+            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name);
             r.location = splitUri(i->name);
             replicas.push_back(r);
         }

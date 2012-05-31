@@ -184,9 +184,12 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 }
 
 int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
+    const char *fname = "UgrConnector::stat";
 
     trimpath(lfn);
-    
+
+    Info(SimpleDebug::kHIGHEST, fname, "Stat-ing " << lfn);
+
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
     UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
@@ -204,9 +207,13 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
         boost::lock_guard<UgrFileInfo > l(*fi);
         if (fi->getStatStatus() == UgrFileInfo::NoInfo)
             fi->status_statinfo = UgrFileInfo::NotFound;
+        else fi->status_statinfo = UgrFileInfo::Ok;
     }
 
     *nfo = fi;
+
+    Info(SimpleDebug::kHIGHEST, fname, "Stat-ed " << lfn << " Status: " << fi->getStatStatus() <<
+            " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
 
@@ -278,6 +285,8 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
     // wait for the search to finish by looking at the pending object
     do_waitLocate(fi);
 
+
+
     *nfo = fi;
 
     return 0;
@@ -316,6 +325,9 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     // wait for the search to finish by looking at the pending object
     do_waitList(fi);
+
+
+
 
     // Stat all the childs in parallel, eventually
     statSubdirs(fi);

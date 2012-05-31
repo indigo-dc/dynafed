@@ -91,9 +91,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
 
             case LocationPlugin::wop_Stat:
                 if (exc) {
-                    op->fi->status_statinfo = UgrFileInfo::NotFound;
-
+                    //op->fi->status_statinfo = UgrFileInfo::NotFound;
+                    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
                 } else {
+                    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                     op->fi->size = st.st_size;
                     op->fi->status_statinfo = UgrFileInfo::Ok;
                     op->fi->unixflags = st.st_mode;
@@ -101,14 +102,17 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                 break;
 
             case LocationPlugin::wop_Locate:
-                if (exc)
-                    op->fi->status_locations = UgrFileInfo::NotFound;
+                if (exc) {
+                    //op->fi->status_locations = UgrFileInfo::NotFound;
+                    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
+                }
                 else {
 
                     for (vector<FileReplica>::iterator i = repvec.begin();
                             i != repvec.end();
                             i++) {
                         it.name = i->unparsed_location;
+                        LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: Inserting repl" << i->unparsed_location);
                         it.location.clear();
                         op->fi->subitems.insert(it);
                     }
@@ -117,8 +121,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op) {
                 break;
 
             case LocationPlugin::wop_List:
-                if (exc)
-                    op->fi->status_items = UgrFileInfo::NotFound;
+                if (exc) {
+                    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
+                    //op->fi->status_items = UgrFileInfo::NotFound;
+                }
                 else {
 
                     dirent *dent;

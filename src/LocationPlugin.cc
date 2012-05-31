@@ -148,7 +148,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
     boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
-    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Starting");
+    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
 
     // Now put the results
     {
@@ -162,11 +162,13 @@ void LocationPlugin::runsearch(struct worktoken *op) {
 
 
         // Create a fake stat information
-        op->fi->lastupdtime = time(0);
-        op->fi->size = 12345;
-        op->fi->status_statinfo = UgrFileInfo::Ok;
-        op->fi->unixflags = 0775;
-        op->fi->unixflags |= S_IFDIR;
+        if (op->fi->status_statinfo != UgrFileInfo::Ok) {
+            op->fi->lastupdtime = time(0);
+            op->fi->size = 12345;
+            op->fi->status_statinfo = UgrFileInfo::Ok;
+            op->fi->unixflags = 0775;
+            op->fi->unixflags |= S_IFDIR;
+        }
         
         // Create a fake list information
         UgrFileItem fit;
@@ -199,7 +201,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
                 break;
         }
 
-
+        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
 
     }
 }
