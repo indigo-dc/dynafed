@@ -163,5 +163,9 @@ void UgrFileInfo::takeStat(struct stat &st) {
         status_items = UgrFileInfo::Error;
     }
 
+    if (st.st_atim.tv_sec && (st.st_atim.tv_sec > atime)) atime = st.st_atim.tv_sec;
+    if (st.st_mtim.tv_sec && (st.st_mtim.tv_sec > mtime)) mtime = st.st_mtim.tv_sec;
+    if (st.st_ctim.tv_sec && (st.st_ctim.tv_sec < ctime)) ctime = st.st_ctim.tv_sec;
+
 
 }

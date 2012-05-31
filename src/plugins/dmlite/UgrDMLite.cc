@@ -184,19 +184,23 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
     st.st_rdev = 0;
     st.st_nlink = 0;
 
-    memset(&st.st_mtim, 0, sizeof (st.st_mtim));
-    
+    st.st_mtim.tv_sec = nfo->mtime;
+    st.st_mtim.tv_nsec = 0;
+
+    st.st_ctim.tv_sec = nfo->ctime;
+    st.st_ctim.tv_nsec = 0;
+
+    st.st_atim.tv_sec = nfo->atime;
+    st.st_atim.tv_nsec = 0;
+
     st.st_mode = nfo->unixflags;
     st.st_ino = 0;
     st.st_gid = 0;
     st.st_dev = 0;
 
-    memset(&st.st_ctim, 0, sizeof (st.st_ctim));
-
     st.st_blocks = nfo->size / 1024;
     st.st_blksize = 1024;
 
-    memset(&st.st_atim, 0, sizeof (st.st_atim));
 
     nfo->unlock();
 }

@@ -115,6 +115,8 @@ public:
 
         lastupdtime = time(0);
         lastupdreqtime = time(0);
+
+        atime = mtime = ctime = 0;
     }
 
     /// Indicates that this entry was modified since the last time it was
@@ -303,6 +305,10 @@ public:
 
     /// The last time there was an update to this entry
     time_t lastupdtime;
+
+
+    /// The various unix times
+    time_t atime, mtime, ctime;
 
     /// We will like to be able to encode this info to a string, e.g. for external caching purposes
     int encodeToString(std::string &str) {
