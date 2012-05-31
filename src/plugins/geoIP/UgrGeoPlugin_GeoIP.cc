@@ -48,7 +48,7 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
 
 /// Sets, wherever needed the geo information in the replica
 void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
-    const char *fname = "UgrGeoPlugin::setReplicasLocation";
+    const char *fname = "UgrGeoPlugin::setReplicaLocation";
 
     // Get the server name from the name field
     Info(SimpleDebug::kHIGHEST, fname, "Got name: " << it.name);
@@ -64,8 +64,8 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
     lastPos = it.name.find_first_not_of(":/", pos);
     if (lastPos == string::npos) return;
 
-    // find slash after hostname
-    pos = it.name.find_first_of("/\\", lastPos);
+    // find slash or : after hostname
+    pos = it.name.find_first_of(":/\\", lastPos);
     if (pos == string::npos) return;
 
     string srv = it.name.substr(lastPos, pos-lastPos);
@@ -79,7 +79,7 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
         return;
     }
 
-    Info(SimpleDebug::kHIGH, fname, "Got geo info: " << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
+    Info(SimpleDebug::kLOW, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
     it.latitude = gir->latitude;
     it.longitude = gir->longitude;
 

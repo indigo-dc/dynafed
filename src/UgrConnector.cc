@@ -20,11 +20,12 @@ using namespace std;
 
 
 /// Clean up a path
+
 void trimpath(std::string &s) {
-    
-    
+
+
     if (*(s.rbegin()) == '/')
-        s.erase(s.size()-1);
+        s.erase(s.size() - 1);
 
 
 }
@@ -67,13 +68,13 @@ UgrConnector::~UgrConnector() {
 
     Info(SimpleDebug::kLOW, fname, "Destroying plugins");
     int cnt = locPlugins.size();
-    
+
     for (int i = 0; i < cnt; i++)
         locPlugins[i]->stop();
 
     for (int i = 0; i < cnt; i++)
         delete locPlugins[i];
-    
+
     Info(SimpleDebug::kLOW, fname, "Exiting.");
 
 }
@@ -105,16 +106,16 @@ int UgrConnector::init(char *cfgfile) {
 
 
     // Load a GeoPlugin, if specified
-    string s = CFG->GetString("glb.geoplugin", (char *)"");
+    string s = CFG->GetString("glb.geoplugin", (char *) "");
     geoPlugin = 0;
     if (s != "") {
         vector<string> parms = tokenize(s, " ");
 
         Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << s);
         geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
-                    SimpleDebug::Instance(),
-                    Config::GetInstance(),
-                    parms);
+                SimpleDebug::Instance(),
+                Config::GetInstance(),
+                parms);
 
         if (!geoPlugin) {
             Error(fname, "Error loading Geo plugin " << s << endl;);
@@ -151,7 +152,7 @@ int UgrConnector::init(char *cfgfile) {
 
     if (!locPlugins.size()) {
         vector<string> parms;
-        
+
         parms.push_back("static_locplugin");
         parms.push_back("Unnamed");
         parms.push_back("1");
@@ -175,27 +176,24 @@ int UgrConnector::init(char *cfgfile) {
     Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
 
 
-    n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *)"");
-    n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *)"");
+    n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
+    n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
     trimpath(n2n_pfx);
     trimpath(n2n_newpfx);
-    Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'") ;
+    Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
 
     initdone = true;
     return 0;
 }
 
-
 void UgrConnector::do_n2n(std::string &path) {
-    if ( (n2n_pfx.size() == 0) || (path.find(n2n_pfx) == 0) ) {
+    if ((n2n_pfx.size() == 0) || (path.find(n2n_pfx) == 0)) {
 
-        if ( (n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0) )
+        if ((n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0))
             path = n2n_newpfx + path.substr(n2n_pfx.size());
 
     }
 }
-
-
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
@@ -252,14 +250,14 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
 void UgrConnector::statSubdirs(UgrFileInfo *fi) {
     const char *fname = "UgrConnector::statSubdirs";
-    
+
     boost::lock_guard<UgrFileInfo > l(*fi);
 
     // if it's not a dir then exit
-    if (!(fi->unixflags & S_IFDIR)){
-	    Info(SimpleDebug::kMEDIUM, fname, "Try to sub-stat a file that is not a directory !! " << fi->name);	 
-		return;
-	}
+    if (!(fi->unixflags & S_IFDIR)) {
+        Info(SimpleDebug::kMEDIUM, fname, "Try to sub-stat a file that is not a directory !! " << fi->name);
+        return;
+    }
 
     Info(SimpleDebug::kMEDIUM, fname, "Stat-ing all the subitems of " << fi->name);
 
@@ -387,7 +385,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
             fi->status_items = UgrFileInfo::NotFound;
         else
             if (fi->status_items != UgrFileInfo::Error)
-                fi->status_items = UgrFileInfo::Ok;
+            fi->status_items = UgrFileInfo::Ok;
     }
 
     // Stat all the childs in parallel, eventually
@@ -402,17 +400,21 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     return 0;
 };
 
-
 std::set<UgrFileItem, UgrFileItemComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
-     Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas(", "   -> try to order replicas by geo-location ");	
-    float ltt = 0.0, lng = 0.0;
+    if (nfo) {
 
-    if (geoPlugin) {
-        UgrFileItemGeoComp cmp(ltt, lng);
-        geoPlugin->getAddrLocation(clientip, ltt, lng);
-        std::set<UgrFileItem, UgrFileItemComp> newset( nfo->subitems.begin(), nfo->subitems.end(), cmp);
-        return newset;
+        Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " -> try to order replicas by geo-location ");
+        float ltt = 0.0, lng = 0.0;
+
+        if (geoPlugin) {
+            UgrFileItemGeoComp cmp(ltt, lng);
+            geoPlugin->getAddrLocation(clientip, ltt, lng);
+            std::set<UgrFileItem, UgrFileItemComp> newset(nfo->subitems.begin(), nfo->subitems.end(), cmp);
+            return newset;
+        }
+
+        return nfo->subitems;
     }
 
-    return nfo->subitems;
+    return set<UgrFileItem, UgrFileItemComp>();
 }
