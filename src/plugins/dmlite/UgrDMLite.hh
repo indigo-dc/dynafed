@@ -41,7 +41,7 @@ namespace dmlite {
         virtual void closeDir(Directory*) throw (DmException);
 
         virtual struct dirent* readDir(Directory*) throw (DmException);
-        virtual struct direntstat* readDirx(Directory*) throw (DmException);
+        virtual ExtendedStat* readDirx(Directory*) throw (DmException);
 
         virtual void setUserId(uid_t, gid_t, const std::string&) throw (DmException);
         virtual void setVomsData(const std::string&, const std::vector<std::string>&) throw (DmException);

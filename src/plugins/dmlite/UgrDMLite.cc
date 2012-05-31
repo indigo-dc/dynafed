@@ -108,7 +108,6 @@ void UgrCatalog::setVomsData(const std::string &vo, const std::vector<std::strin
     voms_fqans = fqans;
 }
 
-
 std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
     std::vector<FileReplica> replicas;
 
@@ -121,17 +120,24 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 
         // Populate the vector
         FileReplica r;
+        Uri u;
         for (std::set<UgrFileItem>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i) {
-
+            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name);
             r.fileid = 0;
             r.replicaid = 0;
             r.status = '-';
+            u = splitUri(i->name);
 
-            strncpy(r.unparsed_location, i->name.c_str(), sizeof (r.unparsed_location));
-            r.unparsed_location[sizeof(r.unparsed_location) - 1] = '\0';
 
-            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name);
-            r.location = splitUri(i->name);
+            strncpy(r.url, i->name.c_str(), sizeof (r.url));
+            r.url[sizeof (r.url) - 1] = '\0';
+
+            if (u.host) {
+                strncpy(r.server, u.host, sizeof (r.server));
+                r.server[sizeof(r.server) - 1] = '\0';
+            }
+
+            
             replicas.push_back(r);
         }
 
@@ -184,7 +190,7 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
     st.st_nlink = 0;
 
     memset(&st.st_mtim, 0, sizeof (st.st_mtim));
-
+    
     st.st_mode = nfo->unixflags;
     st.st_ino = 0;
     st.st_gid = 0;
@@ -238,11 +244,13 @@ class myDirectory {
     UgrFileInfo *nfo;
     std::set<UgrFileItem>::iterator idx;
 
-    struct direntstat buf;
+    ExtendedStat buf;
+    struct dirent direntbuf;
 
     myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
         idx = finfo->subitems.begin();
         memset(&buf, 0, sizeof (buf));
+        memset(&direntbuf, 0, sizeof(direntbuf));
     }
 
 };
@@ -274,29 +282,29 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
     if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->buf.dirent.d_name, (d->idx)->name.c_str(), sizeof (d->buf.dirent.d_name));
-    d->buf.dirent.d_name[sizeof (d->buf.dirent.d_name) - 1] = '\0';
+    strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof(d->direntbuf.d_name));
+    d->direntbuf.d_name[sizeof (d->direntbuf.d_name) - 1] = '\0';
 
     d->idx++;
 
-    return &(d->buf.dirent);
+    return &(d->direntbuf);
 }
 
-struct direntstat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
+ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
     if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->buf.dirent.d_name, (d->idx)->name.c_str(), sizeof (d->buf.dirent.d_name));
-    d->buf.dirent.d_name[sizeof (d->buf.dirent.d_name) - 1] = '\0';
+    strncpy(d->buf.name, (d->idx)->name.c_str(), sizeof(d->buf.name));
+    d->buf.name[sizeof (d->buf.name) - 1] = '\0';
 
     std::string s = d->nfo->name;
 
     if (*s.rbegin() != '/')
         s += "/";
-    
-    s += d->buf.dirent.d_name;
+
+    s += d->buf.name;
 
     d->buf.stat = stat(s);
 

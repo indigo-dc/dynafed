@@ -151,8 +151,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     for (vector<FileReplica>::iterator i = repvec.begin();
                             i != repvec.end();
                             i++) {
-                        it.name = i->unparsed_location;
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->unparsed_location);
+                        it.name = i->url;
+                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->url);
       
                         // Process it with the Geo plugin, if needed
                         if (geoPlugin) geoPlugin->setReplicaLocation(it);
