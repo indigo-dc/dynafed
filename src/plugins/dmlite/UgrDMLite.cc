@@ -136,7 +136,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
                 r.server[sizeof(r.server) - 1] = '\0';
             }
 
-            
+            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", r.server);
             replicas.push_back(r);
         }
 

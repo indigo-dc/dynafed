@@ -96,6 +96,9 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
 
 void UgrGeoPlugin_GeoIP::getAddrLocation(std::string &clientip, float &ltt, float &lng) {
     const char *fname = "UgrGeoPlugin::getAddrLocation";
+
+    if (clientip.empty()) return;
+    
     GeoIPRecord *gir = GeoIP_record_by_name(gi, (const char *)clientip.c_str());
 
     if (gir == NULL) {
