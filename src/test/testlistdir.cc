@@ -22,9 +22,6 @@ int main(int argc, char **argv) {
     }
 
     UgrConnector ugr;
-    UgrFileInfo *fi = 0;
-
-    long long cnt = atoll(argv[1]);
 
     cout << "Initializing" << endl;
     if (ugr.init(argv[2]))
@@ -33,7 +30,7 @@ int main(int argc, char **argv) {
     cout << "Invoking list " << endl;
     string fn = argv[3];
 
-	UgrFileInfo* file_infos;
+	UgrFileInfo* file_infos=NULL;
     ugr.list(fn, &file_infos);
 
     if (file_infos->getStatStatus() == UgrFileInfo::Ok) {
