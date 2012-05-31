@@ -43,8 +43,8 @@ namespace dmlite {
         virtual struct dirent* readDir(Directory*) throw (DmException);
         virtual ExtendedStat* readDirx(Directory*) throw (DmException);
 
-        virtual void setUserId(uid_t, gid_t, const std::string&) throw (DmException);
-        virtual void setVomsData(const std::string&, const std::vector<std::string>&) throw (DmException);
+        virtual void setSecurityCredentials(const SecurityCredentials& c) throw (DmException);
+
 
         static UgrConnector *getUgrConnector() {
             if (!UgrCatalog::conn) UgrCatalog::conn = new UgrConnector();
@@ -64,14 +64,8 @@ namespace dmlite {
         /// internal buffers can be shared
         static UgrConnector *conn;
 
-        /// User dn to be kept for this session
-        std::string userdn;
-
-        /// VO name to be kept for this session
-        std::string voms_vo;
-
-        /// FQANS to be kept for this session
-        std::vector<std::string> voms_fqans;
+        SecurityCredentials secCredentials;
+        
     };
 
 

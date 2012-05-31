@@ -96,17 +96,14 @@ void UgrCatalog::set(const std::string& key, va_list vargs) throw (DmException) 
         throw DmException(DM_UNKNOWN_OPTION, "Unknown option " + key);
 }
 
-void UgrCatalog::setUserId(uid_t uid, gid_t gid, const std::string& dn) throw (DmException) {
 
-    userdn = dn;
 
+void UgrCatalog::setSecurityCredentials(const SecurityCredentials& c) throw (DmException) {
+    Info(SimpleDebug::kHIGHEST, "UgrCatalog::setSecurityCredentials", c.remote_addr);
+    secCredentials = c;
 }
 
-void UgrCatalog::setVomsData(const std::string &vo, const std::vector<std::string> &fqans) throw (DmException) {
 
-    voms_vo = vo;
-    voms_fqans = fqans;
-}
 
 std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
     std::vector<FileReplica> replicas;
@@ -116,13 +113,9 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     UgrFileInfo *nfo = 0;
 
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
-        const char *clientip = 0;
         
-        Credentials cred = getSecurityContext().getCredentials();
-        clientip = cred.remote_addr;
-
         // Request UgrConnector to order a replica set according to proximity to the client
-        std::set<UgrFileItem, UgrFileItemComp> repls = getUgrConnector()->getGeoSortedReplicas(clientip, nfo);
+        std::set<UgrFileItem, UgrFileItemComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
 
         // Populate the vector
         FileReplica r;

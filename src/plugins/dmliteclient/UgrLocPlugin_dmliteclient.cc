@@ -43,7 +43,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     const char *fname = "UgrLocPlugin_dmlite::runsearch";
     struct stat st;
     std::vector<FileReplica> repvec;
-    dmlite::Directory *d;
+    dmlite::Directory *d = 0;
     bool exc = false;
     std::string xname;
     dmlite::Catalog *catalog = 0;

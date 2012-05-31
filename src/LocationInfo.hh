@@ -61,8 +61,21 @@ public:
     UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {};
     virtual ~UgrFileItemGeoComp(){};
     
-    virtual bool operator()(UgrFileItem s1, UgrFileItem s2) {
-        if (s1.name < s2.name)
+    virtual bool operator()(UgrFileItem &s1, UgrFileItem &s2) {
+        float x, y, d1, d2;
+
+        // Distance client->repl1
+        x = (s1.longitude-lng) * cos( (ltt+s1.latitude)/2 );
+        y = (s1.latitude-ltt);
+        d1 = x*x + y*y;
+
+        // Distance client->repl2
+        x = (s2.longitude-lng) * cos( (ltt+s2.latitude)/2 );
+        y = (s2.latitude-ltt);
+        d2 = x*x + y*y;
+
+
+        if (d1 < d2)
             return true;
         else
             return false;
