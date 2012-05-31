@@ -19,7 +19,8 @@
 
 
 #define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
-#define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << " " << c);
+#define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
+#define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << myidx << " " << c);
 
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
@@ -75,7 +76,7 @@ protected:
 
     /// The method that performs the operation
     /// This has to be overridden in the true plugins
-    virtual void runsearch(struct worktoken *wtk);
+    virtual void runsearch(struct worktoken *wtk, int myidx);
 
     // The simple, default global name translation
     std::string xlatepfx_from, xlatepfx_to;

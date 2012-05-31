@@ -211,7 +211,7 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
     // if it's not a dir then exit
     if (!(fi->unixflags & S_IFDIR)) return;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Stat-ing all the subitems of " << fi->name);
+    Info(SimpleDebug::kMEDIUM, fname, "Stat-ing all the subitems of " << fi->name);
 
     // Cycle through all the subdirs (fi is locked)
     for (std::set<UgrFileItem>::iterator i = fi->subitems.begin();

@@ -22,7 +22,12 @@ class UgrLocPlugin_dmlite : public LocationPlugin {
 protected:
 
     dmlite::PluginManager *pluginManager;
+    dmlite::CatalogFactory *catalogfactory;
 
+    /// Mutex for protecting dmlite
+    boost::mutex dmlitemutex;
+
+    std::map<int, dmlite::Catalog *> catmap;
 public:
 
     UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
@@ -36,7 +41,7 @@ public:
     // Start the async listing process
     //virtual int do_List(UgrFileInfo *fi);
 
-    virtual void runsearch(struct worktoken *op);
+    virtual void runsearch(struct worktoken *op, int myidx);
 };
 
 

@@ -23,7 +23,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
         if (op && op->fi && op->wop) {
 
             // Run this search, including notifying the various calls
-            pl->runsearch(op);
+            pl->runsearch(op, myidx);
 
         }
     }
@@ -164,7 +164,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
 
     boost::unique_lock< boost::mutex > l(workmutex);
 
-    system_time const timeout = get_system_time() + posix_time::seconds(1);
+    system_time const timeout = get_system_time() + posix_time::seconds(10);
 
     while (!mytk) {
         // Defensive programming...
@@ -188,14 +188,14 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     return mytk;
 }
 
-void LocationPlugin::runsearch(struct worktoken *op) {
+void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
     const char *fname = "LocationPlugin::runsearch";
 
     // Pretend to do something useful...
     boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
-    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
+    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
 
     // Now put the results
     {
@@ -250,7 +250,7 @@ void LocationPlugin::runsearch(struct worktoken *op) {
                 break;
         }
 
-        LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
+        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
 
     }
 }
