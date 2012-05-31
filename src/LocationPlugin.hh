@@ -19,6 +19,10 @@
 #include <map>
 #include <boost/thread.hpp>
 
+
+#define LocPluginLogInfo(l, n, c) Info(SimpleDebug::kMEDIUM, fname, "LocPlugin: " << this->name << " " << c);
+#define LocPluginLogErr(n, c) Info(fname, "LocPlugin: " << this->name << " " << c);
+
 class LocationPlugin {
 
     friend void pluginFunc(LocationPlugin *pl);
@@ -47,6 +51,9 @@ protected:
 
     void pushOp(UgrFileInfo *fi, workOp wop);
     struct worktoken *getOp();
+
+    virtual void runsearch(struct worktoken *wtk);
+    
 
 public:
 

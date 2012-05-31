@@ -14,59 +14,12 @@ void pluginFunc(LocationPlugin *pl) {
         struct LocationPlugin::worktoken *op = pl->getOp();
         if (op) {
 
-            boost::posix_time::seconds workTime(4);
-            Info(SimpleDebug::kMEDIUM, fname, "Worker: processing ");
+            
 
-            // Pretend to do something useful...
-            boost::this_thread::sleep(workTime);
-
-            Info(SimpleDebug::kMEDIUM, fname, "Worker: finished processing ");
-
-            // Now do it
-            {
-
-                unique_lock<mutex> l(*(op->fi));
-
-                // This fake plugin happens to gather more information than it's requested
-                // ...this may happen, in this case the plugin writes all the info that it has
-                // BUT the notification has to be only for the operation that was requested
-
-                // Create a fake stat information
-                op->fi->lastupdtime = time(0);
-                op->fi->size = 12345;
-                op->fi->status_statinfo = UgrFileInfo::Ok;
-                op->fi->unixflags = 0777;
-
-                // Create a fake list information
-                for (int ii = 0; ii < 10; ii++) {
-                    UgrFileItem *fit = new UgrFileItem();
-                    fit->name = "myhost/myfilepath" + boost::lexical_cast<std::string>(ii);
-                    fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
-                    op->fi->subitems.push_back(fit);
-                }
-                
-                // Anyway the notification has to be correct, not redundant
-                switch (op->wop) {
-
-                    case LocationPlugin::wop_Stat:
-                        op->fi->notifyStatNotPending();
-                        break;
-
-                    case LocationPlugin::wop_Locate:
-                        op->fi->notifyLocationNotPending();
-                        break;
-
-                    case LocationPlugin::wop_List:
-                        op->fi->notifyItemsNotPending();
-                        break;
-
-                    default:
-                        break;
-                }
+            // Run this search, including notifying the various calls
+            pl->runsearch(op);
 
 
-
-            }
 
 
         }
@@ -76,30 +29,35 @@ void pluginFunc(LocationPlugin *pl) {
 
 }
 
-
-
 LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
-      SimpleDebug::Instance()->Set(dbginstance);
-      CFG->Set(cfginstance);
+    SimpleDebug::Instance()->Set(dbginstance);
+    CFG->Set(cfginstance);
 
-      if (parms.size() > 1)
+    const char *fname = "LocationPlugin::LocationPlugin";
+    int nthreads = 0;
+
+    if (parms.size() > 1)
         name = strdup(parms[1].c_str());
-      else name = strdup("Unnamed");
+    else name = strdup("Unnamed");
 
-      // Create our pool of threads
-      for (int i = 0; i < 10; i ++)
-          workers.push_back(new boost::thread(pluginFunc, this));
+    if (parms.size() > 2)
+        nthreads = atoi(parms[2].c_str());
+    if ((nthreads < 0) || (nthreads > 1000))
+        nthreads = 2;
 
-   };
+    // Create our pool of threads
+    LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
+    for (int i = 0; i < nthreads; i++)
+        workers.push_back(new boost::thread(pluginFunc, this));
 
-
+};
 
 LocationPlugin::~LocationPlugin() {
 
     for (unsigned int i = 0; i < workers.size(); i++)
         workers[i]->interrupt();
 
-    
+
     while (workers.size() > 0) {
         (*workers.begin())->join();
         delete *workers.begin();
@@ -108,58 +66,113 @@ LocationPlugin::~LocationPlugin() {
 }
 
 // Pushes a new op in the queue
+
 void LocationPlugin::pushOp(UgrFileInfo *fi, workOp wop) {
     const char *fname = "LocationPlugin::pushOp";
 
     {
-    boost::lock_guard< boost::mutex > l(workmutex);
+        boost::lock_guard< boost::mutex > l(workmutex);
 
-    worktoken *tk = new(worktoken);
-    tk->fi = fi;
-    tk->wop = wop;
-    workqueue.push_back(tk);
+        worktoken *tk = new(worktoken);
+        tk->fi = fi;
+        tk->wop = wop;
+        workqueue.push_back(tk);
     }
 
-    Info(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop);
-    
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop);
+
     workcondvar.notify_one();
 
 }
 
 // Gets an op from the queue, or timeout
+
 struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     struct worktoken *mytk = 0;
     const char *fname = "LocationPlugin::getOp";
 
     boost::unique_lock< boost::mutex > l(workmutex);
 
-    system_time const timeout = get_system_time()+posix_time::seconds(1);
+    system_time const timeout = get_system_time() + posix_time::seconds(1);
 
     while (!mytk) {
         // Defensive programming...
         if (workqueue.size() > 0) {
-                mytk = workqueue.front();
-                workqueue.pop_front();
-                break;
+            mytk = workqueue.front();
+            workqueue.pop_front();
+            break;
         }
 
-        if (!workcondvar.timed_wait(l, timeout ))
+        if (!workcondvar.timed_wait(l, timeout))
             break; // timeout
-        
-        
+
+
     }
 
     if (mytk) {
-        Info(SimpleDebug::kHIGHEST, fname, "got op:" << mytk->wop);
-    }
-    else
-        Info(SimpleDebug::kHIGHEST, fname, "got no op.");
+        LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "got op:" << mytk->wop);
+    } else
+        LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "got no op.");
 
     return mytk;
 }
 
+void LocationPlugin::runsearch(struct worktoken *op) {
+    const char *fname = "LocationPlugin::runsearch";
+
+    // Pretend to do something useful...
+    boost::posix_time::seconds workTime(4);
+    boost::this_thread::sleep(workTime);
+
+    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "Worker: finished processing ");
+
+    // Now put the results
+    {
+
+        unique_lock<mutex> l(*(op->fi));
 
 
+        // This fake plugin happens to gather more information than it's requested
+        // ...this may happen, in this case the plugin writes all the info that it has
+        // BUT the notification has to be only for the operation that was requested
+
+        // Create a fake stat information
+        op->fi->lastupdtime = time(0);
+        op->fi->size = 12345;
+        op->fi->status_statinfo = UgrFileInfo::Ok;
+        op->fi->unixflags = 0777;
+
+        // Create a fake list information
+        for (int ii = 0; ii < 10; ii++) {
+            UgrFileItem *fit = new UgrFileItem();
+            fit->name = "myhost/myfilepath" + boost::lexical_cast<std::string > (ii);
+            fit->location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
+            op->fi->subitems.push_back(fit);
+        }
+
+        // Anyway the notification has to be correct, not redundant
+        switch (op->wop) {
+
+            case LocationPlugin::wop_Stat:
+                op->fi->notifyStatNotPending();
+                break;
+
+            case LocationPlugin::wop_Locate:
+                op->fi->notifyLocationNotPending();
+                break;
+
+            case LocationPlugin::wop_List:
+                op->fi->notifyItemsNotPending();
+                break;
+
+            default:
+                break;
+        }
+
+
+
+    }
+}
 
 
 
@@ -183,7 +196,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
 int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     const char *fname = "LocationPlugin::do_Stat";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Entering");
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -191,7 +204,7 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
     fi->notifyStatPending();
 
     pushOp(fi, wop_Stat);
-    
+
     return 0;
 };
 
@@ -219,7 +232,7 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi) {
 int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitStat";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
@@ -233,7 +246,7 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_Locate(UgrFileInfo *fi) {
     const char *fname = "LocationPlugin::do_Locate";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Entering");
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -250,7 +263,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi) {
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitLocate";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
@@ -264,7 +277,7 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_List(UgrFileInfo *fi) {
     const char *fname = "LocationPlugin::do_List";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Entering");
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -272,7 +285,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
     fi->notifyItemsPending();
 
     pushOp(fi, wop_Locate);
-    
+
     return 0;
 }
 
@@ -281,7 +294,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi) {
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
     const char *fname = "LocationPlugin::do_waitList";
 
-    Info(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
 
     unique_lock<mutex> lck(*fi);
 
