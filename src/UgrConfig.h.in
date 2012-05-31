@@ -1,0 +1,18 @@
+#ifndef UGRCONFIG_H
+#define UGRCONFIG_H
+/* UgrConfig.h.in
+ * 
+ * File that contains the settings that come from the build system (cmake)
+ * This is parsed in order to become Config.h
+ *
+ * by Fabrizio Furano, CERN, Jul 2011
+ */
+
+
+// the configured options and settings
+#define UGR_VERSION_MAJOR "@UGR_VERSION_MAJOR@"
+#define UGR_VERSION_MINOR "@UGR_VERSION_MINOR@"
+#define UGR_VERSION_PATCH "@UGR_VERSION_PATCH@"
+
+
+#endif
