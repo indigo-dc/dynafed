@@ -36,7 +36,7 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
         return 1;
     }
 
-    gi = GeoIP_open(parms[2].c_str(), GEOIP_INDEX_CACHE);
+    gi = GeoIP_open(parms[2].c_str(), GEOIP_MEMORY_CACHE);
     if (!gi) {
         Error(fname, "Error opening GeoIP database: " << parms[2].c_str());
         return 2;
@@ -110,7 +110,10 @@ void UgrGeoPlugin_GeoIP::getAddrLocation(std::string &clientip, float &ltt, floa
     ltt = gir->latitude;
     lng = gir->longitude;
 
+    
     GeoIPRecord_delete(gir);
+
+    Info(SimpleDebug::kHIGHEST, fname, clientip << " " << ltt << " " << lng);
 }
 
 
