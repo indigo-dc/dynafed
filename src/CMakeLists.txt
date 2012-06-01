@@ -28,10 +28,6 @@ include_directories(${PROJECT_BINARY_DIR})
 # Set up the includes to be used for boost 
 include_directories(${Boost_INCLUDE_DIRS})
 
-
-set(CMAKE_CXX_FLAGS "-O3 -g -Wall")
-
-
 add_subdirectory(plugins)
 add_subdirectory(test)
 
@@ -45,7 +41,7 @@ target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES})
 # Install directive. This is the library core, to which LFC/DPM should have dependencies
 install(TARGETS ugrconnector
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  LIBRARY DESTINATION ${LIBDESTINATION}
+  LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   COMPONENT core)
 
 
@@ -53,12 +49,12 @@ install(TARGETS ugrconnector
 # Install the include files
 install(FILES UgrConnector.hh
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION include
+  DESTINATION ${INCLUDE_INSTALL_DIR}
   COMPONENT core)
 
 install(FILES ${PROJECT_BINARY_DIR}/src/UgrConfig.h
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION include
+  DESTINATION ${INCLUDE_INSTALL_DIR}
   COMPONENT core)
 
 # ----------------------------

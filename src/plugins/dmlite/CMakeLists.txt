@@ -18,14 +18,14 @@ if(DMLITE_FOUND)
   # Install the plugin for dmlite
   install(TARGETS ugrdmlite
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    LIBRARY DESTINATION ${LIBDESTINATION}
+    LIBRARY DESTINATION ${LIB_INSTALL_DIR}
     COMPONENT ugrdmlite)
 
   # Install the config files
-  if (NOT EXISTS /etc/ugrdmlite.conf)
+  if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugrdmlite.conf)
     install(FILES ugrdmlite.conf
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    DESTINATION /etc
+    DESTINATION ${SYSCONF_INSTALL_DIR}
     COMPONENT plugins-dmlite)
   endif()
 

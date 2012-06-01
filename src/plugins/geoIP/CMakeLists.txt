@@ -25,6 +25,6 @@ if(GEOIP_LIB)
   # How to install. This is a set of plugins that belong to a specific component
   install(TARGETS ugrgeoplugin_geoip
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    LIBRARY DESTINATION ${LIBDESTINATION} COMPONENT plugins-geoip)
+    LIBRARY DESTINATION ${LIB_INSTALL_DIR} COMPONENT plugins-geoip)
 
 ENDIF()
