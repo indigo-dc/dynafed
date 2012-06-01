@@ -1,40 +1,44 @@
-# This module detects if lfc is installed and determines where the
+#
+# This module detects if LFC is installed and determines where the
 # include files and libraries are.
 #
 # This code sets the following variables:
 # 
-# LFC_LIBRARIES = full path to the lfc libraries
-# LFC_INCLUDE = include dir to be used when using the lfc library
-# LFC_FOUND   = set to true if lfc was found successfully
+# LFC_LIBRARIES   = full path to the LFC libraries
+# LFC_INCLUDE_DIR = include dir to be used when using the LFC library
+# LFC_FOUND       = set to true if LFC was found successfully
 #
+# LFC_LOCATION
+#   setting this enables search for LFC libraries / headers in this location
 
-if(NOT LCG_HOME)
-    set(LCG_HOME /opt/lcg)
-endif(NOT LCG_HOME)
 
-# Look for the libraries
-find_library(LFC_LIBRARY 
-    NAMES liblfc.so 
-    HINTS ${LCG_HOME}/lib ${LCG_HOME}/lib64 ${LCG_HOME}/lib32
+# -----------------------------------------------------
+# LFC Libraries
+# -----------------------------------------------------
+find_library(LFC_LIBRARIES
+    NAMES lfc lcgdm
+    HINTS ${LFC_LOCATION}/lib ${LFC_LOCATION}/lib64 ${LFC_LOCATION}/lib32
+    DOC "The main LFC library"
 )
-find_library(LCGDM_LIBRARY 
-    NAMES liblcgdm.so 
-    HINTS ${LCG_HOME}/lib ${LCG_HOME}/lib64 ${LCG_HOME}/lib32
+
+# -----------------------------------------------------
+# LFC Include Directories
+# -----------------------------------------------------
+find_path(LFC_INCLUDE_DIR 
+    NAMES lfc/lfc_api.h 
+    HINTS ${LFC_LOCATION} ${LFC_LOCATION}/include ${LFC_LOCATION}/include/*
+    DOC "The LFC include directory"
 )
-set(LFC_LIBRARIES "${LFC_LIBRARY} ${LCGDM_LIBRARY}")
+if(LFC_INCLUDE_DIR)
+    message(STATUS "LFC includes found in ${LFC_INCLUDE_DIR}")
+endif()
 
-# Look for the include dir
-find_path(LFC_INCLUDE NAMES lfc/lfc_api.h HINTS ${LCG_HOME}/include)
 
-# Set the variables documented above if library was found, fail if not
-if(LFC_LIBRARY AND LCGDM_LIBRARY AND LFC_INCLUDE)
-    if(NOT LFC_FIND_QUIETLY)
-        message(STATUS "Found lfc: ${LFC_LIBRARIES}")
-        message(STATUS "Found lfc include: ${LFC_INCLUDE}")
-    endif(NOT LFC_FIND_QUIETLY)
-    set(LFC_FOUND TRUE)
-else(LFC_LIBRARY AND LCGDM_LIBRARY AND LFC_INCLUDE)
-    if(LFC_FIND_REQUIRED)
-        message(FATAL_ERROR "Could not find lfc")
-    endif(LFC_FIND_REQUIRED)
-endif(LFC_LIBRARY AND LCGDM_LIBRARY AND LFC_INCLUDE)
+
+# -----------------------------------------------------
+# handle the QUIETLY and REQUIRED arguments and set LFC_FOUND to TRUE if 
+# all listed variables are TRUE
+# -----------------------------------------------------
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(LFC DEFAULT_MSG LFC_LIBRARIES LFC_INCLUDE_DIR)
+mark_as_advanced(LFC_INCLUDE_DIR LFC_LIBRARIES)
