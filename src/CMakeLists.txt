@@ -44,11 +44,14 @@ install(TARGETS ugrconnector
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   COMPONENT core)
 
+# auto-generate pkgconfig
 add_PkgConfigFile_for_Library("ugr.pc" ugrconnector
                                HEADER_DIRS "ugr"
                                DESCRIPTION "Ugr, Dynamic federation system"
                                REQUIRES "")
-
+                               
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ugr.pc
+        DESTINATION ${PKGCONFIG_FILES_DIR} )
 
 # Install the include files
 install(FILES UgrConnector.hh
