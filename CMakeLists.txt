@@ -1,6 +1,10 @@
 cmake_minimum_required (VERSION 2.6)
 project (Ugr)
 
+# build type
+set(CMAKE_BUILD_TYPE "RelWithDebInfo"
+    CACHE STRING "build type")
+
 # The version number
 set (UGR_VERSION_MAJOR 0)
 set (UGR_VERSION_MINOR 0)
@@ -26,6 +30,11 @@ SET(PLUGIN_WEBDAV TRUE
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (eg MacroOutOfSourceBuild.cmake):
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+
+# import common cmake macros
+include(DefineInstallationPaths REQUIRED)
+include(ReleaseDebugAutoFlags REQUIRED)
+include(CMakeGeneratePkgConfig REQUIRED)
  
 # Force the build dorectory to be different from the source directory
 include(MacroOutOfSourceBuild)
@@ -34,18 +43,12 @@ macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source buil
 # The build type... debug, distribution
 #set(CMAKE_BUILD_TYPE Debug)
 
-set(CMAKE_CXX_FLAGS "-Wall")
-
 set(libsubdirs "lib64;lib" CACHE STRING "The path suffixes to find libraries")
 
 
 
-IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set(LIBDESTINATION "lib64" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
-ELSE()
-  set(LIBDESTINATION "lib" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
-ENDIF()
-
+# fetch from DefineInstallationPaths, std path for packaging
+set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
 
 
 
