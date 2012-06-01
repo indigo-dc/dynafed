@@ -44,17 +44,21 @@ install(TARGETS ugrconnector
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   COMPONENT core)
 
+add_PkgConfigFile_for_Library("ugr.pc" ugrconnector
+                               HEADER_DIRS "ugr"
+                               DESCRIPTION "Ugr, Dynamic federation system"
+                               REQUIRES "")
 
 
 # Install the include files
 install(FILES UgrConnector.hh
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${INCLUDE_INSTALL_DIR}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/ugr/
   COMPONENT core)
 
 install(FILES ${PROJECT_BINARY_DIR}/src/UgrConfig.h
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${INCLUDE_INSTALL_DIR}
+  DESTINATION ${INCLUDE_INSTALL_DIR}/ugr/
   COMPONENT core)
 
 # ----------------------------

@@ -43,10 +43,6 @@ macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source buil
 # The build type... debug, distribution
 #set(CMAKE_BUILD_TYPE Debug)
 
-set(libsubdirs "lib64;lib" CACHE STRING "The path suffixes to find libraries")
-
-
-
 # fetch from DefineInstallationPaths, std path for packaging
 set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
 
