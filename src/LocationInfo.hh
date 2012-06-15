@@ -117,6 +117,8 @@ public:
         lastupdreqtime = time(0);
 
         atime = mtime = ctime = 0;
+
+        
     }
 
     /// Indicates that this entry was modified since the last time it was
@@ -125,7 +127,8 @@ public:
     /// the content of the object
     /// The purpose of this is to be able to implement write-through caching
     bool dirty;
-
+    bool dirtyitems;
+    
     /// The filename this record refers to (the lfn)
     std::string name;
 
@@ -316,16 +319,16 @@ public:
     time_t atime, mtime, ctime;
 
     /// We will like to be able to encode this info to a string, e.g. for external caching purposes
-    int encodeToString(std::string &str) {
-        str = "";
-        return 0;
-    };
+    int encodeToString(std::string &str);
 
     /// We will like to be able to encode this info to a string, e.g. for external caching purposes
-    int decodeFromString(std::string &str) {
-        str = "";
-        return 0;
-    };
+    int decode(void *data, int sz);
+
+    /// We will like to be able to encode this info to a string, e.g. for external caching purposes
+    int encodeSubitemsToString(std::string &str);
+
+    /// We will like to be able to encode this info to a string, e.g. for external caching purposes
+    int decodeSubitems(void *data, int sz);
 
     /// Selects the replica that looks best for the given client. Here we don't make assumptions
     /// on the method that we apply to choose one, since it could be implemented as a plugin

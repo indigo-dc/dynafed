@@ -16,8 +16,14 @@ configure_file (
 # Local targets
 # -------------------------
 
+ADD_CUSTOM_COMMAND(
+         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/UgrMemcached.pb.h ${CMAKE_CURRENT_BINARY_DIR}/UgrMemcached.pb.cc
+         COMMAND protoc -I${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/UgrMemcached.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+         DEPENDS UgrMemcached.proto
+         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc GeoPlugin.cc UgrConnector.cc /
-  PluginLoader.cc SimpleDebug.cc)
+  PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc)
 
 
 
@@ -28,6 +34,9 @@ include_directories(${PROJECT_BINARY_DIR})
 # Set up the includes to be used for boost 
 include_directories(${Boost_INCLUDE_DIRS})
 
+# Set up the includes to be used for protobuf
+include_directories($PROTOBUF_INCLUDE_DIRS})
+
 add_subdirectory(plugins)
 add_subdirectory(test)
 
@@ -36,7 +45,7 @@ add_subdirectory(test)
 
 
 add_library(ugrconnector SHARED ${Ugr_SOURCES})
-target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES})
+target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES} ${LIBMEMCACHED_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 # Install directive. This is the library core, to which LFC/DPM should have dependencies
 install(TARGETS ugrconnector

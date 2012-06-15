@@ -10,6 +10,7 @@
 
 #include "Config.hh"
 #include "LocationInfo.hh"
+#include "ExtCacheHandler.hh"
 
 #include <string>
 #include <map>
@@ -23,6 +24,7 @@
 /// It may also interface with a secondary (big) cache, thus adding a retrieve mechanism
 /// These behaviors are implemented in the Tick() method, that has to be called at a
 /// regular pace, to give life to this object
+
 class LocationInfoHandler : public boost::mutex {
 private:
     /// Counter for implementing a LRU buffer
@@ -45,26 +47,36 @@ private:
     /// where the key is generally a LFN. For us it's just a string key, no assumption is made on it.
     std::map< std::string, UgrFileInfo * > data;
 
+
+    /// An external cache
+    ExtCacheHandler *extcache;
+
     /// Purge an item from the buffer, to make space
     void purgeLRUitem();
 
     /// Purge the old items from the buffer
     void purgeExpired();
 
-    // Cache in/out
-    int getFileInfoFromCache(UgrFileInfo *fi) { return 0; };
-    int putFileInfoToCache(UgrFileInfo *fi) { return 0; };
+
 
 public:
 
     LocationInfoHandler() : lrutick(0) {
+        extcache = 0;
+    };
+
+    void Init() {
         // Get the max capacity from the config
         maxitems = CFG->GetLong("infohandler.maxitems", 1000000);
         // Get the lifetime of an entry
         maxttl = CFG->GetLong("infohandler.itemttl", 86400);
         maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
 
-    };
+
+        if (CFG->GetBool("infohandler.useextcache", true))
+            extcache = new ExtCacheHandler();
+
+    }
 
 
     //
@@ -72,8 +84,35 @@ public:
     //
 
     /// Get a pointer to a FileInfo, or create a new one, marked as pending
-    UgrFileInfo *getFileInfoOrCreateNewOne(std::string &lfn);
-    
+    UgrFileInfo *getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup=true);
+
+    // Ext Cache in/out
+
+    int getFileInfoFromCache(UgrFileInfo *fi) {
+        if (extcache)
+            return extcache->getFileInfo(fi);
+        return 0;
+    };
+
+    int getSubitemsFromCache(UgrFileInfo *fi) {
+        if (extcache)
+            return extcache->getSubitems(fi);
+        return 0;
+    };
+
+    int putFileInfoToCache(UgrFileInfo *fi) {
+        if (extcache)
+            return extcache->putFileInfo(fi);
+        return 0;
+    };
+
+    int putSubitemsToCache(UgrFileInfo *fi) {
+        if (extcache)
+            return extcache->putSubitems(fi);
+
+        return 0;
+    };
+
     /// Gives life to this obj
     void tick();
 };

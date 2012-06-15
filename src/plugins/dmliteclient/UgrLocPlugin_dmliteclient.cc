@@ -156,6 +156,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     // Process it with the Geo plugin, if needed
                     if (geoPlugin) geoPlugin->setReplicaLocation(it);
 
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
+
                     {
                         // Lock the file instance
                         unique_lock<mutex> l(*(op->fi));
@@ -193,11 +196,13 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     it.location.clear();
                     op->fi->subitems.insert(it);
 
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
 
                     // We have some info to add to the cache
                     if (op->handler) {
                         string newlfn = op->fi->name + "/" + dent->name;
-                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn);
+                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
                         if (fi) fi->takeStat(dent->stat);
                     }
 
@@ -219,7 +224,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     {
         // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
-        op->fi->dirty = true;
+        
 
         // Anyway the notification has to be correct, not redundant
         switch (op->wop) {

@@ -5,10 +5,12 @@
  */
 
 #include "LocationInfo.hh"
+#include "UgrMemcached.pb.h"
 #include<iomanip>
 
 using namespace boost;
 using namespace std;
+using namespace ugrmemcached;
 
 int UgrFileInfo::getBestReplicaIdx(std::string &clientlocation) {
     return 0;
@@ -167,5 +169,101 @@ void UgrFileInfo::takeStat(struct stat &st) {
     if (st.st_mtim.tv_sec && (st.st_mtim.tv_sec > mtime)) mtime = st.st_mtim.tv_sec;
     if (st.st_ctim.tv_sec && (st.st_ctim.tv_sec < ctime)) ctime = st.st_ctim.tv_sec;
 
+    dirty = true;
+
+}
+
+int UgrFileInfo::encodeToString(std::string &str) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    SerialUgrfileInfo sufi;
+
+    sufi.set_atime(atime);
+    sufi.set_ctime(ctime);
+    sufi.set_group(group);
+    sufi.set_mtime(mtime);
+    sufi.set_owner(owner);
+    sufi.set_size(size);
+    sufi.set_unixflags(unixflags);
+
+    str = sufi.SerializeAsString();
+
+
+    return (str.length() > 0);
+};
+
+int UgrFileInfo::decode(void *data, int sz) {
+    if (!sz) return 1;
+
+    SerialUgrfileInfo sufi;
+
+    sufi.ParseFromArray(data, sz);
+
+    atime = sufi.atime();
+    ctime = sufi.ctime();
+    group = sufi.group();
+    mtime = sufi.mtime();
+    owner = sufi.owner();
+    size = sufi.size();
+    unixflags = sufi.unixflags();
+    status_statinfo = Ok;
+
+    return 0;
+};
+
+
+/// We will like to be able to encode this info to a string, e.g. for external caching purposes
+
+int UgrFileInfo::encodeSubitemsToString(std::string &str) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+
+    SerialUgrFileItem* pnt;
+    SerialUgrSubitems list;
+
+    std::set<UgrFileItem, UgrFileItemComp>::iterator it;
+
+    for (it = subitems.begin();
+            it != subitems.end();
+            it++) {
+        pnt = list.add_subitems();
+
+        pnt->set_latitude(it->latitude);
+        pnt->set_location(it->location);
+        pnt->set_longitude(it->longitude);
+        pnt->set_name(it->name);
+
+    }
+
+    str = list.SerializeAsString();
+    //list.PrintDebugString();
+
+    return (str.length() > 0);
+}
+
+/// We will like to be able to encode this info to a string, e.g. for external caching purposes
+
+int UgrFileInfo::decodeSubitems(void *data, int sz) {
+    if (!sz) return 1;
+    
+    SerialUgrFileItem item;
+    SerialUgrSubitems list;
+    list.ParseFromArray(data, sz);
+    //list.PrintDebugString();
+    
+    for (int i = 0; i < list.subitems_size(); i++) {
+        UgrFileItem it;
+        item = list.subitems(i);
+        it.latitude = item.latitude();
+        it.longitude = item.longitude();
+        it.name = item.name();
+        subitems.insert(it);
+    }
+
+    this->status_items = Ok;
+    this->status_locations = Ok;
+
+
+    return 0;
 
 }

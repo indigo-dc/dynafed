@@ -67,9 +67,11 @@ find_package(PkgConfig REQUIRED)
 #MaxMind GeoIP
 find_package(GeoIP)
 
+#Memcached
+find_package(LibMemCached REQUIRED)
 
-
-
+#Protobuf
+find_package(Protobuf REQUIRED)
 
 add_subdirectory(src)
 

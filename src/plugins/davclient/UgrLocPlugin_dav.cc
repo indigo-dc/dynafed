@@ -40,7 +40,7 @@ using namespace std;
  * 
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-	g_logger_set_globalfilter(G_LOG_LEVEL_WARNING);
+    g_logger_set_globalfilter(G_LOG_LEVEL_WARNING);
     return (LocationPlugin *)new UgrLocPlugin_dav(dbginstance, cfginstance, parms);
 }
 
@@ -49,31 +49,31 @@ extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
  * */
 int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err) {
     GError * tmp_err = NULL;
-    int ret=-1;
-    UgrLocPlugin_dav* me = static_cast<UgrLocPlugin_dav*>(userdata);   
-    
+    int ret = -1;
+    UgrLocPlugin_dav* me = static_cast<UgrLocPlugin_dav*> (userdata);
+
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Davix request for credential ..... ");
-	
-	switch(t->auth){
-		case DAVIX_CLI_CERT_PKCS12:
-			ret= davix_set_pkcs12_auth(token, me->pkcs12_credential_path.c_str(), 
-					(me->pkcs12_credential_password.size() == 0)?NULL:me->pkcs12_credential_password.c_str(), 
-					&tmp_err);
-			if (ret != 0) {
-				Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
-			}
-			break;
-  		case DAVIX_LOGIN_PASSWORD:  
-  			ret= davix_set_login_passwd_auth(token, me->login.c_str(), me->password.c_str(), &tmp_err);
-			if (ret != 0) {
-				Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set login/password Error : %s", tmp_err->message);
-			}
-			break;
-		default:
-			g_set_error(&tmp_err,g_quark_from_string("UgrLocPlugin_dav::davix_credential_callback"), EFAULT, " Unsupported authentification required by davix ! bug ");
-	}
-	if(tmp_err)
-		g_propagate_error(err, tmp_err);
+
+    switch (t->auth) {
+        case DAVIX_CLI_CERT_PKCS12:
+            ret = davix_set_pkcs12_auth(token, me->pkcs12_credential_path.c_str(),
+                    (me->pkcs12_credential_password.size() == 0) ? NULL : me->pkcs12_credential_password.c_str(),
+                    &tmp_err);
+            if (ret != 0) {
+                Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
+            }
+            break;
+        case DAVIX_LOGIN_PASSWORD:
+            ret = davix_set_login_passwd_auth(token, me->login.c_str(), me->password.c_str(), &tmp_err);
+            if (ret != 0) {
+                Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set login/password Error : %s", tmp_err->message);
+            }
+            break;
+        default:
+            g_set_error(&tmp_err, g_quark_from_string("UgrLocPlugin_dav::davix_credential_callback"), EFAULT, " Unsupported authentification required by davix ! bug ");
+    }
+    if (tmp_err)
+        g_propagate_error(err, tmp_err);
     return ret;
 }
 
@@ -89,39 +89,39 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::session_create(
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
     load_configuration(CONFIG_PREFIX + name);
-    
+
     dav_core->getSessionFactory()->set_ssl_ca_check(ssl_check);
     dav_core->getSessionFactory()->set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
 
 }
 
-void UgrLocPlugin_dav::load_configuration(const std::string & prefix){
-	Config * c = Config::GetInstance();
-	std::string pref_dot = prefix + std::string(".");
-	
-	// get ssl check
-	ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
-	Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " SSL CA check for davix is set to  " + std::string((ssl_check)?"TRUE":"FALSE") );
-	// get credential 
-	pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
-	if(pkcs12_credential_path.size() > 0){
-		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);	
-	}
-	// get credential password
-	pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
-	if(pkcs12_credential_password.size() > 0){	
-		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");		
-	}
-	// auth login
-	login = c->GetString(pref_dot + std::string("auth_login"), "");
-	if(login.size() > 0){	
-		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth login defined  ");		
-	}	
+void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
+    Config * c = Config::GetInstance();
+    std::string pref_dot = prefix + std::string(".");
+
+    // get ssl check
+    ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
+    // get credential
+    pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
+    if (pkcs12_credential_path.size() > 0) {
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);
+    }
+    // get credential password
+    pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
+    if (pkcs12_credential_password.size() > 0) {
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");
+    }
+    // auth login
+    login = c->GetString(pref_dot + std::string("auth_login"), "");
+    if (login.size() > 0) {
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth login defined  ");
+    }
     // auth password
-	password = c->GetString(pref_dot + std::string("auth_passwd"), "");
-	if(password.size() > 0){	
-		Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");		
-	}	    
+    password = c->GetString(pref_dot + std::string("auth_passwd"), "");
+    if (password.size() > 0) {
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");
+    }
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
@@ -182,80 +182,83 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-		try {		
-			LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
-			switch (op->wop) {
+        try {
+            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+            switch (op->wop) {
 
-				case LocationPlugin::wop_Stat:
-					LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-					op->fi->takeStat(st);
-					break;
+                case LocationPlugin::wop_Stat:
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                    op->fi->takeStat(st);
 
-				case LocationPlugin::wop_Locate:
-					it.name = cannonical_name;
-					LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
+                    break;
 
-					// Process it with the Geo plugin, if needed
-					if (geoPlugin) geoPlugin->setReplicaLocation(it);
-				{
-					// Lock the file instance
-					unique_lock<mutex> l(*(op->fi));
+                case LocationPlugin::wop_Locate:
+                    it.name = cannonical_name;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
 
-					op->fi->subitems.insert(it);
-				}
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
 
-					break;
+                    // Process it with the Geo plugin, if needed
+                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
+                {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
 
-				case LocationPlugin::wop_List:
-				{
-					dirent * dent;
-					long cnt = 0;
-					struct stat st;
-					while ((dent = dav_core->readdirpp(d, &st)) != NULL) {
-						unique_lock<mutex> l(*(op->fi));
+                    op->fi->subitems.insert(it);
+                }
 
+                    break;
 
-						if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
-							LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-							listerror = true;
-							op->fi->subitems.clear();
-							break;
-						}
+                case LocationPlugin::wop_List:
+                {
+                    dirent * dent;
+                    long cnt = 0;
+                    struct stat st;
+                    while ((dent = dav_core->readdirpp(d, &st)) != NULL) {
+                        unique_lock<mutex> l(*(op->fi));
 
-						// create new items
-						UgrFileItem it;
-						LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
-						it.name = std::string(dent->d_name);
-						it.location.clear();
-						// populate answer
-						op->fi->subitems.insert(it);
-						// add childrens
-						string child = op->fi->name + "/" + it.name ;
-						UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child);
-						LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirpp stat info for  " << dent->d_name << ", flags " << st.st_mode << " size : " << st.st_size);						
-						if (fi) fi->takeStat(st);
-					}
-					dav_core->closedirpp(d);
+                        // We have modified the data, hence set the dirty flag
+                        op->fi->dirtyitems = true;
 
+                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
+                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                            listerror = true;
+                            op->fi->subitems.clear();
+                            break;
+                        }
 
-				}
-					break;
-
-				default:
-					break;
-			}
+                        // create new items
+                        UgrFileItem it;
+                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+                        it.name = std::string(dent->d_name);
+                        it.location.clear();
+                        // populate answer
+                        op->fi->subitems.insert(it);
+                        // add childrens
+                        string child = op->fi->name + "/" + it.name;
+                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
+                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirpp stat info for  " << dent->d_name << ", flags " << st.st_mode << " size : " << st.st_size);
+                        if (fi) fi->takeStat(st);
+                    }
+                    dav_core->closedirpp(d);
 
 
-			// We have modified the data, hence set the dirty flag
-			op->fi->dirty = true;
-        
-		} catch (Glib::Error & e) {
-			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << " name: " << g_quark_to_string(e.domain()) << " Catched exception: " << e.code() << " what: " << e.what());
-		} catch (std::exception & e) {
-			LocPluginLogErr(fname, " UgrDav plugin request Error : Unexcepted Error, FATAL  what: " << e.what());
-		} catch (...) {
-			LocPluginLogErr(fname, " UgrDav plugin request Error: Unknow Error Fatal  ");
-		}        
+                }
+                    break;
+
+                default:
+                    break;
+            }
+
+
+        } catch (Glib::Error & e) {
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << " name: " << g_quark_to_string(e.domain()) << " Catched exception: " << e.code() << " what: " << e.what());
+        } catch (std::exception & e) {
+            LocPluginLogErr(fname, " UgrDav plugin request Error : Unexcepted Error, FATAL  what: " << e.what());
+        } catch (...) {
+            LocPluginLogErr(fname, " UgrDav plugin request Error: Unknow Error Fatal  ");
+        }
     }
 
 

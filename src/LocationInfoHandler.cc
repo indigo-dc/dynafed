@@ -6,12 +6,13 @@
 
 
 #include "LocationInfoHandler.hh"
+#include "ExtCacheHandler.hh"
 
 using namespace boost;
 
 // Get a pointer to a FileInfo, or create a new one
 
-UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn) {
+UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup) {
     const char *fname = "LocationInfoHandler::getFileInfoOrCreateNewOne";
     bool dofetch = false;
     UgrFileInfo *fi = 0;
@@ -42,15 +43,17 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn) {
             // Create a new item
             fi = new UgrFileInfo(lfn);
 
-            // We want to see if it's available in the external cache
-            // hance, make it pending
-            dofetch = true;
+            if (docachelookup) {
+                // We want to see if it's available in the external cache
+                // hance, make it pending
+                dofetch = true;
 
-            // We don't need to lock here, as we are the only holders
-            // Set this object as pending, as we'll try to fetch it from an external cache (if any)
-            fi->notifyItemsPending();
-            fi->notifyLocationPending();
-            fi->notifyStatPending();
+                // We don't need to lock here, as we are the only holders
+                // Set this object as pending, as we'll try to fetch it from an external cache (if any)
+                fi->notifyItemsPending();
+                fi->notifyLocationPending();
+                fi->notifyStatPending();
+            }
 
             data[lfn] = fi;
             lrudata.insert(lrudataitem(++lrutick, lfn));
@@ -64,7 +67,19 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn) {
     }
 
     if (dofetch) {
+
+        // While we get it from the cache, the object is pending, and nothing is locked
+
+        // Get the basic fields of the object, size, etc.
         getFileInfoFromCache(fi);
+
+        // If necessary, get also the subitems from the cache
+        // Maybe it's a good idea to store in the ext cache only
+        // replica information, not file listings
+        getSubitemsFromCache(fi);
+
+        // Found or not, the cache lookup for this object has ended
+        // so it is marked as not pending
         {
             // Here we need to lock
             unique_lock<mutex> l(*fi);
@@ -124,7 +139,7 @@ void LocationInfoHandler::purgeExpired() {
             time_t tl = timelimit;
             if (fi->getInfoStatus() == UgrFileInfo::NotFound)
                 tl = timelimit_neg;
-            
+
             if (fi->lastupdtime < tl) {
                 // The item is old...
                 Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
@@ -147,8 +162,8 @@ void LocationInfoHandler::purgeExpired() {
     }
 
     if (dodelete) {
-            data.erase(i_deleteme);
-            dodelete = false;
+        data.erase(i_deleteme);
+        dodelete = false;
     }
 
     if (d > 0)

@@ -1,0 +1,31 @@
+package ugrmemcached;
+
+
+message SerialUgrfileInfo {
+
+    required int32 unixflags = 1;
+    required int64 size = 2;
+    required string owner = 3;
+    required string group = 4;
+
+    required int64 atime = 5;
+    required int64 mtime = 6;
+    required int64 ctime = 7;
+
+}
+
+
+message SerialUgrFileItem {
+
+    required string name = 1;
+    required string location = 2;
+    required float latitude = 3;
+    required float longitude = 4;
+
+}
+
+message SerialUgrSubitems {
+
+    repeated SerialUgrFileItem subitems = 1;
+
+}

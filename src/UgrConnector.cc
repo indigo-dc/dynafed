@@ -182,6 +182,9 @@ int UgrConnector::init(char *cfgfile) {
     trimpath(n2n_newpfx);
     Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
 
+    // Init the extcache
+    this->locHandler.Init();
+    
     initdone = true;
     return 0;
 }
@@ -242,6 +245,9 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     }
 
     *nfo = fi;
+
+    // Send, if needed, to the external cache
+    this->locHandler.putFileInfoToCache(fi);
 
     Info(SimpleDebug::kLOW, fname, "Stat-ed " << lfn << "sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
@@ -333,6 +339,9 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     *nfo = fi;
 
+    // Send, if needed, to the external cache
+    this->locHandler.putSubitemsToCache(fi);
+
     Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->subitems.size() << " Status: " << fi->getLocationStatus() <<
             " status_statinfo: " << fi->status_locations << " pending_statinfo: " << fi->pending_locations);
 
@@ -393,6 +402,9 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
         statSubdirs(fi);
 
     *nfo = fi;
+
+    // Send, if needed, to the external cache
+    this->locHandler.putSubitemsToCache(fi);
 
     Info(SimpleDebug::kLOW, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subitems.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
