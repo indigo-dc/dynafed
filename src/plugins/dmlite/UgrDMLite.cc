@@ -47,7 +47,15 @@ Catalog* UgrFactory::createCatalog(dmlite::StackInstance *st) throw (DmException
 
 static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     try {
-        pm->registerCatalogFactory(new UgrFactory(NULL /*pm->getCatalogFactory()*/));
+        pm->registerFactory(new UgrFactory(NULL /*pm->getCatalogFactory()*/));
+    } catch (DmException e) {
+        //        if (e.code() == DM_NO_FACTORY)
+        //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
+        //        throw;
+    }
+
+    try {
+        pm->registerFactory(new UgrUserGroupDbFactory());
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
         //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
@@ -63,21 +71,9 @@ PluginIdCard plugin_ugr = {
     registerPluginUgr
 };
 
-
-// ---------------------------
-SecurityContext* UgrCatalog::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
-
-    Info(SimpleDebug::kHIGHEST, "UgrCatalog::createSecurityCredentials", c.remote_addr);
-    secCredentials = c;
-    
-    return new SecurityContext(c);
-
+void UgrCatalog::setSecurityContext(const SecurityContext *c) throw (DmException) {
+    secCredentials = c->getCredentials();
 }
-
- void UgrCatalog::setSecurityContext(const SecurityContext*) throw (DmException) {
-
- }
-
 
 UgrCatalog::UgrCatalog(Catalog* decorates) throw (DmException) :
 DummyCatalog(decorates) {
@@ -92,43 +88,16 @@ std::string UgrCatalog::getImplId() throw () {
     return std::string("UgrCatalog");
 }
 
-void UgrCatalog::set(const std::string& key, va_list vargs) throw (DmException) {
-    if (key == "ExcludeReplicas") {
-        int n_list = va_arg(vargs, int);
-        int64_t* id_list = va_arg(vargs, int64_t*);
-
-        for (int i = 0; i < n_list; ++i)
-            this->exclude(id_list[i]);
-    } else if (key == "ClearExcluded") {
-        this->excluded_.clear();
-    }
-
-    if (this->decorated_ != 0x00)
-        this->decorated_->set(key, vargs);
-    else
-        throw DmException(DM_UNKNOWN_OPTION, "Unknown option " + key);
-}
-
-
-
-void UgrCatalog::setSecurityCredentials(const SecurityCredentials& c) throw (DmException) {
-    Info(SimpleDebug::kHIGHEST, "UgrCatalog::setSecurityCredentials", c.remote_addr);
-    secCredentials = c;
-}
-
-
 std::vector<Uri> UgrCatalog::getReplicasLocation(const std::string& path) throw (DmException) {
 
     std::vector<FileReplica> r = getReplicas(path);
     std::vector<Uri> u;
     for (std::vector<FileReplica>::iterator it = r.begin(); it != r.end(); it++) {
-        u.push_back( splitUri( it->url ));
+        u.push_back(splitUri(it->url));
     }
 
     return u;
 }
-
-
 
 std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
     std::vector<FileReplica> replicas;
@@ -138,7 +107,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     UgrFileInfo *nfo = 0;
 
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
-		Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to order / choose a proper one");
+        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to order / choose a proper one");
         // Request UgrConnector to order a replica set according to proximity to the client
         std::set<UgrFileItem, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
 
@@ -158,17 +127,17 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 
             if (u.host) {
                 strncpy(r.server, u.host, sizeof (r.server));
-                r.server[sizeof(r.server) - 1] = '\0';
+                r.server[sizeof (r.server) - 1] = '\0';
             }
 
-            
+
             replicas.push_back(r);
         }
 
-        
-    }else{
-		Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", "  -> failure in get location ");
-	}
+
+    } else {
+        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", "  -> failure in get location ");
+    }
 
     // Return
     if (replicas.size() == 0)
@@ -185,7 +154,7 @@ void UgrCatalog::getIdMap(const std::string &userName, const std::vector<std::st
 }
 
 Uri UgrCatalog::get(const std::string& path) throw (DmException) {
-    
+
     std::vector<FileReplica> replicas;
 
     // Get all the available
@@ -277,7 +246,7 @@ class myDirectory {
     myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
         idx = finfo->subitems.begin();
         memset(&buf, 0, sizeof (buf));
-        memset(&direntbuf, 0, sizeof(direntbuf));
+        memset(&direntbuf, 0, sizeof (direntbuf));
     }
 
 };
@@ -309,7 +278,7 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
     if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof(d->direntbuf.d_name));
+    strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof (d->direntbuf.d_name));
     d->direntbuf.d_name[sizeof (d->direntbuf.d_name) - 1] = '\0';
 
     d->idx++;
@@ -323,7 +292,7 @@ ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     if (d->idx == d->nfo->subitems.end()) return 0;
 
     // Only the name is relevant here, it seems
-    strncpy(d->buf.name, (d->idx)->name.c_str(), sizeof(d->buf.name));
+    strncpy(d->buf.name, (d->idx)->name.c_str(), sizeof (d->buf.name));
     d->buf.name[sizeof (d->buf.name) - 1] = '\0';
 
     std::string s = d->nfo->name;
@@ -339,3 +308,43 @@ ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
 
     return &(d->buf);
 }
+
+
+
+
+
+
+// ---------------------------
+
+SecurityContext* UgrUserGroupDb::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
+
+    Info(SimpleDebug::kHIGHEST, "UgrUserGroupDb::createSecurityContext", c.remote_addr);
+
+
+    return new SecurityContext(c);
+
+}
+
+
+
+/// UserGroupDbFactory
+
+/// Set a configuration parameter
+/// @param key   The configuration parameter
+/// @param value The value for the configuration parameter
+
+void UgrUserGroupDbFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
+    throw DmException(DM_UNKNOWN_OPTION, std::string("Unknown option ") + key);
+};
+
+/// Instantiate a implementation of UserGroupDb
+/// @param si The StackInstance that is instantiating the context. It may be NULL.
+
+UserGroupDb* UgrUserGroupDbFactory::createUserGroupDb(StackInstance* si) throw (DmException) {
+    Info(SimpleDebug::kHIGHEST, "UserGroupDbFactory::createUserGroupDb", "Creating UsrUserGroupDb instance...");
+
+
+    return new UgrUserGroupDb();
+};
+
+

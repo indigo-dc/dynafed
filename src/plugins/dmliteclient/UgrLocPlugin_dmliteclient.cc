@@ -47,6 +47,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     bool exc = false;
     std::string xname;
     dmlite::Catalog *catalog = 0;
+    dmlite::StackInstance *si = 0;
+    dmlite::SecurityContext secCtx;
+
     bool listerror = false;
 
     if (!pluginManager) return;
@@ -58,19 +61,35 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
         boost::unique_lock< boost::mutex > l(dmlitemutex);
 
-        catalog = catmap[myidx];
+        // create stackinstance (this will instantiate the catalog)
+        // invoke si->setsecuritycontext
+        si = simap[myidx];
 
-        if (!catalog)
-            catalog = catalogfactory->createCatalog(NULL);
+        if (!si) {
 
-        if (!catalog) {
-            LocPluginLogErr(fname, "Catalog creation failed.");
-            exc = true;
+            try {
+                si = new dmlite::StackInstance(pluginManager);
+            } catch (dmlite::DmException e) {
+                LocPluginLogErr(fname, "Cannot create StackInstance. op: " << op->wop << " name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
+                exc = true;
+            }
+
         }
-
-
-
     }
+
+
+    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Got the catalogue instance.");
+
+
+    if (si) {
+        catalog = si->getCatalog();
+        si->setSecurityContext(secCtx);
+    }
+    if (!catalog) {
+        LocPluginLogErr(fname, "Cannot find catalog.");
+        exc = true;
+    }
+
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
 
@@ -86,6 +105,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     }
 
     if (!exc) {
+
+
+
         try {
             switch (op->wop) {
 
@@ -224,7 +246,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     {
         // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
-        
+
 
         // Anyway the notification has to be correct, not redundant
         switch (op->wop) {
@@ -258,8 +280,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     {
         boost::unique_lock< boost::mutex > l(dmlitemutex);
-        //delete catalog;
-        catmap[myidx] = catalog;
+        simap[myidx] = si;
     }
 
 

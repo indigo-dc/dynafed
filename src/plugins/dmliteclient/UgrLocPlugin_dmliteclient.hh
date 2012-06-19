@@ -27,7 +27,7 @@ protected:
     /// Mutex for protecting dmlite
     boost::mutex dmlitemutex;
 
-    std::map<int, dmlite::Catalog *> catmap;
+    std::map<int, dmlite::StackInstance *> simap;
 public:
 
     UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
