@@ -23,6 +23,9 @@ private:
     /// The Memcached connection
     memcached_st* conn;
 
+    /// The max ttl for an item in the cache
+    int maxttl;
+    
     std::string makekey(UgrFileInfo *fi);
     std::string makekey_subitems(UgrFileInfo *fi);
 public:

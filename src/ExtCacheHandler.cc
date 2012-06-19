@@ -12,6 +12,8 @@ ExtCacheHandler::ExtCacheHandler() {
     const char *fname = "ExtCacheHandler";
     int r;
 
+    maxttl = CFG->GetLong("extcache.memcached.ttl", 600);
+
     Info(SimpleDebug::kLOW, fname, "Creating memcached instance...");
     // Passing NULL means dynamically allocating space
     conn = memcached_create(NULL);
@@ -182,6 +184,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
     if (!conn) return 0;
 
     std::string s, s1, k;
+    time_t expirationtime = time(0) + maxttl;
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -201,7 +204,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
         memcached_return_t r = memcached_set(conn,
                 k.c_str(), k.length(),
                 s.c_str(), s.length()+1,
-                (time_t) 0, (uint32_t) 0);
+                expirationtime, (uint32_t) 0);
 
 
 
@@ -221,6 +224,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
     if (!conn) return 0;
 
     std::string s, k;
+    time_t expirationtime = time(0) + maxttl;
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -245,7 +249,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
         memcached_return_t r = memcached_set(conn,
                 k.c_str(), k.length(),
                 s.c_str(), s.length()+1,
-                (time_t) 0, (uint32_t) 0);
+                expirationtime, (uint32_t) 0);
 
         Info(SimpleDebug::kHIGH, fname, "memcached_set " << "r:" << r <<
                 "key:" << k << " len:" << s.length());
