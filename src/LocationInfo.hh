@@ -15,6 +15,7 @@
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sys/stat.h>
+#include "dmlite/common/dm_types.h"
 
 #include <iostream>
 
@@ -362,7 +363,7 @@ public:
     // Useful for debugging
     void print(std::ostream &out);
 
-    void takeStat(struct stat &st);
+    void takeStat(ExtendedStat &st);
 
 };
 

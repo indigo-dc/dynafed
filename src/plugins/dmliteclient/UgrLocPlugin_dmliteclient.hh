@@ -9,8 +9,8 @@
 
 
 #include "../../LocationPlugin.hh"
-#include <dmlite/dmlite++.h>
-#include <dmlite/dm_exceptions.h>
+#include <dmlite/cpp/dmlite.h>
+#include <dmlite/cpp/dm_exceptions.h>
 
 /** LocationPlugin_dmlite
  * Plugin that talks to a dmlite catalog

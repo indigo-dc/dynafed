@@ -125,7 +125,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
-    struct stat st;
+    ExtendedStat st;
     static const char * fname = "UgrLocPlugin_dav::runsearch";
     std::string cannonical_name = base_url;
     bool bad_answer = true;
@@ -141,17 +141,19 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     cannonical_name += "/";
     cannonical_name += op->fi->name;
 
+    memset(&st, 0, sizeof(st));
+
     try {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << cannonical_name << ")");
-                dav_core->stat(cannonical_name, &st);
+                dav_core->stat(cannonical_name, &st.stat);
                 break;
 
             case LocationPlugin::wop_Locate:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << cannonical_name << ")");
-                dav_core->stat(cannonical_name, &st);
+                dav_core->stat(cannonical_name, &st.stat);
                 break;
 
             case LocationPlugin::wop_List:
@@ -187,7 +189,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             switch (op->wop) {
 
                 case LocationPlugin::wop_Stat:
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.stat.st_size << " " << st.stat.st_mode);
                     op->fi->takeStat(st);
 
                     break;
@@ -214,8 +216,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 {
                     dirent * dent;
                     long cnt = 0;
-                    struct stat st;
-                    while ((dent = dav_core->readdirpp(d, &st)) != NULL) {
+                    ExtendedStat st2;
+                    while ((dent = dav_core->readdirpp(d, &st2.stat)) != NULL) {
                         unique_lock<mutex> l(*(op->fi));
 
                         // We have modified the data, hence set the dirty flag
@@ -238,8 +240,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         // add childrens
                         string child = op->fi->name + "/" + it.name;
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirpp stat info for  " << dent->d_name << ", flags " << st.st_mode << " size : " << st.st_size);
-                        if (fi) fi->takeStat(st);
+                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirpp stat info for  " << dent->d_name << ", flags " << st.stat.st_mode << " size : " << st.stat.st_size);
+                        if (fi) fi->takeStat(st2);
                     }
                     dav_core->closedirpp(d);
 

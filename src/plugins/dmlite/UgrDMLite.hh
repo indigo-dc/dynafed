@@ -5,8 +5,8 @@
 #ifndef UGRDMLITECATALOG_HH
 #define UGRDMLITECATALOG_HH
 
-#include <dmlite/dmlite++.h>
-#include <dmlite/dummy/Dummy.h>
+#include <dmlite/cpp/dmlite.h>
+#include <dmlite/cpp/dummy/DummyCatalog.h>
 #include <set>
 #include <boost/thread.hpp>
 #include "../../UgrConnector.hh"
@@ -31,10 +31,11 @@ namespace dmlite {
 
         void set(const std::string&, va_list) throw (DmException);
 
-
-        virtual std::vector<Uri> getReplicasLocation(const std::string& path) throw (DmException);
+        virtual void setStackInstance(StackInstance* si) throw (DmException) {};
+        
         virtual std::vector<FileReplica> getReplicas(const std::string&) throw (DmException);
-        virtual Uri get(const std::string&) throw (DmException);
+        
+        virtual Location get(const std::string&) throw (DmException);
 
         virtual void getIdMap(const std::string&, const std::vector<std::string>&,
                 uid_t*, std::vector<gid_t>*) throw (DmException);
@@ -83,7 +84,7 @@ namespace dmlite {
         ~UgrFactory() throw (DmException);
 
         virtual void configure(const std::string& key, const std::string& value) throw (DmException);
-        Catalog* createCatalog(dmlite::StackInstance*) throw (DmException);
+        Catalog* createCatalog(dmlite::PluginManager *) throw (DmException);
     protected:
         CatalogFactory* nestedFactory_;
     private:
@@ -181,7 +182,7 @@ namespace dmlite {
 
         /// Instantiate a implementation of UserGroupDb
         /// @param si The StackInstance that is instantiating the context. It may be NULL.
-        virtual UserGroupDb* createUserGroupDb(StackInstance* si) throw (DmException);
+        virtual UserGroupDb* createUserGroupDb(dmlite::PluginManager *) throw (DmException);
 
     protected:
     private:

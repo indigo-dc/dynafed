@@ -41,7 +41,7 @@ LocationPlugin(dbginstance, cfginstance, parms) {
 
 void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     const char *fname = "UgrLocPlugin_dmlite::runsearch";
-    struct stat st;
+    ExtendedStat st;
     std::vector<FileReplica> repvec;
     dmlite::Directory *d = 0;
     bool exc = false;
@@ -113,7 +113,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                 case LocationPlugin::wop_Stat:
                     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xname << ")");
-                    st = catalog->stat(xname);
+
+                    // For now I don't see why it should not follow the links here
+                    st = catalog->extendedStat(xname, true);
                     break;
 
                 case LocationPlugin::wop_Locate:
@@ -172,8 +174,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 for (vector<FileReplica>::iterator i = repvec.begin();
                         i != repvec.end();
                         i++) {
-                    it.name = i->url;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->url);
+                    it.name = i->rfn;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
                     // Process it with the Geo plugin, if needed
                     if (geoPlugin) geoPlugin->setReplicaLocation(it);
@@ -225,7 +227,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     if (op->handler) {
                         string newlfn = op->fi->name + "/" + dent->name;
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
-                        if (fi) fi->takeStat(dent->stat);
+                        if (fi) fi->takeStat(*dent);
                     }
 
                 }

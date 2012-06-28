@@ -317,7 +317,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -374,7 +374,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);

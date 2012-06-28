@@ -149,25 +149,25 @@ void UgrFileInfo::print(ostream &out) {
 
 }
 
-void UgrFileInfo::takeStat(struct stat &st) {
+void UgrFileInfo::takeStat(ExtendedStat &st) {
     const char *fname = "UgrFileInfo::takeStat";
     unique_lock<mutex> l2(*this);
 
     status_statinfo = Ok;
 
-    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
-    size = st.st_size;
+    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.stat.st_size << " " << st.stat.st_mode);
+    size = st.stat.st_size;
     status_statinfo = UgrFileInfo::Ok;
-    unixflags = st.st_mode;
-    if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
+    unixflags = st.stat.st_mode;
+    if ((long) st.stat.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.stat.st_nlink);
         subitems.clear();
         status_items = UgrFileInfo::Error;
     }
 
-    if (st.st_atim.tv_sec && (st.st_atim.tv_sec > atime)) atime = st.st_atim.tv_sec;
-    if (st.st_mtim.tv_sec && (st.st_mtim.tv_sec > mtime)) mtime = st.st_mtim.tv_sec;
-    if (st.st_ctim.tv_sec && (st.st_ctim.tv_sec < ctime)) ctime = st.st_ctim.tv_sec;
+    if (st.stat.st_atim.tv_sec && (st.stat.st_atim.tv_sec > atime)) atime = st.stat.st_atim.tv_sec;
+    if (st.stat.st_mtim.tv_sec && (st.stat.st_mtim.tv_sec > mtime)) mtime = st.stat.st_mtim.tv_sec;
+    if (st.stat.st_ctim.tv_sec && (st.stat.st_ctim.tv_sec < ctime)) ctime = st.stat.st_ctim.tv_sec;
 
     dirty = true;
 

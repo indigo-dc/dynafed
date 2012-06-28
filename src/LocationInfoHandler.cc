@@ -12,7 +12,7 @@ using namespace boost;
 
 // Get a pointer to a FileInfo, or create a new one
 
-UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup) {
+UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup, bool docachesubitemslookup) {
     const char *fname = "LocationInfoHandler::getFileInfoOrCreateNewOne";
     bool dofetch = false;
     UgrFileInfo *fi = 0;
@@ -50,8 +50,10 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 
                 // We don't need to lock here, as we are the only holders
                 // Set this object as pending, as we'll try to fetch it from an external cache (if any)
-                fi->notifyItemsPending();
-                fi->notifyLocationPending();
+                if (docachesubitemslookup) {
+                    fi->notifyItemsPending();
+                    fi->notifyLocationPending();
+                }
                 fi->notifyStatPending();
             }
 
@@ -62,7 +64,11 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
             // Promote the element to being the most recently used
             lrudata.right.erase(lfn);
             lrudata.insert(lrudataitem(++lrutick, lfn));
-            return p->second;
+            fi = p->second;
+            if (docachesubitemslookup) {
+                fi->notifyItemsPending();
+                fi->notifyLocationPending();
+            }
         }
     }
 
@@ -72,25 +78,33 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 
         // Get the basic fields of the object, size, etc.
         getFileInfoFromCache(fi);
+    }
+
+    // Now see if we need to lookup the subitems.
+    // The element must exist, with no subitems so far
+    if (docachesubitemslookup) {
 
         // If necessary, get also the subitems from the cache
         // Maybe it's a good idea to store in the ext cache only
         // replica information, not file listings
         getSubitemsFromCache(fi);
-
-        // Found or not, the cache lookup for this object has ended
-        // so it is marked as not pending
-        {
-            // Here we need to lock
-            unique_lock<mutex> l(*fi);
-
-            fi->notifyItemsNotPending();
-            fi->notifyLocationNotPending();
-            fi->notifyStatNotPending();
-        }
     }
 
-    return fi;
+    // Found or not, the cache lookup for this object has ended
+    // so it is marked as not pending
+    {
+        // Here we need to lock
+        unique_lock<mutex> l(*fi);
+
+        if (docachesubitemslookup) {
+            fi->notifyItemsNotPending();
+            fi->notifyLocationNotPending();
+        }
+        if (dofetch) fi->notifyStatNotPending();
+    }
+
+
+return fi;
 
 }
 

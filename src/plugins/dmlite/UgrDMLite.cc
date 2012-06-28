@@ -9,7 +9,7 @@
 
 #include <unistd.h>
 #include <sys/types.h>
-#include "dmlite/common/Uris.h"
+#include "dmlite/cpp/utils/dm_urls.h"
 
 using namespace dmlite;
 
@@ -35,12 +35,12 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
         throw DmException(DM_UNKNOWN_OPTION, std::string("Unknown option ") + key);
 }
 
-Catalog* UgrFactory::createCatalog(dmlite::StackInstance *st) throw (DmException) {
+Catalog* UgrFactory::createCatalog(dmlite::PluginManager *pm) throw (DmException) {
 
     UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
     if (this->nestedFactory_ != 0x00)
 
-        return new UgrCatalog(this->nestedFactory_->createCatalog(st));
+        return new UgrCatalog(CatalogFactory::createCatalog(this->nestedFactory_, pm));
     else
         return new UgrCatalog(0x00);
 }
@@ -88,16 +88,7 @@ std::string UgrCatalog::getImplId() throw () {
     return std::string("UgrCatalog");
 }
 
-std::vector<Uri> UgrCatalog::getReplicasLocation(const std::string& path) throw (DmException) {
 
-    std::vector<FileReplica> r = getReplicas(path);
-    std::vector<Uri> u;
-    for (std::vector<FileReplica>::iterator it = r.begin(); it != r.end(); it++) {
-        u.push_back(splitUri(it->url));
-    }
-
-    return u;
-}
 
 std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
     std::vector<FileReplica> replicas;
@@ -105,7 +96,8 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 
     // Get all of them
     UgrFileInfo *nfo = 0;
-
+    int priocnt = 0;
+    
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
         Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to order / choose a proper one");
         // Request UgrConnector to order a replica set according to proximity to the client
@@ -113,17 +105,18 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
 
         // Populate the vector
         FileReplica r;
-        Uri u;
+        Url u;
         for (std::set<UgrFileItem>::iterator i = repls.begin(); i != repls.end(); ++i) {
             Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
             r.fileid = 0;
             r.replicaid = 0;
             r.status = '-';
-            u = splitUri(i->name);
+            r.priority = priocnt++;
+            u = splitUrl(i->name);
 
 
-            strncpy(r.url, i->name.c_str(), sizeof (r.url));
-            r.url[sizeof (r.url) - 1] = '\0';
+            strncpy(r.rfn, i->name.c_str(), sizeof (r.rfn));
+            r.rfn[sizeof (r.rfn) - 1] = '\0';
 
             if (u.host) {
                 strncpy(r.server, u.host, sizeof (r.server));
@@ -153,7 +146,7 @@ void UgrCatalog::getIdMap(const std::string &userName, const std::vector<std::st
 
 }
 
-Uri UgrCatalog::get(const std::string& path) throw (DmException) {
+Location UgrCatalog::get(const std::string& path) throw (DmException) {
 
     std::vector<FileReplica> replicas;
 
@@ -161,9 +154,9 @@ Uri UgrCatalog::get(const std::string& path) throw (DmException) {
     replicas = this->getReplicas(path);
 
     // The first one is fine
-    Uri u = splitUri(replicas[0].url);
+    Url u = splitUrl(replicas[0].rfn);
 
-    return u;
+    return Location(u);
 }
 
 void UgrCatalog::exclude(int64_t replicaId) {
@@ -340,7 +333,7 @@ void UgrUserGroupDbFactory::configure(const std::string& key, const std::string&
 /// Instantiate a implementation of UserGroupDb
 /// @param si The StackInstance that is instantiating the context. It may be NULL.
 
-UserGroupDb* UgrUserGroupDbFactory::createUserGroupDb(StackInstance* si) throw (DmException) {
+UserGroupDb* UgrUserGroupDbFactory::createUserGroupDb(dmlite::PluginManager *) throw (DmException) {
     Info(SimpleDebug::kHIGHEST, "UserGroupDbFactory::createUserGroupDb", "Creating UsrUserGroupDb instance...");
 
 
