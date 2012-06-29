@@ -82,8 +82,9 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
     if (si) {
-        catalog = si->getCatalog();
+        // I suppose that secCtx must be filled with the agent's information
         si->setSecurityContext(secCtx);
+        catalog = si->getCatalog();
     }
     if (!catalog) {
         LocPluginLogErr(fname, "Cannot find catalog.");
@@ -171,30 +172,31 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
             } else {
 
-                for (vector<FileReplica>::iterator i = repvec.begin();
-                        i != repvec.end();
-                        i++) {
-                    it.name = i->rfn;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
-
-                    // Process it with the Geo plugin, if needed
-                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
-
-                    // We have modified the data, hence set the dirty flag
-                    op->fi->dirtyitems = true;
-
-                    {
-                        // Lock the file instance
-                        unique_lock<mutex> l(*(op->fi));
-
-                        op->fi->subitems.insert(it);
-                    }
-                }
-
-
 
 
             }
+            for (vector<FileReplica>::iterator i = repvec.begin();
+                    i != repvec.end();
+                    i++) {
+                it.name = i->rfn;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
+
+                // Process it with the Geo plugin, if needed
+                if (geoPlugin) geoPlugin->setReplicaLocation(it);
+
+                // We have modified the data, hence set the dirty flag
+                op->fi->dirtyitems = true;
+
+                {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
+
+                    op->fi->subitems.insert(it);
+                }
+            }
+
+
+
             break;
 
         case LocationPlugin::wop_List:
@@ -206,33 +208,51 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 ExtendedStat *dent;
                 long cnt = 0;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
-                while ((dent = catalog->readDirx(d))) {
-                    // Lock the file instance
-                    unique_lock<mutex> l(*(op->fi));
 
-                    if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-                        listerror = true;
-                        op->fi->subitems.clear();
-                        break;
+                try {
+
+                    while ((dent = catalog->readDirx(d))) {
+                        // Lock the file instance
+                        unique_lock<mutex> l(*(op->fi));
+
+                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                            listerror = true;
+                            op->fi->subitems.clear();
+                            break;
+                        }
+                        it.name = dent->name;
+                        it.location.clear();
+                        op->fi->subitems.insert(it);
+
+                        // We have modified the data, hence set the dirty flag
+                        op->fi->dirtyitems = true;
+
+                        // We have some info to add to the cache
+                        if (op->handler) {
+                            string newlfn = op->fi->name + "/" + dent->name;
+                            UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
+                            if (fi) fi->takeStat(*dent);
+                        }
+
                     }
-                    it.name = dent->name;
-                    it.location.clear();
-                    op->fi->subitems.insert(it);
 
-                    // We have modified the data, hence set the dirty flag
-                    op->fi->dirtyitems = true;
 
-                    // We have some info to add to the cache
-                    if (op->handler) {
-                        string newlfn = op->fi->name + "/" + dent->name;
-                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
-                        if (fi) fi->takeStat(*dent);
-                    }
 
+                } catch (dmlite::DmException e) {
+                    LocPluginLogErr(fname, "op: " << op->wop << "(processing) name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
+                    exc = true;
                 }
 
-                catalog->closeDir(d);
+                try {
+
+                    catalog->closeDir(d);
+
+
+                } catch (dmlite::DmException e) {
+                    LocPluginLogErr(fname, "op: " << op->wop << "(closing) name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
+                    exc = true;
+                }
 
 
             }
