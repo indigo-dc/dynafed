@@ -254,7 +254,7 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     }
 
     if (fi->getItemsStatus() == UgrFileInfo::Error)
-        throw DmException(DM_TOO_MANY_SYMLINKS, "Error getting directory content (likely the directory is too big to be listed)");
+        throw DmException(DM_TOO_MANY_SYMLINKS, "Error getting directory content (likely the directory is bigger than the limit)");
 
 
     return 0;
