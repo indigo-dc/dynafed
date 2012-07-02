@@ -18,6 +18,10 @@ BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel
 BuildRequires:		boost-devel
 BuildRequires:		GeoIP-devel
+BuildRequires:		protobuf-devel
+BuildRequires:		protobuf
+BuildRequires:		libmemcached-devel
+BuildRequires:		libmemcached
 
 %description
 Ugr provides a powerfull, fast and scalable dynamic storage federation 
