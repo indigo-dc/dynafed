@@ -59,15 +59,18 @@ make clean
 %setup -q
 
 %build
+mkdir build
+cd build
 %cmake \
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
 -DBOOST_INCLUDEDIR=/usr/include/boost141 \
 -DBOOST_LIBRARYDIR=/usr/lib64/boost141 \
-.
+../
 make %{?_smp_mflags}
 
 %install
 rm -rf %{buildroot}
+cd build
 make DESTDIR=%{buildroot} install
 
 %post -p /sbin/ldconfig
