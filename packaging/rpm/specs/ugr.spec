@@ -69,6 +69,7 @@ cd build
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
 -DBOOST_INCLUDEDIR=/usr/include/boost141 \
 -DBOOST_LIBRARYDIR=/usr/lib64/boost141 \
+-DDMLITE_LIBRARY=/usr/lib64/libdmlite.so
 ../
 make %{?_smp_mflags}
 
