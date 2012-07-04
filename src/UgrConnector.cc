@@ -209,7 +209,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
     if (fi->getStatStatus() != UgrFileInfo::InProgress) return 0;
 
-    Info(SimpleDebug::kHIGH, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
+    Info(SimpleDebug::kHIGH, "UgrConnector::do_waitStat", "Going to wait for " << fi->name);
     {
     unique_lock<mutex> lck(*fi);
 
