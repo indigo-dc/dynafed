@@ -8,6 +8,7 @@
 #include "ExtCacheHandler.hh"
 #include <libmemcached/memcached.h>
 
+
 ExtCacheHandler::ExtCacheHandler() {
     const char *fname = "ExtCacheHandler";
     int r;
@@ -116,7 +117,7 @@ int ExtCacheHandler::getFileInfo(UgrFileInfo *fi) {
     if (!conn) return 0;
 
     size_t value_len = 0;
-    memcached_return_t err;
+    memcached_return err;
     uint32_t flags;
     std::string k;
 
@@ -150,7 +151,7 @@ int ExtCacheHandler::getSubitems(UgrFileInfo *fi) {
     if (!conn) return 0;
 
     size_t value_len = 0;
-    memcached_return_t err;
+    memcached_return err;
     uint32_t flags;
     std::string k;
 
@@ -201,7 +202,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
         Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
                 "key:" << k << " len:" << s.length());
 
-        memcached_return_t r = memcached_set(conn,
+        memcached_return r = memcached_set(conn,
                 k.c_str(), k.length(),
                 s.c_str(), s.length()+1,
                 expirationtime, (uint32_t) 0);
@@ -246,7 +247,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
         Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
                 "key:" << k << " len:" << s.length());
 
-        memcached_return_t r = memcached_set(conn,
+        memcached_return r = memcached_set(conn,
                 k.c_str(), k.length(),
                 s.c_str(), s.length()+1,
                 expirationtime, (uint32_t) 0);
