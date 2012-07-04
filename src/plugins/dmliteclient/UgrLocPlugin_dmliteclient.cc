@@ -232,6 +232,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         if (op->handler) {
                             string newlfn = op->fi->name + "/" + dent->name;
                             UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
+                            LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirx stat info for  " << dent->name << ", flags " << dent->stat.st_mode << " size : " << dent->stat.st_size);
                             if (fi) fi->takeStat(*dent);
                         }
 

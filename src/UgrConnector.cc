@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 
 using namespace std;
-
+using namespace boost;
 
 /// Clean up a path
 
@@ -210,6 +210,16 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
     if (fi->getStatStatus() != UgrFileInfo::InProgress) return 0;
 
+    Info(SimpleDebug::kHIGH, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
+    {
+    unique_lock<mutex> lck(*fi);
+
+    // If still pending, we wait for the file object to get a notification
+    // then we recheck...
+    return fi->waitStat(lck, tmout);
+    }
+
+    // We also ask the plugins
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitStat(fi, tmout);
 
@@ -302,6 +312,16 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
     if (fi->getLocationStatus() != UgrFileInfo::InProgress) return 0;
 
+    Info(SimpleDebug::kHIGH, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
+    {
+    unique_lock<mutex> lck(*fi);
+
+    // If still pending, we wait for the file object to get a notification
+    // then we recheck...
+    return fi->waitLocations(lck, tmout);
+    }
+
+    // We also ask the plugins
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitLocate(fi, tmout);
 
@@ -359,6 +379,16 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 
     if (fi->getItemsStatus() != UgrFileInfo::InProgress) return 0;
 
+    Info(SimpleDebug::kHIGH, "UgrConnector::do_waitList", "Going to wait for " << fi->name);
+    {
+    unique_lock<mutex> lck(*fi);
+
+    // If still pending, we wait for the file object to get a notification
+    // then we recheck...
+    return fi->waitItems(lck, tmout);
+    }
+
+    // We also ask to the individual plugins
     for (unsigned int i = 0; i < locPlugins.size(); i++)
         locPlugins[i]->do_waitList(fi, tmout);
 

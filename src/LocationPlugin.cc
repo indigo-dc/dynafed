@@ -308,13 +308,7 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
 //
 // The result will be in the FileInfo object
 int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
-    const char *fname = "LocationPlugin::do_waitStat";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
-
-    unique_lock<mutex> lck(*fi);
-
-    return fi->waitStat(lck, tmout);
+    return 0;
 }
 
 // Start the async location process
@@ -337,13 +331,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
 
 // Waits max a number of seconds for a locate process to be complete
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
-    const char *fname = "LocationPlugin::do_waitLocate";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
-
-    unique_lock<mutex> lck(*fi);
-
-    return fi->waitLocations(lck, tmout);
+    return 0;
 }
 
 // Start the async listing process
@@ -366,15 +354,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
 
 // Waits max a number of seconds for a list process to be complete
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
-    const char *fname = "LocationPlugin::do_waitList";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Going to wait for " << fi->name);
-
-    unique_lock<mutex> lck(*fi);
-
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    return fi->waitItems(lck, tmout);
+    return 0;
 }
 
 
