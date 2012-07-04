@@ -33,6 +33,8 @@ private:
     unsigned long maxitems;
     /// Max life for an item that was not recently accessed
     unsigned int maxttl;
+    /// Max life for an item that even if it was recently accessed
+    unsigned int maxmaxttl;
     /// Max life for a NEGATIVE item (e.g. a not found) that was not recently accessed
     unsigned int maxttl_negative;
 
@@ -68,13 +70,17 @@ public:
     void Init() {
         // Get the max capacity from the config
         maxitems = CFG->GetLong("infohandler.maxitems", 1000000);
-        // Get the lifetime of an entry
-        maxttl = CFG->GetLong("infohandler.itemttl", 86400);
+        // Get the lifetime of an entry after the last reference
+        maxttl = CFG->GetLong("infohandler.itemttl", 3600);
+        // Get the maximum allowed lifetime of an entry
+        maxmaxttl = CFG->GetLong("infohandler.itemmaxttl", 86400);
         maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
 
 
-        if (CFG->GetBool("infohandler.useextcache", true))
+        if (CFG->GetBool("infohandler.useextcache", true)) {
+            Info(SimpleDebug::kLOW, "LocationInfoHandler::Init", "Creating ExtCacheHandler");
             extcache = new ExtCacheHandler();
+        }
 
     }
 

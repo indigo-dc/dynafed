@@ -207,6 +207,7 @@ int UgrFileInfo::decode(void *data, int sz) {
     size = sufi.size();
     unixflags = sufi.unixflags();
     status_statinfo = Ok;
+    touch();
 
     return 0;
 };

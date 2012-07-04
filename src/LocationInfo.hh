@@ -116,6 +116,7 @@ public:
 
         lastupdtime = time(0);
         lastupdreqtime = time(0);
+        lastreftime = time(0);
 
         atime = mtime = ctime = 0;
 
@@ -315,6 +316,8 @@ public:
     /// The last time there was an update to this entry
     time_t lastupdtime;
 
+    /// The last time this entry was referenced
+    time_t lastreftime;
 
     /// The various unix times
     time_t atime, mtime, ctime;
@@ -335,6 +338,10 @@ public:
     /// on the method that we apply to choose one, since it could be implemented as a plugin
     int getBestReplicaIdx(std::string &clientlocation);
 
+    /// Update last reference time
+    void touch() {
+        lastreftime = time(0);
+    }
 
     /// Wait until any notification update comes
     /// Useful to recheck if what came is what we were waiting for

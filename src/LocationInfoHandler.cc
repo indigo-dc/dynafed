@@ -62,6 +62,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 
         } else {
             // Promote the element to being the most recently used
+
             lrudata.right.erase(lfn);
             lrudata.insert(lrudataitem(++lrutick, lfn));
             fi = p->second;
@@ -69,6 +70,8 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
                 fi->notifyItemsPending();
                 fi->notifyLocationPending();
             }
+
+            fi->touch();
         }
     }
 
@@ -133,6 +136,7 @@ void LocationInfoHandler::purgeExpired() {
     const char *fname = "LocationInfoHandler::purgeExpired";
     int d = 0;
     time_t timelimit = time(0) - maxttl;
+    time_t timelimit_max = time(0) - maxmaxttl;
     time_t timelimit_neg = time(0) - maxttl_negative;
 
     bool dodelete = false;
@@ -154,12 +158,12 @@ void LocationInfoHandler::purgeExpired() {
             if (fi->getInfoStatus() == UgrFileInfo::NotFound)
                 tl = timelimit_neg;
 
-            if (fi->lastupdtime < tl) {
+            if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
                 // The item is old...
                 Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
 
                 if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
-                    Info(SimpleDebug::kLOW, fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
+                    Error(fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
                     continue;
                 }
 

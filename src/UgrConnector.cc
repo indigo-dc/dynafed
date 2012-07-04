@@ -255,10 +255,13 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     *nfo = fi;
 
+    // Touch the item anyway, it has been referenced
+    fi->touch();
+    
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
-    Info(SimpleDebug::kLOW, fname, "Stat-ed " << lfn << "sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
+    Info(SimpleDebug::kMEDIUM, fname, "Stat-ed " << lfn << "sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
