@@ -15,7 +15,6 @@ BuildRequires:		cmake
 BuildRequires:		doxygen
 BuildRequires:		lfc-devel
 BuildRequires:		dmlite-devel
-BuildRequires:		dmlite-utils
 BuildRequires:		davix-devel
 BuildRequires:		boost-devel
 BuildRequires:		GeoIP-devel
