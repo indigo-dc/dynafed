@@ -70,6 +70,7 @@ cd build
 -DBOOST_INCLUDEDIR=/usr/include/boost141 \
 -DBOOST_LIBRARYDIR=/usr/lib64/boost141 \
 -DDMLITE_LIBRARY=/usr/lib64/libdmlite.so \
+-DDMLITECOMMON_LIBRARY=/usr/lib64/libdmlitecommon.so \
 ../
 make %{?_smp_mflags}
 
