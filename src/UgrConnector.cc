@@ -104,7 +104,6 @@ int UgrConnector::init(char *cfgfile) {
     // Get the tick pace from the config
     ticktime = CFG->GetLong("glb.tick", 10);
 
-
     // Load a GeoPlugin, if specified
     string s = CFG->GetString("glb.geoplugin", (char *) "");
     geoPlugin = 0;
@@ -244,7 +243,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitStat(fi);
+    do_waitStat(fi, CFG->GetLong("glb.waittimeout", 30));
 
     // If the status is noinfo, we can mark it as not found
     {
@@ -346,7 +345,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitLocate(fi);
+    do_waitLocate(fi, CFG->GetLong("glb.waittimeout", 30));
 
 
     // If the status is noinfo, we can mark it as not found
@@ -413,7 +412,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitList(fi);
+    do_waitList(fi, CFG->GetLong("glb.waittimeout", 30));
 
 
 
