@@ -19,7 +19,7 @@ if(GEOIP_LIB)
 
   SET_TARGET_PROPERTIES(ugrgeoplugin_geoip PROPERTIES LINK_FLAGS "-rdynamic")
 
-  target_link_libraries(ugrgeoplugin_geoip "dl ${DMLITE_LIBRARIES}" ugrconnector ${GEOIP_LIB})
+  target_link_libraries(ugrgeoplugin_geoip "dl" ugrconnector ${GEOIP_LIB})
 
 
   # How to install. This is a set of plugins that belong to a specific component

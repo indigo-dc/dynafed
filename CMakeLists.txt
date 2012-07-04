@@ -52,13 +52,13 @@ set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
 
 # -----------------------
 # Look for the external packages that are needed, for both the core and the plugins
-find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread)
+find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread REQUIRED)
 
 # Look for the LFC client
 find_package(LFC 1.8.0)
 
 # Look for libDMlite
-find_package(DMLite 0.0)
+find_package(DMLite 0.3)
 # ----------------------
 
 # generic pkgconfig module for Davix & co
