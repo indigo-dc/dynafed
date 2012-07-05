@@ -16,7 +16,11 @@ BuildRequires:		doxygen
 BuildRequires:		lfc-devel
 BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel
+%if 0%{?el5}
+BuildRequires:		boost141-devel
+%else
 BuildRequires:		boost-devel
+%endif
 BuildRequires:		GeoIP-devel
 BuildRequires:		protobuf-devel
 BuildRequires:		protobuf
