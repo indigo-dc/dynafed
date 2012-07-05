@@ -40,7 +40,7 @@ Ugr is accessible by any HTTP/Webdav compatible client.
 %package devel
 Summary:			Development files for %{name}
 Group:				Applications/Internet
-Requires:			%{name}-core%{?_isa} = %{version}-%{release} 
+Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Requires:			pkgconfig
 
 %description devel
@@ -49,7 +49,7 @@ development files for %{name}
 %package dav-plugin
 Summary:			WebDav plugin for %{name}
 Group:				Applications/Internet
-Requires:			%{name}-core%{?_isa} = %{version}-%{release} 
+Requires:			%{name}%{?_isa} = %{version}-%{release} 
 
 %description dav-plugin
 Plugin for the WebDav based storage system for %{name}
@@ -57,7 +57,7 @@ Plugin for the WebDav based storage system for %{name}
 %package dmlite-plugin
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
-Requires:                       %{name}-core%{?_isa} = %{version}-%{release}
+Requires:                       %{name}%{?_isa} = %{version}-%{release}
 
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
@@ -65,7 +65,7 @@ Plugin for using dmlite for %{name}
 %package demo-plugin
 Summary:                        demonstration plugin for %{name}
 Group:                          Applications/Internet
-Requires:                       %{name}-core%{?_isa} = %{version}-%{release}
+Requires:                       %{name}%{?_isa} = %{version}-%{release}
 
 %description demo-plugin
 Plugin for demonstration purpose for %{name}
