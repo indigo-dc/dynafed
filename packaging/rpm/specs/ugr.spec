@@ -18,7 +18,6 @@ Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:		cmake
-BuildRequires:		doxygen
 BuildRequires:		lfc-devel
 BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel
@@ -46,14 +45,6 @@ Requires:			pkgconfig
 
 %description devel
 development files for %{name}
-
-%package doc
-Summary:			Documentation for %{name}
-Group:				Applications/Internet
-Requires:			%{name}-core%{?_isa} = %{version}-%{release} 
-
-%description doc
-documentation, Doxygen and examples of %{name} .
 
 %package dav-plugin
 Summary:			WebDav plugin for %{name}
@@ -94,7 +85,6 @@ make clean
 %{boost_cmake_flags} \
 .
 make
-make doc
 
 %install
 rm -rf %{buildroot}
@@ -107,13 +97,14 @@ make DESTDIR=%{buildroot} install
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
+%{_libdir}/libugrdmlite.so
+%{_libdir}/libugrgeoplugin_geoip.so
+%config(noreplace) %{_sysconfdir}/ugrdmlite.conf
 %doc RELEASE-NOTES
-
 
 %files devel
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so
-%{_libdir}/libugrgeoplugin_geoip.so
 %{_includedir}/ugr/*
 %{_libdir}/pkgconfig/*
 
@@ -123,15 +114,12 @@ make DESTDIR=%{buildroot} install
 
 %files dmlite-plugin
 %defattr (-,root,root)
-%{_libdir}/libugrlocplugin_dmlite.so
+%{_libdir}/libugrlocplugin_dmliteclient.so
+%config(noreplace) %{_sysconfdir}/ugrdmliteclient.conf
 
 %files demo-plugin
 %defattr (-,root,root)
 %{_libdir}/libugrlocplugin_simplehttp.so
-
-%files doc
-%defattr (-,root,root)
-%{_docdir}/%{name}-%{version}/html/*
 
 %changelog
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
