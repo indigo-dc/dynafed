@@ -1,4 +1,10 @@
-%define checkout_tag 2012052812snap
+%global checkout_tag 2012052812snap
+
+%if 0%{?el5}
+%global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
+%else
+%global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include
+%endif
 
 Name:				ugr
 Version:			0.0.2
@@ -23,9 +29,7 @@ BuildRequires:		boost-devel
 %endif
 BuildRequires:		GeoIP-devel
 BuildRequires:		protobuf-devel
-BuildRequires:		protobuf
 BuildRequires:		libmemcached-devel
-BuildRequires:		libmemcached
 
 %description
 Ugr provides a powerfull, fast and scalable dynamic storage federation 
@@ -57,7 +61,7 @@ Group:				Applications/Internet
 Requires:			%{name}-core%{?_isa} = %{version}-%{release} 
 
 %description dav-plugin
-Plugin for the WebDav based storage system
+Plugin for the WebDav based storage system for %{name}
 
 %package dmlite-plugin
 Summary:                        dmlite plugin for %{name}
@@ -65,7 +69,16 @@ Group:                          Applications/Internet
 Requires:                       %{name}-core%{?_isa} = %{version}-%{release}
 
 %description dmlite-plugin
-Plugin for using dmlite as plugin
+Plugin for using dmlite for %{name}
+
+%package demo-plugin
+Summary:                        demonstration plugin for %{name}
+Group:                          Applications/Internet
+Requires:                       %{name}-core%{?_isa} = %{version}-%{release}
+
+%description demo-plugin
+Plugin for demonstration purpose for %{name}
+
 
 %clean
 rm -rf %{buildroot};
@@ -75,20 +88,16 @@ make clean
 %setup -q
 
 %build
-mkdir build
-cd build
 %cmake \
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
--DBOOST_INCLUDEDIR=/usr/include/boost141 \
--DBOOST_LIBRARYDIR=/usr/lib64/boost141 \
--DDMLITE_LIBRARY=/usr/lib64/libdmlite.so \
--DDMLITEUTILS_LIBRARY=/usr/lib64/libdmliteutils.so \
-../
-make %{?_smp_mflags}
+-DOUT_OF_SOURCE_CHECK=FALSE \
+%{boost_cmake_flags} \
+.
+make
+make doc
 
 %install
 rm -rf %{buildroot}
-cd build
 make DESTDIR=%{buildroot} install
 
 %post -p /sbin/ldconfig
@@ -104,6 +113,7 @@ make DESTDIR=%{buildroot} install
 %files devel
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so
+%{_libdir}/libugrgeoplugin_geoip.so
 %{_includedir}/ugr/*
 %{_libdir}/pkgconfig/*
 
@@ -114,6 +124,10 @@ make DESTDIR=%{buildroot} install
 %files dmlite-plugin
 %defattr (-,root,root)
 %{_libdir}/libugrlocplugin_dmlite.so
+
+%files demo-plugin
+%defattr (-,root,root)
+%{_libdir}/libugrlocplugin_simplehttp.so
 
 %files doc
 %defattr (-,root,root)

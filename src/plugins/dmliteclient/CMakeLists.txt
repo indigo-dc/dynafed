@@ -6,6 +6,7 @@ cmake_minimum_required (VERSION 2.6)
 #
 # if dmlite is available then we build also a plugin that uses it
 #
+
 if(DMLITE_FOUND)
 
 

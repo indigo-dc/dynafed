@@ -31,7 +31,9 @@ message(STATUS "Found dmliteutils: ${DMLITEUTILS_LIBRARY}")
 set(DMLITE_LIBRARIES "${DMLITE_LIBRARY} ${DMLITEUTILS_LIBRARY}")
 
 # Look for the include dir
-find_path(DMLITE_INCLUDE NAMES dmlite/dmlite.h)
+find_path(DMLITE_INCLUDE NAMES dmlite.h 
+						 PATHS /usr/include/dmlite /usr/include/dmlite/c /usr/include/dmlite/cpp 
+)
 
 # Set the variables documented above if library was found, fail if not
 if(DMLITE_LIBRARY AND DMLITEUTILS_LIBRARY AND DMLITE_INCLUDE)
