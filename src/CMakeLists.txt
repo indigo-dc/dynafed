@@ -45,6 +45,10 @@ add_subdirectory(test)
 
 
 add_library(ugrconnector SHARED ${Ugr_SOURCES})
+set_target_properties(ugrconnector PROPERTIES
+ VERSION "${UGR_VERSION_MAJOR}.${UGR_VERSION_MINOR}.${UGR_VERSION_PATCH}"
+ SOVERSION "${UGR_VERSION_MAJOR}.${UGR_VERSION_MINOR}")
+
 target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES} ${LIBMEMCACHED_LIBRARIES} ${PROTOBUF_LIBRARIES})
 
 # Install directive. This is the library core, to which LFC/DPM should have dependencies

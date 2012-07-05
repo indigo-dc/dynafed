@@ -53,7 +53,15 @@ Group:				Applications/Internet
 Requires:			%{name}-core%{?_isa} = %{version}-%{release} 
 
 %description dav-plugin
-Plugin for the WebDav based stroage system
+Plugin for the WebDav based storage system
+
+%package dmlite-plugin
+Summary:                        dmlite plugin for %{name}
+Group:                          Applications/Internet
+Requires:                       %{name}-core%{?_isa} = %{version}-%{release}
+
+%description dmlite-plugin
+Plugin for using dmlite as plugin
 
 %clean
 rm -rf %{buildroot};
@@ -70,7 +78,7 @@ cd build
 -DBOOST_INCLUDEDIR=/usr/include/boost141 \
 -DBOOST_LIBRARYDIR=/usr/lib64/boost141 \
 -DDMLITE_LIBRARY=/usr/lib64/libdmlite.so \
--DDMLITECOMMON_LIBRARY=/usr/lib64/libdmlitecommon.so \
+-DDMLITEUTILS_LIBRARY=/usr/lib64/libdmliteutils.so \
 ../
 make %{?_smp_mflags}
 
@@ -86,7 +94,8 @@ make DESTDIR=%{buildroot} install
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_docdir}/%{name}-%{version}/RELEASE-NOTES
+%doc RELEASE-NOTES
+
 
 %files devel
 %defattr (-,root,root)
@@ -97,6 +106,10 @@ make DESTDIR=%{buildroot} install
 %files dav-plugin
 %defattr (-,root,root)
 %{_libdir}/libugrlocplugin_dav.so
+
+%files dmlite-plugin
+%defattr (-,root,root)
+%{_libdir}/libugrlocplugin_dmlite.so
 
 %files doc
 %defattr (-,root,root)
