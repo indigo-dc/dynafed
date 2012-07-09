@@ -97,9 +97,11 @@ make DESTDIR=%{buildroot} install
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_libdir}/libugrdmlite.so
-%{_libdir}/libugrgeoplugin_geoip.so
-%config(noreplace) %{_sysconfdir}/ugrdmlite.conf
+%{_libdir}/ugr/libugrdmlite.so
+%{_libdir}/ugr/libugrgeoplugin_geoip.so
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
+%config(noreplace) %{_sysconfdir}/ugr.conf
+%config(noreplace) %{_sysconfdir}/apache2/sites-enabled/zlcgdm-ugr-dav.conf
 %doc RELEASE-NOTES
 
 %files devel
@@ -110,12 +112,12 @@ make DESTDIR=%{buildroot} install
 
 %files dav-plugin
 %defattr (-,root,root)
-%{_libdir}/libugrlocplugin_dav.so
+%{_libdir}/ugr/libugrlocplugin_dav.so
 
 %files dmlite-plugin
 %defattr (-,root,root)
-%{_libdir}/libugrlocplugin_dmliteclient.so
-%config(noreplace) %{_sysconfdir}/ugrdmliteclient.conf
+%{_libdir}/ugr/libugrlocplugin_dmliteclient.so
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclient.conf
 
 %files demo-plugin
 %defattr (-,root,root)
@@ -124,3 +126,4 @@ make DESTDIR=%{buildroot} install
 %changelog
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
  - initial draft
+
