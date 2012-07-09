@@ -18,15 +18,26 @@ if(DMLITE_FOUND)
   # Install the plugin for dmlite
   install(TARGETS ugrdmlite
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/ugr
     COMPONENT ugrdmlite)
 
   # Install the config files
-  if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugrdmlite.conf)
+  if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr/ugrdmlite.conf)
     install(FILES ugrdmlite.conf
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    DESTINATION ${SYSCONF_INSTALL_DIR}
+    DESTINATION ${SYSCONF_INSTALL_DIR}/ugr
     COMPONENT plugins-dmlite)
   endif()
+
+
+  # Install the config files
+  if (NOT EXISTS /etc/apache2/sites-enabled/zlcgdm-ugr-dav.conf)
+    install(FILES zlcgdm-ugr-dav.conf
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DESTINATION /etc/apache2/sites-enabled/
+    COMPONENT plugins-dmlite)
+  endif()
+
+
 
 endif()
