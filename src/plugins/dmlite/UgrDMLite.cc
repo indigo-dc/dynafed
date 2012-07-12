@@ -37,7 +37,11 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
 
 Catalog* UgrFactory::createCatalog(dmlite::PluginManager *pm) throw (DmException) {
 
-    UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
+    int r = UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
+    
+    if (r > 0)
+        throw DmException(DM_NO_CATALOG, "UgrConnector initialization failed.");
+    
     if (this->nestedFactory_ != 0x00)
 
         return new UgrCatalog(CatalogFactory::createCatalog(this->nestedFactory_, pm));
