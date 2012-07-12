@@ -30,7 +30,7 @@ ExtCacheHandler::ExtCacheHandler() {
                 Error(fname, "Cannot set memcached protocol to binary. retval=" << r);
             }
         } else {
-            r = memcached_behavior_set(conn, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
+            r = memcached_behavior_set(conn, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 0);
             if (r != MEMCACHED_SUCCESS) {
                 Error(fname, "Cannot set memcached protocol to ascii. retval=" << r);
             }
