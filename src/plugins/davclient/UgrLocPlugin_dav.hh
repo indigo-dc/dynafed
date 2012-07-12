@@ -53,7 +53,7 @@ protected:
 	std::string login;
 	std::string password;
 	
-	boost::scoped_ptr<Davix::Composition> dav_core;
+	boost::scoped_ptr<Davix::CoreInterface> dav_core;
 	
 	void load_configuration(const std::string & prefix);
 	

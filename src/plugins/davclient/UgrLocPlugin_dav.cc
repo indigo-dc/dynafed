@@ -23,21 +23,12 @@ using namespace std;
 // ------------------------------------------------------------------------------------
 
 
-/***
- * List of arguments for the dav plugin :
- *  1st one : URL prefix to contact
- *  2nd : credential path to use
- *  3rd : mode SSL CA check : TRUE or nothing > secure, FALSE -> disable CA check, insecure ( allow man in the middle attack) * 
- * 
- * */
 
 // The hook function. GetLocationPluginClass must be given the name of this function
 // for the plugin to be loaded
 
 /**
  * Hook for the dav plugin Location plugin
- * 
- * 
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     g_logger_set_globalfilter(G_LOG_LEVEL_WARNING);
@@ -78,7 +69,7 @@ int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_
 }
 
 UgrLocPlugin_dav::UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::session_create()) {
+LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_create()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
