@@ -19,13 +19,13 @@
 using namespace std;
 using namespace boost;
 
-/// Clean up a path
-
+/// Clean up a path, make sure it ends without a slash
 void trimpath(std::string &s) {
-
 
     if (*(s.rbegin()) == '/')
         s.erase(s.size() - 1);
+
+    //if (s.length() == 0) s = "/";
 
 
 }
@@ -195,6 +195,8 @@ void UgrConnector::do_n2n(std::string &path) {
             path = n2n_newpfx + path.substr(n2n_pfx.size());
 
     }
+
+    trimpath(path);
 }
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {

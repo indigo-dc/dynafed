@@ -105,7 +105,10 @@ ExtCacheHandler::ExtCacheHandler() {
 }
 
 std::string ExtCacheHandler::makekey(UgrFileInfo *fi) {
-    return fi->name;
+    if (fi->name.length() > 0)
+      return fi->name;
+    
+    return "/";
 }
 
 std::string ExtCacheHandler::makekey_subitems(UgrFileInfo *fi) {
