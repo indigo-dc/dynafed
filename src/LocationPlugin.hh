@@ -23,6 +23,25 @@
 #define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
 #define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << myidx << " " << c);
 
+enum PluginEndpointState{
+	PLUGIN_ENDPOINT_ONLINE=0,
+	PLUGIN_ENDPOINT_OFFLINE,
+	PLUGIN_ENDPOINT_TEMPORARY_OFFLINE,
+	PLUGIN_ENDPOINT_OVERLOADED,
+};
+
+/// contain information about the availability of the plugin endpoint
+struct PluginEndpointStatus{
+	/// current status of the plugin's endpoint
+	PluginEndpointState state;
+	/// average latency in ms
+	unsigned long latency;
+	/// string description
+	std::string explanation;
+};
+
+
+
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
  * is made about what source is this.
@@ -37,31 +56,32 @@ class LocationPlugin {
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
 
-protected:
-    /// The name assigned to this plugin from the creation
-    char *name;
-
-    /// We keep a private thread pool and a synchronized work queue, in order to provide
-    /// pure non blocking behaviour
-    std::vector< boost::thread * > workers;
-
-    enum workOp {
-        wop_Nop = 0,
-        wop_Stat,
-        wop_Locate,
-        wop_List
-    };
-
-    /// This is a pointer to the currently loaded instance of a GeoPlugin, i.e. an object
-    /// that gives GPS coordinates to file replicas
-    GeoPlugin *geoPlugin;
-
+public:
+	enum workOp {
+		wop_Nop = 0,
+		wop_Stat,
+		wop_Locate,
+		wop_List
+	};
     /// The description of an operation to be done asynchronously
     struct worktoken {
         UgrFileInfo *fi;
         workOp wop;
         LocationInfoHandler *handler;
     };
+
+protected:
+    /// The name assigned to this plugin from the creation
+    std::string name;
+
+    /// We keep a private thread pool and a synchronized work queue, in order to provide
+    /// pure non blocking behaviour
+    std::vector< boost::thread * > workers;
+
+    /// This is a pointer to the currently loaded instance of a GeoPlugin, i.e. an object
+    /// that gives GPS coordinates to file replicas
+    GeoPlugin *geoPlugin;
+
 
     // Workaround for a bug in boost, where interrupt() hangs
     bool exiting;
@@ -81,12 +101,13 @@ protected:
     /// The method that performs the operation
     /// This has to be overridden in the true plugins
     virtual void runsearch(struct worktoken *wtk, int myidx);
+    
 
     // The simple, default global name translation
     std::string xlatepfx_from, xlatepfx_to;
 
 public:
-
+    
    LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
    virtual ~LocationPlugin();
 
@@ -94,6 +115,17 @@ public:
    virtual int start();
 
    virtual void setGeoPlugin(GeoPlugin *gp) { geoPlugin = gp; };
+   
+   ///
+   /// return the plugin name ( id )
+   ///
+   virtual const std::string & get_Name(){
+	   return name;
+   }
+   
+    /// Check current availability of this plugin for a given operation
+    /// the implementation of this call should be as fast as possible ( executed in the main thread )
+    virtual void check_availability(PluginEndpointStatus * status, UgrFileInfo *fi);   
 
    // Calls that characterize the behevior of the plugin
    // In general:

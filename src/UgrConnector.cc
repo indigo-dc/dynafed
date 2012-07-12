@@ -12,6 +12,7 @@
 #include "UgrConnector.hh"
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
+#include "PluginEndpointStatusManager.hh"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -201,8 +202,10 @@ void UgrConnector::do_n2n(std::string &path) {
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_Stat(fi, &locHandler);
+    for (unsigned int i = 0; i < locPlugins.size(); i++){
+		if(checkpluginAvailability(locPlugins[i], fi))
+			locPlugins[i]->do_Stat(fi, &locHandler);
+	}
 
     return 0;
 }
@@ -304,10 +307,11 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
+    for (unsigned int i = 0; i < locPlugins.size(); i++){
+		if(checkpluginAvailability(locPlugins[i], fi))
+			locPlugins[i]->do_Locate(fi, &locHandler);
+	}
 
-
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_Locate(fi, &locHandler);
 
     return 0;
 }
@@ -373,8 +377,11 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 }
 
 int UgrConnector::do_List(UgrFileInfo *fi) {
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_List(fi, &locHandler);
+	
+    for (unsigned int i = 0; i < locPlugins.size(); i++){
+		if(checkpluginAvailability(locPlugins[i], fi))
+			locPlugins[i]->do_List(fi, &locHandler);
+	}	
 
     return 0;
 }

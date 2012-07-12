@@ -357,7 +357,12 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-
+// default implment, overloading should be fast 
+void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileInfo *fi){
+	status->state= PLUGIN_ENDPOINT_ONLINE;
+	status->latency = 0;
+	status->explanation = "";
+}
 
 
 
@@ -418,6 +423,8 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
     return c;
 
 }
+
+
 
 
 /// The plugin hook function. GetLocationPluginClass must be given the name of this function

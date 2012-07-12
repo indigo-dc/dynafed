@@ -42,7 +42,7 @@ public:
 
 
     /**
-     *     
+     *  main executor for the plugin    
      **/
      virtual void runsearch(struct worktoken *op, int myidx);
 protected:
