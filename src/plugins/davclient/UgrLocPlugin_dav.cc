@@ -5,7 +5,6 @@
  * @date   Feb 2012
  */
 
-#include <davix_cpp.hpp>
 
 #include "UgrLocPlugin_dav.hh"
 #include "../../PluginLoader.hh"

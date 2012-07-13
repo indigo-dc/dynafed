@@ -10,7 +10,8 @@
  * @date   Feb 2012
  */
 
-
+#include <davix_cpp.hpp>
+#include <string>
 #include "../../LocationPlugin.hh"
 
 
