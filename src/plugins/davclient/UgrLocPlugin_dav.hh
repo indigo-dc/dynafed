@@ -12,8 +12,11 @@
 
 #include <davix_cpp.hpp>
 #include <string>
+#include "davavailabilitychecker.hh"
 #include "../../LocationPlugin.hh"
 
+
+class DavAvailabilityChecker;
 
 /**
  *  Dav plugin config parameters
@@ -46,6 +49,9 @@ public:
      *  main executor for the plugin    
      **/
      virtual void runsearch(struct worktoken *op, int myidx);
+
+     virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
+
 protected:
 	std::string base_url;
 	std::string pkcs12_credential_path;
@@ -55,8 +61,15 @@ protected:
 	std::string password;
 	
 	boost::scoped_ptr<Davix::CoreInterface> dav_core;
+
+    //plugin state checker
+    bool state_checking;
+    boost::shared_ptr<DavAvailabilityChecker> state_checker;
 	
 	void load_configuration(const std::string & prefix);
+
+    // stop the plugin behavior
+    virtual void stop();
 	
 	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err); 	
 };

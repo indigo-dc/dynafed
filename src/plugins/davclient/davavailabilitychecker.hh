@@ -7,14 +7,17 @@
  * @brief  poll the status of the http endpoint
  * @author Devresse Adrien
  */
- 
+
+#include <davix_cpp.hpp>
+#include "../../LocationPlugin.hh"
 #include "UgrLocPlugin_dav.hh"
 
 class DavAvailabilityChecker
 {
 public:
 	DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & uri_ping);
-	
+    virtual ~DavAvailabilityChecker();
+
 	void get_availability(PluginEndpointStatus * status);	
 private:
 	unsigned long time_interval;	
@@ -25,8 +28,10 @@ private:
 	// stats
 	PluginEndpointState last_state;
 	unsigned long latency;
-	/// string description
-	std::string explanation;	
+    std::string explanation;
+    pthread_t runner;
+
+    static void* polling_task(void* args);
 };
 
 #endif /* DAVAVAILABILITYCHECKER_HH */ 

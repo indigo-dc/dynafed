@@ -50,13 +50,13 @@ int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_
                     (me->pkcs12_credential_password.size() == 0) ? NULL : me->pkcs12_credential_password.c_str(),
                     &tmp_err);
             if (ret != 0) {
-                Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set credential properly, Error : %s", tmp_err->message);
+                Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Ugr davix plugin, Unable to set credential properly, Error : " << tmp_err->message);
             }
             break;
         case DAVIX_LOGIN_PASSWORD:
             ret = davix_set_login_passwd_auth(token, me->login.c_str(), me->password.c_str(), &tmp_err);
             if (ret != 0) {
-                Info(SimpleDebug::kLOW, " Ugr davix plugin, Unable to set login/password Error : %s", tmp_err->message);
+                Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Ugr davix plugin, Unable to set login/password Error :" << tmp_err->message);
             }
             break;
         default:
@@ -83,7 +83,13 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     dav_core->getSessionFactory()->set_ssl_ca_check(ssl_check);
     dav_core->getSessionFactory()->set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
 
+    if(state_checking){
+        state_checker = boost::shared_ptr<DavAvailabilityChecker>( new DavAvailabilityChecker(dav_core.get(),base_url) );
+    }
+
+
 }
+
 
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
@@ -112,6 +118,26 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     if (password.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");
     }
+    // get state checker
+    // get ssl check
+    state_checking = c->GetBool(pref_dot + std::string("status_checking"), true);
+}
+
+void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileInfo *fi){
+    if(state_checking)
+        state_checker->get_availability(status) ;
+    else
+        LocationPlugin::check_availability(status, fi);
+
+}
+
+void UgrLocPlugin_dav::stop(){
+    LocationPlugin::stop();
+    if(state_checking){
+        state_checking = false;
+        state_checker.reset();
+    }
+
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
