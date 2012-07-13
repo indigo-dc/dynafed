@@ -28,6 +28,8 @@ enum PluginEndpointState{
 	PLUGIN_ENDPOINT_OFFLINE,
 	PLUGIN_ENDPOINT_TEMPORARY_OFFLINE,
 	PLUGIN_ENDPOINT_OVERLOADED,
+	PLUGIN_ENDPOINT_ERROR_AUTH,
+	PLUGIN_ENDPOINT_ERROR_OTHER,
 };
 
 /// contain information about the availability of the plugin endpoint
