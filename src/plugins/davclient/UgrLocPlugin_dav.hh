@@ -61,6 +61,7 @@ protected:
 	std::string password;
 	
 	boost::scoped_ptr<Davix::CoreInterface> dav_core;
+    Davix::RequestParams params;
 
     //plugin state checker
     bool state_checking;

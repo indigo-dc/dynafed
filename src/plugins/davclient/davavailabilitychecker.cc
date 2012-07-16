@@ -13,7 +13,7 @@ DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const
 }
 
 DavAvailabilityChecker::~DavAvailabilityChecker(){
-    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", "Destroyer for state checker called" <<  uri_ping);
+    //Info(SimpleDebug::kLOW,"DavAvailabilityChecker", "Destroyer for state checker called " <<  uri_ping);
     pthread_cancel(runner);
     pthread_join(runner,NULL);
 }
@@ -59,12 +59,12 @@ void* DavAvailabilityChecker::polling_task(void *args){
         myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
 
         if(code >= 200 && code <300){
-            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  "checked : ONLINE, latency : "<< myself->latency);
+            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
             myself->last_state = PLUGIN_ENDPOINT_ONLINE;
             myself->explanation = "";
 
         }else{
-            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  "checked : OFFLINE, error : "<< myself->explanation);
+            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, error : "<< myself->explanation);
             myself->last_state = PLUGIN_ENDPOINT_OFFLINE;
         }
 

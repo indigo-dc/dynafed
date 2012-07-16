@@ -80,8 +80,9 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     }
     load_configuration(CONFIG_PREFIX + name);
 
-    dav_core->getSessionFactory()->set_ssl_ca_check(ssl_check);
-    dav_core->getSessionFactory()->set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
+    params.set_ssl_ca_check(ssl_check);
+    params.set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
+    dav_core->getSessionFactory()->set_parameters(params);
 
     if(state_checking){
         state_checker = boost::shared_ptr<DavAvailabilityChecker>( new DavAvailabilityChecker(dav_core.get(),base_url) );
