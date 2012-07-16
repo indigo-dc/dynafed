@@ -15,6 +15,7 @@ const std::string CONFIG_PREFIX("glb.locplugin.");
 const std::string config_timeout_conn_key("conn_timeout");
 const std::string config_timeout_ops_key("ops_timeout");
 const std::string config_endpoint_state_check("status_checking");
+const std::string config_endpoint_checker_poll_frequency("status_checker_frequency");
 
 using namespace boost;
 using namespace std;
@@ -125,6 +126,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // get state checker
     // get ssl check
     state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
+    state_checker_freq = c->GetLong(pref_dot + config_endpoint_checker_poll_frequency, 5000);
 
     // timeout management
     long timeout;

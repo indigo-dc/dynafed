@@ -3,12 +3,12 @@
 
 
 
-DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & _uri_ping) : 
+DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & _uri_ping, unsigned long _time_interval) :
 			uri_ping(_uri_ping), dav_context(davx)
 {
 	last_state = PLUGIN_ENDPOINT_ONLINE;
 	latency =0;
-    time_interval = 6000;
+    time_interval = _time_interval;
     pthread_create(&runner,NULL,&DavAvailabilityChecker::polling_task, this);
 }
 

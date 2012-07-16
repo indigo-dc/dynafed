@@ -15,7 +15,7 @@
 class DavAvailabilityChecker
 {
 public:
-	DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & uri_ping);
+    DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & uri_ping, unsigned long time_interval=5000);
     virtual ~DavAvailabilityChecker();
 
 	void get_availability(PluginEndpointStatus * status);	

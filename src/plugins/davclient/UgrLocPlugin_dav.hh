@@ -66,6 +66,7 @@ protected:
     //plugin state checker
     bool state_checking;
     boost::shared_ptr<DavAvailabilityChecker> state_checker;
+    unsigned long state_checker_freq;
 	
 	void load_configuration(const std::string & prefix);
 
