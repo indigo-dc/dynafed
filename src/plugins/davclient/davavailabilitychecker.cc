@@ -64,7 +64,7 @@ void* DavAvailabilityChecker::polling_task(void *args){
             myself->explanation = "";
 
         }else{
-            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, error : "<< myself->explanation);
+            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, HTTP error code "<< code << ", error : " << myself->explanation);
             myself->last_state = PLUGIN_ENDPOINT_OFFLINE;
         }
 
