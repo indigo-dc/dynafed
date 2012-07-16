@@ -185,10 +185,12 @@ void Config::SetString(const char *name, char *val) {
 
 
 long Config::GetLong(const char *name, long deflt) {
+    return GetLong(std::string(name), deflt);
+}
 
-  if (data.find(name) == data.end()) return deflt;
-  return atol( data[name].c_str() );
-
+long Config::GetLong(const string &name, long deflt){
+    if (data.find(name) == data.end()) return deflt;
+        return atol( data[name].c_str() );
 }
 
 

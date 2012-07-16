@@ -65,6 +65,7 @@ public:
     /// @param name The name of the parameter
     /// @param deflt  The default value for the parameter
     long GetLong(const char *name, long deflt = 0);
+    long GetLong(const std::string & name, long deflt = 0);
 
     /// Get a value of type string
     /// @param name The name of the parameter

@@ -12,6 +12,9 @@
 
 
 const std::string CONFIG_PREFIX("glb.locplugin.");
+const std::string config_timeout_conn_key("conn_timeout");
+const std::string config_timeout_ops_key("ops_timeout");
+const std::string config_endpoint_state_check("status_checking");
 
 using namespace boost;
 using namespace std;
@@ -121,7 +124,18 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     }
     // get state checker
     // get ssl check
-    state_checking = c->GetBool(pref_dot + std::string("status_checking"), true);
+    state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
+
+    // timeout management
+    long timeout;
+    if( (timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0){
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connexion timeout is set to : " << timeout);
+        params.set_connexion_timeout(timeout);
+    }
+    if( (timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0){
+        params.set_operation_timeout(timeout);
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
+    }
 }
 
 void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileInfo *fi){
