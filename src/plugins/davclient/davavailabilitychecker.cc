@@ -58,7 +58,7 @@ void* DavAvailabilityChecker::polling_task(void *args){
         clock_gettime(CLOCK_MONOTONIC, &t2);
         myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
 
-        if(code >= 200 && code <300){
+        if(code >= 200 && code <400){
             Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
             myself->last_state = PLUGIN_ENDPOINT_ONLINE;
             myself->explanation = "";
