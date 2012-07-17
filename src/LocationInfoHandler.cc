@@ -17,6 +17,8 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
     bool dofetch = false;
     UgrFileInfo *fi = 0;
 
+    UgrFileInfo::trimpath(lfn);
+    
     {
         boost::lock_guard<LocationInfoHandler> l(*this);
 

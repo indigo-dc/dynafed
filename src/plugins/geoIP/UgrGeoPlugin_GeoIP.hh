@@ -27,7 +27,7 @@ public:
     virtual int init(std::vector<std::string> &parms);
 
     /// Sets, wherever needed the geo information in the replica
-    virtual void setReplicaLocation(UgrFileItem &it);
+    virtual void setReplicaLocation(UgrFileItem_replica &it);
 
     /// Gets latitude and longitude of a client
     virtual void getAddrLocation(std::string &clientip, float &ltt, float &lng);

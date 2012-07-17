@@ -143,8 +143,12 @@ void UgrFileInfo::print(ostream &out) {
     out << "Size:" << size << endl;
     out << "Flags:" << setbase(8) << unixflags << setbase(10) << endl;
 
-    for (std::set<UgrFileItem>::iterator i = subitems.begin(); i != subitems.end(); i++) {
-        out << "loc: \"" << i->location << "\" name: \"" << i->name << "\"" << endl;
+    for (std::set<UgrFileItem>::iterator i = subdirs.begin(); i != subdirs.end(); i++) {
+        out << "subdir: \"" << "\" name: \"" << i->name << "\"" << endl;
+    }
+
+    for (std::set<UgrFileItem_replica>::iterator i = replicas.begin(); i != replicas.end(); i++) {
+        out << "replica: \"" << i->location << "\" name: \"" << i->name << "\"" << endl;
     }
 
 }
@@ -161,7 +165,7 @@ void UgrFileInfo::takeStat(ExtendedStat &st) {
     unixflags = st.stat.st_mode;
     if ((long) st.stat.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
         Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.stat.st_nlink);
-        subitems.clear();
+        subdirs.clear();
         status_items = UgrFileInfo::Error;
     }
 
@@ -219,24 +223,45 @@ int UgrFileInfo::encodeSubitemsToString(std::string &str) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 
-    SerialUgrFileItem* pnt;
-    SerialUgrSubitems list;
+    if (unixflags & S_IFDIR) {
+        // It's a dir, save the subdirs
+        SerialUgrSubdirs dirlist;
+        SerialUgrSubdir* pnt;
 
-    std::set<UgrFileItem, UgrFileItemComp>::iterator it;
+        std::set<UgrFileItem, UgrFileItemComp>::iterator it;
 
-    for (it = subitems.begin();
-            it != subitems.end();
-            it++) {
-        pnt = list.add_subitems();
+        for (it = subdirs.begin();
+                it != subdirs.end();
+                it++) {
+            pnt = dirlist.add_subdirs();
 
-        pnt->set_latitude(it->latitude);
-        pnt->set_location(it->location);
-        pnt->set_longitude(it->longitude);
-        pnt->set_name(it->name);
+            pnt->set_name(it->name);
+        }
 
+
+        str = dirlist.SerializeAsString();
+    } else {
+        // save the replicas
+        SerialUgrReplicas replist;
+        SerialUgrReplica* pnt;
+
+        std::set<UgrFileItem_replica, UgrFileItemComp>::iterator it;
+
+        for (it = replicas.begin();
+                it != replicas.end();
+                it++) {
+            pnt = replist.add_replicas();
+
+            pnt->set_name(it->name);
+
+            pnt->set_latitude(it->latitude);
+            pnt->set_location(it->location);
+            pnt->set_longitude(it->longitude);
+        }
+
+        str = replist.SerializeAsString();
     }
 
-    str = list.SerializeAsString();
     //list.PrintDebugString();
 
     return (str.length() > 0);
@@ -246,25 +271,68 @@ int UgrFileInfo::encodeSubitemsToString(std::string &str) {
 
 int UgrFileInfo::decodeSubitems(void *data, int sz) {
     if (!sz) return 1;
-    
-    SerialUgrFileItem item;
-    SerialUgrSubitems list;
-    list.ParseFromArray(data, sz);
-    //list.PrintDebugString();
-    
-    for (int i = 0; i < list.subitems_size(); i++) {
-        UgrFileItem it;
-        item = list.subitems(i);
-        it.latitude = item.latitude();
-        it.longitude = item.longitude();
-        it.name = item.name();
-        subitems.insert(it);
+
+
+
+    if (unixflags & S_IFDIR) {
+        // List of subdirs
+        SerialUgrSubdirs dirlist;
+        SerialUgrSubdir dir;
+
+        dirlist.ParseFromArray(data, sz);
+        //list.PrintDebugString();
+
+        for (int i = 0; i < dirlist.subdirs_size(); i++) {
+            UgrFileItem itr;
+
+            dir = dirlist.subdirs(i);
+            itr.name = dir.name();
+            subdirs.insert(itr);
+
+        }
+        status_items = Ok;
+
+    } else {
+        // List of replicas
+        SerialUgrReplicas replist;
+        SerialUgrReplica rep;
+        
+        replist.ParseFromArray(data, sz);
+        //list.PrintDebugString();
+
+        for (int i = 0; i < replist.replicas_size(); i++) {
+            UgrFileItem_replica itr;
+
+
+            rep = replist.replicas(i);
+            itr.name = rep.name();
+            itr.latitude = rep.latitude();
+            itr.longitude = rep.longitude();
+            itr.location = rep.location();
+            replicas.insert(itr);
+        }
+        
+        status_locations = Ok;
+        
     }
 
-    this->status_items = Ok;
-    this->status_locations = Ok;
+
 
 
     return 0;
+
+}
+
+
+
+/// Clean up a path, make sure it ends without a slash
+
+void UgrFileInfo::trimpath(std::string & s) {
+
+    while (*(s.rbegin()) == '/')
+        s.erase(s.size() - 1);
+
+    if (s.length() == 0) s = "/";
+
 
 }

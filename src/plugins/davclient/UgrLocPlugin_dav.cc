@@ -88,13 +88,12 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     params.set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
     dav_core->getSessionFactory()->set_parameters(params);
 
-    if(state_checking){
-        state_checker = boost::shared_ptr<DavAvailabilityChecker>( new DavAvailabilityChecker(dav_core.get(),base_url) );
+    if (state_checking) {
+        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url));
     }
 
 
 }
-
 
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
@@ -130,27 +129,27 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
 
     // timeout management
     long timeout;
-    if( (timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0){
+    if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connexion timeout is set to : " << timeout);
         params.set_connexion_timeout(timeout);
     }
-    if( (timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0){
+    if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0) {
         params.set_operation_timeout(timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
     }
 }
 
-void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileInfo *fi){
-    if(state_checking)
-        state_checker->get_availability(status) ;
+void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileInfo *fi) {
+    if (state_checking)
+        state_checker->get_availability(status);
     else
         LocationPlugin::check_availability(status, fi);
 
 }
 
-void UgrLocPlugin_dav::stop(){
+void UgrLocPlugin_dav::stop() {
     LocationPlugin::stop();
-    if(state_checking){
+    if (state_checking) {
         state_checking = false;
         state_checker.reset();
     }
@@ -174,7 +173,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     cannonical_name += "/";
     cannonical_name += op->fi->name;
 
-    memset(&st, 0, sizeof(st));
+    memset(&st, 0, sizeof (st));
 
     try {
         switch (op->wop) {
@@ -209,11 +208,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     }
 
 
-
-
-
-    UgrFileItem it;
-
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
@@ -228,23 +222,25 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     break;
 
                 case LocationPlugin::wop_Locate:
-                    it.name = cannonical_name;
+                {
+                    UgrFileItem_replica itr;
+                    itr.name = cannonical_name;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
 
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
 
                     // Process it with the Geo plugin, if needed
-                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
-                {
-                    // Lock the file instance
-                    unique_lock<mutex> l(*(op->fi));
+                    if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+                    {
+                        // Lock the file instance
+                        unique_lock<mutex> l(*(op->fi));
 
-                    op->fi->subitems.insert(it);
-                }
+                        op->fi->replicas.insert(itr);
+                    }
 
                     break;
-
+                }
                 case LocationPlugin::wop_List:
                 {
                     dirent * dent;
@@ -259,7 +255,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
                             LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
-                            op->fi->subitems.clear();
+                            op->fi->subdirs.clear();
                             break;
                         }
 
@@ -269,7 +265,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         it.name = std::string(dent->d_name);
                         it.location.clear();
                         // populate answer
-                        op->fi->subitems.insert(it);
+                        op->fi->subdirs.insert(it);
                         // add childrens
                         string child = op->fi->name + "/" + it.name;
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);

@@ -15,17 +15,27 @@ message SerialUgrfileInfo {
 }
 
 
-message SerialUgrFileItem {
+message SerialUgrSubdir {
+    required string name = 1;
+}
+message SerialUgrReplica {
 
     required string name = 1;
     required string location = 2;
     required float latitude = 3;
     required float longitude = 4;
+}
+
+
+
+message SerialUgrSubdirs {
+
+    repeated SerialUgrSubdir subdirs = 1;
 
 }
 
-message SerialUgrSubitems {
+message SerialUgrReplicas {
 
-    repeated SerialUgrFileItem subitems = 1;
+    repeated SerialUgrReplica replicas = 1;
 
 }

@@ -103,14 +103,14 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     int priocnt = 0;
     
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
-        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to order / choose a proper one");
-        // Request UgrConnector to order a replica set according to proximity to the client
-        std::set<UgrFileItem, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
+        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to sort / choose a proper one");
+        // Request UgrConnector to sort a replica set according to proximity to the client
+        std::set<UgrFileItem_replica, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remote_addr, nfo);
 
         // Populate the vector
         FileReplica r;
         Url u;
-        for (std::set<UgrFileItem>::iterator i = repls.begin(); i != repls.end(); ++i) {
+        for (std::set<UgrFileItem_replica>::iterator i = repls.begin(); i != repls.end(); ++i) {
             Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
             r.fileid = 0;
             r.replicaid = 0;
@@ -241,7 +241,7 @@ class myDirectory {
     struct dirent direntbuf;
 
     myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
-        idx = finfo->subitems.begin();
+        idx = finfo->subdirs.begin();
         memset(&buf, 0, sizeof (buf));
         memset(&direntbuf, 0, sizeof (direntbuf));
     }
@@ -272,7 +272,7 @@ void UgrCatalog::closeDir(Directory *opaque) throw (DmException) {
 struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
-    if (d->idx == d->nfo->subitems.end()) return 0;
+    if (d->idx == d->nfo->subdirs.end()) return 0;
 
     // Only the name is relevant here, it seems
     strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof (d->direntbuf.d_name));
@@ -286,7 +286,7 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
 ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
-    if (d->idx == d->nfo->subitems.end()) return 0;
+    if (d->idx == d->nfo->subdirs.end()) return 0;
 
     // Only the name is relevant here, it seems
     strncpy(d->buf.name, (d->idx)->name.c_str(), sizeof (d->buf.name));

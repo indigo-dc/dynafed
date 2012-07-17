@@ -27,18 +27,32 @@
 class UgrFileItem {
 public:
 
-    UgrFileItem(): latitude(0.0), longitude(0.0) {};
+    UgrFileItem() {};
     
     // The item's name
     std::string name;
 
     // Some info about the location, e.g. galactic coordinates
     std::string location;
+    
+    
+};
 
+class UgrFileItem_replica: public UgrFileItem {
+public: 
+    UgrFileItem_replica(): UgrFileItem(), latitude(0.0), longitude(0.0) {};
+    
+    // Some info about the location, e.g. galactic coordinates
+    std::string location;
+    
     // Some info about the geographical location
     float latitude;
     float longitude;
+    
+    /// ID of the plugin that made this replica known
+    int pluginId;
 };
+
 
 /// Instances of UgrFileItem may be kept in a quasi-sorted way.
 /// This is the compare functor that keeps them sorted by name
@@ -66,7 +80,7 @@ public:
     };
     virtual ~UgrFileItemGeoComp(){};
     
-    virtual bool operator()(const UgrFileItem &s1, const UgrFileItem &s2) {
+    virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
         float x, y, d1, d2;
 
         //std::cout << "client" << ltt << " " << lng << std::endl;
@@ -305,10 +319,13 @@ public:
     /// The group of this file entry (if applicable)
     std::string group;
 
-    /// The subitems of this file entry
-    /// The list of the replicas (if this is a file), eventually partial if in pending state
+    /// The subitems of this file entry, i.e. its subdirectories
     /// Just the keys, in a small structure
-    std::set<UgrFileItem, UgrFileItemComp> subitems;
+    std::set<UgrFileItem, UgrFileItemComp> subdirs;
+    
+    /// The list of the replicas (if this is a file)
+    /// Just the keys, in a small structure
+    std::set<UgrFileItem_replica, UgrFileItemComp> replicas;
 
     /// The last time there was a request to gather info about this entry
     time_t lastupdreqtime;
@@ -371,6 +388,9 @@ public:
     void print(std::ostream &out);
 
     void takeStat(ExtendedStat &st);
+    
+    // Utility that fixes a path
+    static void trimpath(std::string &s);
 
 };
 

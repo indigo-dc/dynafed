@@ -34,8 +34,8 @@ int main(int argc, char **argv) {
     ugr.list(fn, &file_infos);
 
     if (file_infos->getItemsStatus() == UgrFileInfo::Ok) {
-           for(std::set<UgrFileItem, UgrFileItemComp>::iterator it = file_infos->subitems.begin();
-				it != file_infos->subitems.end();
+           for(std::set<UgrFileItem, UgrFileItemComp>::iterator it = file_infos->subdirs.begin();
+				it != file_infos->subdirs.end();
 				++it)
 				std::cout << "File :  " << it->name << " " << it->location << std::endl;
     }else if(file_infos->getStatStatus() == UgrFileInfo::NotFound ){

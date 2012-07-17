@@ -20,16 +20,7 @@
 using namespace std;
 using namespace boost;
 
-/// Clean up a path, make sure it ends without a slash
-void trimpath(std::string &s) {
 
-    if (*(s.rbegin()) == '/')
-        s.erase(s.size() - 1);
-
-    //if (s.length() == 0) s = "/";
-
-
-}
 
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
@@ -178,8 +169,8 @@ int UgrConnector::init(char *cfgfile) {
 
     n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
     n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
-    trimpath(n2n_pfx);
-    trimpath(n2n_newpfx);
+    UgrFileInfo::trimpath(n2n_pfx);
+    UgrFileInfo::trimpath(n2n_newpfx);
     Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
 
     // Init the extcache
@@ -197,7 +188,6 @@ void UgrConnector::do_n2n(std::string &path) {
 
     }
 
-    trimpath(path);
 }
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
@@ -233,7 +223,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     const char *fname = "UgrConnector::stat";
 
-    trimpath(lfn);
+    UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, fname, "Stating " << lfn);
@@ -282,11 +272,11 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
         return;
     }
 
-    Info(SimpleDebug::kMEDIUM, fname, "Stat-ing all the subitems of " << fi->name);
+    Info(SimpleDebug::kMEDIUM, fname, "Stat-ing all the subdirs of " << fi->name);
 
     // Cycle through all the subdirs (fi is locked)
-    for (std::set<UgrFileItem>::iterator i = fi->subitems.begin();
-            i != fi->subitems.end();
+    for (std::set<UgrFileItem>::iterator i = fi->subdirs.begin();
+            i != fi->subdirs.end();
             i++) {
 
         std::string cname = fi->name;
@@ -338,7 +328,7 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
-    trimpath(lfn);
+    UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, "UgrConnector::locate", "Locating " << lfn);
@@ -367,10 +357,13 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     *nfo = fi;
 
+    // Touch the item anyway, it has been referenced
+    fi->touch();
+    
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->subitems.size() << " Status: " << fi->getLocationStatus() <<
+    Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
             " status_statinfo: " << fi->status_locations << " pending_statinfo: " << fi->pending_locations);
 
     return 0;
@@ -408,7 +401,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
-    trimpath(lfn);
+    UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
     Info(SimpleDebug::kMEDIUM, "UgrConnector::list", "Listing " << lfn);
@@ -444,16 +437,19 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     *nfo = fi;
 
+    // Touch the item anyway, it has been referenced
+    fi->touch();
+    
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(SimpleDebug::kLOW, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subitems.size() << " Status: " << fi->getItemsStatus() <<
+    Info(SimpleDebug::kLOW, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
 };
 
-std::set<UgrFileItem, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
+std::set<UgrFileItem_replica, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
     
 
         float ltt = 0.0, lng = 0.0;
@@ -462,11 +458,11 @@ std::set<UgrFileItem, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std
 
         UgrFileItemGeoComp cmp(ltt, lng);
         Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
-        std::set<UgrFileItem, UgrFileItemGeoComp> newset(cmp);
+        std::set<UgrFileItem_replica, UgrFileItemGeoComp> newset(cmp);
 
         if (nfo) {
-            for (std::set<UgrFileItem>::iterator i = nfo->subitems.begin(); i != nfo->subitems.end(); ++i)
-                newset.insert((UgrFileItem &)(*i));
+            for (std::set<UgrFileItem_replica>::iterator i = nfo->replicas.begin(); i != nfo->replicas.end(); ++i)
+                newset.insert(*i);
         }
 
         return newset;

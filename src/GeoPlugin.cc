@@ -27,7 +27,7 @@ int GeoPlugin::init(std::vector<std::string> &parms) {
 };
 
 /// Sets, wherever needed the geo information in the replica
-void GeoPlugin::setReplicaLocation(UgrFileItem &it) {
+void GeoPlugin::setReplicaLocation(UgrFileItem_replica &it) {
     it.latitude = 0;
     it.longitude = 0;
     it.location = "";

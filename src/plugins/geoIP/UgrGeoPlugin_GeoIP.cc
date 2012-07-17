@@ -47,7 +47,7 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
 };
 
 /// Sets, wherever needed the geo information in the replica
-void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem &it) {
+void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
     const char *fname = "UgrGeoPlugin::setReplicaLocation";
 
     // Get the server name from the name field

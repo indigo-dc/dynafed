@@ -147,7 +147,6 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 
-    UgrFileItem it;
 
 
 
@@ -174,27 +173,30 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 
-            }
-            for (vector<FileReplica>::iterator i = repvec.begin();
-                    i != repvec.end();
-                    i++) {
-                it.name = i->rfn;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(it);
 
-                // We have modified the data, hence set the dirty flag
-                op->fi->dirtyitems = true;
+                for (vector<FileReplica>::iterator i = repvec.begin();
+                        i != repvec.end();
+                        i++) {
 
-                {
-                    // Lock the file instance
-                    unique_lock<mutex> l(*(op->fi));
+                    UgrFileItem_replica it;
+                    it.name = i->rfn;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
-                    op->fi->subitems.insert(it);
+                    // Process it with the Geo plugin, if needed
+                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
+
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
+
+                    {
+                        // Lock the file instance
+                        unique_lock<mutex> l(*(op->fi));
+
+                        op->fi->replicas.insert(it);
+                    }
                 }
             }
-
 
 
             break;
@@ -210,7 +212,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
 
                 try {
-
+                    UgrFileItem it;
                     while ((dent = catalog->readDirx(d))) {
                         // Lock the file instance
                         unique_lock<mutex> l(*(op->fi));
@@ -218,12 +220,12 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
                             LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
-                            op->fi->subitems.clear();
+                            op->fi->subdirs.clear();
                             break;
                         }
                         it.name = dent->name;
-                        it.location.clear();
-                        op->fi->subitems.insert(it);
+                        
+                        op->fi->subdirs.insert(it);
 
                         // We have modified the data, hence set the dirty flag
                         op->fi->dirtyitems = true;

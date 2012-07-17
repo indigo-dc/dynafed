@@ -221,7 +221,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
         for (int ii = 0; ii < 10; ii++) {
             fit.name = "myfilepath" + boost::lexical_cast<std::string > (ii);
             fit.location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
-            op->fi->subitems.insert(fit);
+            op->fi->subdirs.insert(fit);
         }
         
 
