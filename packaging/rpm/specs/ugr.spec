@@ -81,6 +81,7 @@ make clean
 %build
 %cmake \
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
+-DAPACHE_SITES_INSTALL_DIR=%{_sysconfdir}/httpd/conf.d \
 -DOUT_OF_SOURCE_CHECK=FALSE \
 %{boost_cmake_flags} \
 .
