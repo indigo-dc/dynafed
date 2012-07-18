@@ -31,10 +31,10 @@ if(DMLITE_FOUND)
 
 
   # Install the config files
-  if (NOT EXISTS /etc/apache2/sites-enabled/zlcgdm-ugr-dav.conf)
+  if (NOT EXISTS ${APACHE_SITES_INSTALL_DIR}/zlcgdm-ugr-dav.conf)
     install(FILES zlcgdm-ugr-dav.conf
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    DESTINATION /etc/apache2/sites-enabled/
+    DESTINATION ${APACHE_SITES_INSTALL_DIR}
     COMPONENT plugins-dmlite)
   endif()
 

@@ -107,6 +107,7 @@ make DESTDIR=%{buildroot} install
 %files devel
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so
+%dir %{_includedir}/ugr
 %{_includedir}/ugr/*
 %{_libdir}/pkgconfig/*
 
