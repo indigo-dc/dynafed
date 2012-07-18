@@ -101,7 +101,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/ugr.conf
-%config(noreplace) %{_sysconfdir}/apache2/sites-enabled/zlcgdm-ugr-dav.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 %doc RELEASE-NOTES
 
 %files devel
