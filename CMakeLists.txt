@@ -33,6 +33,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
 
 # import common cmake macros
 include(DefineInstallationPaths REQUIRED)
+include(DefineApachePaths REQUIRED)
 include(ReleaseDebugAutoFlags REQUIRED)
 include(CMakeGeneratePkgConfig REQUIRED)
  
