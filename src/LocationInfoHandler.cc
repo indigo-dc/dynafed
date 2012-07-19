@@ -146,11 +146,12 @@ void LocationInfoHandler::purgeExpired() {
 
     for (std::map< std::string, UgrFileInfo * >::iterator i = data.begin();
             i != data.end(); i++) {
-
+       
         if (dodelete) {
             data.erase(i_deleteme);
             dodelete = false;
         }
+        dodelete = false;
 
         UgrFileInfo *fi = i->second;
 
