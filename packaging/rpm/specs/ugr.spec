@@ -123,7 +123,8 @@ setsebool -P httpd_can_network_memcache=off
 %files dmlite-plugin
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dmliteclient.so
-%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclient.conf
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
 %files demo-plugin
 %defattr (-,root,root)
