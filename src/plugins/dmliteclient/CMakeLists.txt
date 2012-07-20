@@ -34,7 +34,7 @@ if(DMLITE_FOUND)
 
   # Install the config files
   if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr/ugrdmliteclient.conf)
-    install(FILES ugrdmliteclient.conf
+    install(FILES ugrdmliteclientMY.conf ugrdmliteclientORA.conf
       PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
       DESTINATION ${SYSCONF_INSTALL_DIR}/ugr
       COMPONENT plugins-dmliteclient)
