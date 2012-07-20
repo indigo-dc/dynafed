@@ -91,11 +91,13 @@ make
 rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
 
-%post -p /sbin/ldconfig
+%post
+/sbin/ldconfig
 setsebool -P httpd_can_network_connect=on
 setsebool -P httpd_can_network_memcache=on
 
-%postun -p /sbin/ldconfig
+%postun
+/sbin/ldconfig
 setsebool -P httpd_can_network_connect=off
 setsebool -P httpd_can_network_memcache=off
 
