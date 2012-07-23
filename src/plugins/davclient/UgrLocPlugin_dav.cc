@@ -89,7 +89,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     dav_core->getSessionFactory()->set_parameters(params);
 
     if (state_checking) {
-        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url));
+        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq));
     }
 
 

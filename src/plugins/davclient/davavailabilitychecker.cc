@@ -69,7 +69,6 @@ void* DavAvailabilityChecker::polling_task(void *args){
         }
 
         pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-        pthread_yield();
         if( nanosleep(&sleep_time, NULL) != 0)
             return NULL;
     }
