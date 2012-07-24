@@ -175,7 +175,7 @@ int UgrConnector::init(char *cfgfile) {
 
     // Init the extcache
     this->locHandler.Init();
-    
+
     initdone = true;
     return 0;
 }
@@ -183,19 +183,25 @@ int UgrConnector::init(char *cfgfile) {
 void UgrConnector::do_n2n(std::string &path) {
     if ((n2n_pfx.size() == 0) || (path.find(n2n_pfx) == 0)) {
 
-        if ((n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0))
+        if ((n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0)) {
+
             path = n2n_newpfx + path.substr(n2n_pfx.size());
 
+            // Avoid double slashes at the beginning. This is well spent CPU time, even if it may hide a bad configuration.
+            if (path.substr(0, 2) == "//")
+                path.erase(0, 1);
+
+        }
     }
 
 }
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++){
-		if(checkpluginAvailability(locPlugins[i], fi))
-			locPlugins[i]->do_Stat(fi, &locHandler);
-	}
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (checkpluginAvailability(locPlugins[i], fi))
+            locPlugins[i]->do_Stat(fi, &locHandler);
+    }
 
     return 0;
 }
@@ -206,11 +212,11 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
     Info(SimpleDebug::kHIGH, "UgrConnector::do_waitStat", "Going to wait for " << fi->name);
     {
-    unique_lock<mutex> lck(*fi);
+        unique_lock<mutex> lck(*fi);
 
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    return fi->waitStat(lck, tmout);
+        // If still pending, we wait for the file object to get a notification
+        // then we recheck...
+        return fi->waitStat(lck, tmout);
     }
 
     // We also ask the plugins
@@ -252,7 +258,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     // Touch the item anyway, it has been referenced
     fi->touch();
-    
+
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
@@ -297,10 +303,10 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++){
-		if(checkpluginAvailability(locPlugins[i], fi))
-			locPlugins[i]->do_Locate(fi, &locHandler);
-	}
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (checkpluginAvailability(locPlugins[i], fi))
+            locPlugins[i]->do_Locate(fi, &locHandler);
+    }
 
 
     return 0;
@@ -312,11 +318,11 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
     Info(SimpleDebug::kHIGH, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
     {
-    unique_lock<mutex> lck(*fi);
+        unique_lock<mutex> lck(*fi);
 
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    return fi->waitLocations(lck, tmout);
+        // If still pending, we wait for the file object to get a notification
+        // then we recheck...
+        return fi->waitLocations(lck, tmout);
     }
 
     // We also ask the plugins
@@ -359,7 +365,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
     // Touch the item anyway, it has been referenced
     fi->touch();
-    
+
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
@@ -370,11 +376,11 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 }
 
 int UgrConnector::do_List(UgrFileInfo *fi) {
-	
-    for (unsigned int i = 0; i < locPlugins.size(); i++){
-		if(checkpluginAvailability(locPlugins[i], fi))
-			locPlugins[i]->do_List(fi, &locHandler);
-	}	
+
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (checkpluginAvailability(locPlugins[i], fi))
+            locPlugins[i]->do_List(fi, &locHandler);
+    }
 
     return 0;
 }
@@ -385,11 +391,11 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 
     Info(SimpleDebug::kHIGH, "UgrConnector::do_waitList", "Going to wait for " << fi->name);
     {
-    unique_lock<mutex> lck(*fi);
+        unique_lock<mutex> lck(*fi);
 
-    // If still pending, we wait for the file object to get a notification
-    // then we recheck...
-    return fi->waitItems(lck, tmout);
+        // If still pending, we wait for the file object to get a notification
+        // then we recheck...
+        return fi->waitItems(lck, tmout);
     }
 
     // We also ask to the individual plugins
@@ -439,7 +445,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     // Touch the item anyway, it has been referenced
     fi->touch();
-    
+
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
@@ -450,22 +456,22 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
 };
 
 std::set<UgrFileItem_replica, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
-    
 
-        float ltt = 0.0, lng = 0.0;
 
-        if (geoPlugin) geoPlugin->getAddrLocation(clientip, ltt, lng);
+    float ltt = 0.0, lng = 0.0;
 
-        UgrFileItemGeoComp cmp(ltt, lng);
-        Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
-        std::set<UgrFileItem_replica, UgrFileItemGeoComp> newset(cmp);
+    if (geoPlugin) geoPlugin->getAddrLocation(clientip, ltt, lng);
 
-        if (nfo) {
-            for (std::set<UgrFileItem_replica>::iterator i = nfo->replicas.begin(); i != nfo->replicas.end(); ++i)
-                newset.insert(*i);
-        }
+    UgrFileItemGeoComp cmp(ltt, lng);
+    Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
+    std::set<UgrFileItem_replica, UgrFileItemGeoComp> newset(cmp);
 
-        return newset;
+    if (nfo) {
+        for (std::set<UgrFileItem_replica>::iterator i = nfo->replicas.begin(); i != nfo->replicas.end(); ++i)
+            newset.insert(*i);
+    }
 
-    
+    return newset;
+
+
 }

@@ -79,6 +79,8 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     if (params_size > 3) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Try to bind UgrLocPlugin_dav with " << parms[3]);
         base_url = parms[3];
+        UgrFileInfo::trimpath(base_url);
+        
     } else {
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
@@ -130,7 +132,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // timeout management
     long timeout;
     if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connexion timeout is set to : " << timeout);
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connection timeout is set to : " << timeout);
         params.set_connexion_timeout(timeout);
     }
     if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0) {
@@ -170,7 +172,9 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Bad request Handle : FATAL");
         return;
     }
-    cannonical_name += "/";
+    
+    
+    //cannonical_name += "/";
     cannonical_name += op->fi->name;
 
     memset(&st, 0, sizeof (st));
