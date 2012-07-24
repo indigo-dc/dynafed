@@ -173,6 +173,7 @@ void LocationInfoHandler::purgeExpired() {
 
                 lrudata.right.erase(i->first);
                 dodelete = true;
+                i_deleteme = i;
                 //data.erase(i);
                 delete(fi);
                 d++;
