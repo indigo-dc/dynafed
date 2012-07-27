@@ -67,6 +67,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
 
     if( pthread_mutex_trylock(&(myself->income_mutex))  != 0)
         return;
+    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval );
     int code = 404;
     boost::shared_ptr<Davix::HttpRequest> req;
     clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -100,4 +101,5 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     }
     pthread_mutex_unlock(&(myself->update_mutex));
     pthread_mutex_unlock(&(myself->income_mutex));
+ Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
 }
