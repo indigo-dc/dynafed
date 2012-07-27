@@ -5,6 +5,11 @@ set_target_properties(teststat PROPERTIES COMPILE_FLAGS "-I../")
 
 target_link_libraries (teststat ugrconnector)
 
+add_executable(teststatseq "teststat_sequential.cc")
+set_target_properties(teststatseq PROPERTIES COMPILE_FLAGS "-I../")
+
+target_link_libraries (teststatseq ugrconnector)
+
 add_executable(testlistdir "testlistdir.cc")
 set_target_properties(teststat PROPERTIES COMPILE_FLAGS "-I../")
 

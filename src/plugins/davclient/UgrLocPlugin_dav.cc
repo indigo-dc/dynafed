@@ -127,7 +127,10 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // get state checker
     // get ssl check
     state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker : " << ( (state_checking)?"ENABLED":"DISABLED"));
+
     state_checker_freq = c->GetLong(pref_dot + config_endpoint_checker_poll_frequency, 5000);
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker frequency : " << state_checker_freq);
 
     // timeout management
     long timeout;
