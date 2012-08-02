@@ -29,6 +29,7 @@ UgrFactory::~UgrFactory() throw (DmException) {
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
     if (!key.compare("Ugr_cfgfile")) {
         cfgfile = value;
+        UgrCatalog::getUgrConnector()->resetinit();
 
 
     } else
@@ -38,10 +39,9 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
 Catalog* UgrFactory::createCatalog(dmlite::PluginManager *pm) throw (DmException) {
 
     int r = UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
-    
     if (r > 0)
         throw DmException(DM_NO_CATALOG, "UgrConnector initialization failed.");
-    
+
     if (this->nestedFactory_ != 0x00)
 
         return new UgrCatalog(CatalogFactory::createCatalog(this->nestedFactory_, pm));
@@ -92,8 +92,6 @@ std::string UgrCatalog::getImplId() throw () {
     return std::string("UgrCatalog");
 }
 
-
-
 std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
     std::vector<FileReplica> replicas;
 
@@ -101,7 +99,7 @@ std::vector<FileReplica> UgrCatalog::getReplicas(const std::string& path) throw 
     // Get all of them
     UgrFileInfo *nfo = 0;
     int priocnt = 0;
-    
+
     if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
         Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to sort / choose a proper one");
         // Request UgrConnector to sort a replica set according to proximity to the client

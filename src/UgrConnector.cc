@@ -72,111 +72,119 @@ UgrConnector::~UgrConnector() {
 }
 
 int UgrConnector::init(char *cfgfile) {
-    if (initdone) return -1;
-
     const char *fname = "UgrConnector::init";
-    // Process the config file
-    Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
+    {
+        boost::lock_guard<boost::mutex> l(mtx);
+        if (initdone) return -1;
 
-    if (!cfgfile || !strlen(cfgfile)) {
-        Error(fname, "No config file given." << cfgfile << endl);
-        return 1;
-    }
+        // Process the config file
+        Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
 
-    if (CFG->ProcessFile(cfgfile)) {
-        Error(fname, "Error processing config file." << cfgfile << endl;);
-        return 1;
-    }
-
-    DebugSetLevel(CFG->GetLong("glb.debug", 1));
-    long debuglevel = CFG->GetLong("glb.debug", 1);
-
-    DebugSetLevel(debuglevel);
-
-    // Get the tick pace from the config
-    ticktime = CFG->GetLong("glb.tick", 10);
-
-    // Load a GeoPlugin, if specified
-    string s = CFG->GetString("glb.geoplugin", (char *) "");
-    geoPlugin = 0;
-    if (s != "") {
-        vector<string> parms = tokenize(s, " ");
-
-        Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << s);
-        geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
-                SimpleDebug::Instance(),
-                Config::GetInstance(),
-                parms);
-
-        if (!geoPlugin) {
-            Error(fname, "Error loading Geo plugin " << s << endl;);
+        if (!cfgfile || !strlen(cfgfile)) {
+            Error(fname, "No config file given." << cfgfile << endl);
             return 1;
         }
 
+        if (CFG->ProcessFile(cfgfile)) {
+            Error(fname, "Error processing config file." << cfgfile << endl;);
+            return 1;
+        }
 
-    }
+        DebugSetLevel(CFG->GetLong("glb.debug", 1));
+        long debuglevel = CFG->GetLong("glb.debug", 1);
 
-    // Cycle through the location plugins that have to be loaded
-    char buf[1024];
-    int i = 0;
+        DebugSetLevel(debuglevel);
 
-    do {
-        CFG->ArrayGetString("glb.locplugin", buf, i);
-        if (buf[0]) {
-            vector<string> parms = tokenize(buf, " ");
-            // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
-            // An empty string does not load any plugin, just keeps the default behavior
-            Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
-            LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) parms[0].c_str(),
+        // Get the tick pace from the config
+        ticktime = CFG->GetLong("glb.tick", 10);
+
+        // Load a GeoPlugin, if specified
+        string s = CFG->GetString("glb.geoplugin", (char *) "");
+        geoPlugin = 0;
+        if (s != "") {
+            vector<string> parms = tokenize(s, " ");
+
+            Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << s);
+            geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
                     SimpleDebug::Instance(),
                     Config::GetInstance(),
                     parms);
-            if (prod) {
-                prod->setGeoPlugin(geoPlugin);
-                locPlugins.push_back(prod);
+
+            if (!geoPlugin) {
+                Error(fname, "Error loading Geo plugin " << s << endl;);
+                return 1;
             }
+
+
         }
-        i++;
-    } while (buf[0]);
 
-    Info(SimpleDebug::kLOW, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
+        // Cycle through the location plugins that have to be loaded
+        char buf[1024];
+        int i = 0;
+        locPlugins.clear();
+        do {
+            CFG->ArrayGetString("glb.locplugin", buf, i);
+            if (buf[0]) {
+                vector<string> parms = tokenize(buf, " ");
+                // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
+                // An empty string does not load any plugin, just keeps the default behavior
+                Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
+                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) parms[0].c_str(),
+                        SimpleDebug::Instance(),
+                        Config::GetInstance(),
+                        parms);
+                if (prod) {
+                    prod->setGeoPlugin(geoPlugin);
+                    locPlugins.push_back(prod);
+                }
+            }
+            i++;
+        } while (buf[0]);
 
-    if (!locPlugins.size()) {
-        vector<string> parms;
+        Info(SimpleDebug::kLOW, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
 
-        parms.push_back("static_locplugin");
-        parms.push_back("Unnamed");
-        parms.push_back("1");
+        if (!locPlugins.size()) {
+            vector<string> parms;
 
-        Info(SimpleDebug::kLOW, fname, "No location plugins available. Using the default one.");
-        LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG, parms);
-        if (prod) locPlugins.push_back(prod);
+            parms.push_back("static_locplugin");
+            parms.push_back("Unnamed");
+            parms.push_back("1");
+
+            Info(SimpleDebug::kLOW, fname, "No location plugins available. Using the default one.");
+            LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG, parms);
+            if (prod) locPlugins.push_back(prod);
+        }
+
+        if (!locPlugins.size())
+            Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
+
+
+        ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
+
+        Info(SimpleDebug::kHIGH, fname, "Starting the plugins.");
+        for (unsigned int i = 0; i < locPlugins.size(); i++) {
+            if (locPlugins[i]->start())
+                Error(fname, "Could not start plugin " << i);
+        }
+        Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
+
+
+        n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
+        n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
+        UgrFileInfo::trimpath(n2n_pfx);
+        UgrFileInfo::trimpath(n2n_newpfx);
+        Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
+
+        // Init the extcache
+        this->locHandler.Init();
+
+
+        initdone = true;
+
     }
 
-    if (!locPlugins.size())
-        Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
+    Info(SimpleDebug::kLOW, fname, "Initialization complete.");
 
-
-    ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
-
-    Info(SimpleDebug::kHIGH, fname, "Starting the plugins.");
-    for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (locPlugins[i]->start())
-            Error(fname, "Could not start plugin " << i);
-    }
-    Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
-
-
-    n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
-    n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
-    UgrFileInfo::trimpath(n2n_pfx);
-    UgrFileInfo::trimpath(n2n_newpfx);
-    Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
-
-    // Init the extcache
-    this->locHandler.Init();
-
-    initdone = true;
     return 0;
 }
 

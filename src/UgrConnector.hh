@@ -28,6 +28,8 @@ private:
     /// The thread that ticks
     boost::thread *ticker;
 
+    /// A mutex that protects the initialization... sigh
+    boost::mutex mtx;
 protected:
 
     /// This is the currently loaded instance of a GeoPlugin, i.e. an object
@@ -98,6 +100,7 @@ public:
     /// To be called after the ctor to initialize the object.
     /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
+    bool resetinit() { initdone = false; }
 
     /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
     /// This could be a list of replicas
