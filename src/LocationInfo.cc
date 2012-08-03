@@ -211,6 +211,7 @@ int UgrFileInfo::decode(void *data, int sz) {
     size = sufi.size();
     unixflags = sufi.unixflags();
     status_statinfo = Ok;
+    dirty = false;
     touch();
 
     return 0;
@@ -318,7 +319,7 @@ int UgrFileInfo::decodeSubitems(void *data, int sz) {
 
 
 
-
+    dirtyitems = false;
     return 0;
 
 }

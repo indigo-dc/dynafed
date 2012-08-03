@@ -18,7 +18,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
     UgrFileInfo *fi = 0;
 
     UgrFileInfo::trimpath(lfn);
-    
+
     {
         boost::lock_guard<LocationInfoHandler> l(*this);
 
@@ -68,11 +68,13 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
             lrudata.right.erase(lfn);
             lrudata.insert(lrudataitem(++lrutick, lfn));
             fi = p->second;
-            if (docachesubitemslookup) {
-                fi->notifyItemsPending();
-                fi->notifyLocationPending();
-            }
-
+            //if (docachesubitemslookup) {
+            //                fi->notifyItemsPending();
+            //                fi->notifyLocationPending();
+            //            }
+            docachesubitemslookup = false;
+            dofetch = false;
+            
             fi->touch();
         }
     }
@@ -109,7 +111,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
     }
 
 
-return fi;
+    return fi;
 
 }
 
@@ -146,7 +148,7 @@ void LocationInfoHandler::purgeExpired() {
 
     for (std::map< std::string, UgrFileInfo * >::iterator i = data.begin();
             i != data.end(); i++) {
-       
+
         if (dodelete) {
             data.erase(i_deleteme);
             dodelete = false;

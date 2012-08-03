@@ -134,6 +134,8 @@ public:
 
         atime = mtime = ctime = 0;
 
+        dirty = false;
+        dirtyitems = false;
         
     }
 
