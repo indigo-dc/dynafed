@@ -72,6 +72,8 @@ protected:
 
     // stop the plugin behavior
     virtual void stop();
+
+    virtual int start();
 	
 	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err); 	
 };

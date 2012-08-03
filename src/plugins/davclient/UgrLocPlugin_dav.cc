@@ -90,11 +90,6 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     params.set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
     dav_core->getSessionFactory()->set_parameters(params);
 
-    if (state_checking) {
-        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq));
-    }
-
-
 }
 
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
@@ -150,6 +145,13 @@ void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileI
     else
         LocationPlugin::check_availability(status, fi);
 
+}
+
+int UgrLocPlugin_dav::start(){
+    if (state_checking) {
+        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq));
+    }
+    return LocationPlugin::start();
 }
 
 void UgrLocPlugin_dav::stop() {
