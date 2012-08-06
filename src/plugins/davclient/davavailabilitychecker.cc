@@ -24,7 +24,7 @@ DavAvailabilityChecker::~DavAvailabilityChecker(){
 
 
 void DavAvailabilityChecker::get_availability(PluginEndpointStatus * status){
-    Glib::Threads::RWLock::ReaderLock locker(update_mutex);
+    DavPluginReadLocker locker(update_mutex);
 	status->state = last_state;
 	status->latency = latency;
 	status->explanation = explanation;
@@ -85,7 +85,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     clock_gettime(CLOCK_MONOTONIC, &t2);
 
     {
-        Glib::Threads::RWLock::WriterLock locker(myself->update_mutex);
+        DavPluginWriterLocker locker(myself->update_mutex);
         myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
         if(code >= 200 && code <400){
             Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);

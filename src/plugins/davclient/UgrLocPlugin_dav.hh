@@ -12,9 +12,15 @@
 
 #include <davix_cpp.hpp>
 #include <string>
+#include <glibmm.h>
 #include "davavailabilitychecker.hh"
+#include "ugr_loc_plugin_dav_type.hh"
 #include "../../LocationPlugin.hh"
 
+
+typedef Glib::RWLock DavPluginRWMutex;
+typedef Glib::RWLock::ReaderLock DavPluginReadLocker;
+typedef Glib::RWLock::WriterLock DavPluginWriterLocker;
 
 class DavAvailabilityChecker;
 

@@ -10,10 +10,15 @@
 
 #include <signal.h>
 #include <time.h>
+#include <glibmm.h>
 
 #include <davix_cpp.hpp>
 #include "../../LocationPlugin.hh"
 #include "UgrLocPlugin_dav.hh"
+#include "ugr_loc_plugin_dav_type.hh"
+
+
+
 
 class DavAvailabilityChecker
 {
@@ -37,7 +42,7 @@ private:
     // one timer element
     struct sigevent even;
     timer_t timer;
-    Glib::Threads::RWLock update_mutex;
+    DavPluginRWMutex update_mutex;
     int state;
 
 
