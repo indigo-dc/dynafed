@@ -100,7 +100,7 @@ public:
     /// To be called after the ctor to initialize the object.
     /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
-    bool resetinit() { initdone = false; }
+    bool resetinit() { initdone = false; return true; }
 
     /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
     /// This could be a list of replicas
