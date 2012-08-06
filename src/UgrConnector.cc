@@ -91,9 +91,11 @@ int UgrConnector::init(char *cfgfile) {
         }
 
         DebugSetLevel(CFG->GetLong("glb.debug", 1));
+        bool debug_stderr = CFG->GetBool("glb.log_stderr", true);
         long debuglevel = CFG->GetLong("glb.debug", 1);
 
         DebugSetLevel(debuglevel);
+        SimpleDebug::Instance()->SetStderrPrint(debug_stderr);
 
         // Get the tick pace from the config
         ticktime = CFG->GetLong("glb.tick", 10);

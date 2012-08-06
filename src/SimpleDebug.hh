@@ -138,6 +138,11 @@ public:
         fDbgLevel = l;
     }
 
+
+    void SetStderrPrint(bool stderr_print){
+        this->stderr_print = stderr_print;
+    }
+
     void Lock() {
     };
 
