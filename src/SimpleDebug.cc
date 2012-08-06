@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <iostream>
 
+
 SimpleDebug *SimpleDebug::fgInstance = 0;
 
 
@@ -27,7 +28,8 @@ SimpleDebug* SimpleDebug::Instance() {
 
 SimpleDebug::SimpleDebug() {
    // Constructor... initialize the syslog stuff
-   openlog(syslogIdent.c_str(), LOG_CONS | LOG_PID | LOG_PERROR, LOG_USER);
+   openlog(syslogIdent.c_str(), LOG_PID | LOG_NDELAY, LOG_USER);
+   stderr_print = true;
 
    fDbgLevel = kLOW;
 }
@@ -44,8 +46,9 @@ SimpleDebug::~SimpleDebug() {
 
 void SimpleDebug::DoLog(const char * s) {
 
-   syslog(LOG_DEBUG, "%s", s);
-   //std::cout << s;
+   syslog(LOG_DEBUG, "UGR : %s", s);
+   if(stderr_print)
+       std::cerr << s << std::endl;
 }
 
 

@@ -75,6 +75,7 @@ find_package(LibMemCached REQUIRED)
 find_package(Protobuf REQUIRED)
 
 add_subdirectory(src)
+add_subdirectory(dist)
 
 enable_testing()
 

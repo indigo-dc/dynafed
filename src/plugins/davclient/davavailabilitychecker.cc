@@ -11,28 +11,26 @@ DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const
 	latency =0;
     time_interval = _time_interval;
     Info(SimpleDebug::kLOW,"DavAvailabilityChecker", "Launch state checker for  :" <<  uri_ping << " with frequency : " << time_interval);
-    first_init_timer(&timer,&even, &update_mutex, &income_mutex, time_interval);
+    state =0;
+    first_init_timer(&timer,&even, time_interval);
 }
 
 DavAvailabilityChecker::~DavAvailabilityChecker(){
     //Info(SimpleDebug::kLOW,"DavAvailabilityChecker", "Destroyer for state checker called " <<  uri_ping);
     timer_delete(timer);
-    pthread_mutex_lock(&income_mutex);
-    pthread_mutex_unlock(&income_mutex);
-    pthread_mutex_destroy(&income_mutex);
-    pthread_mutex_destroy(&update_mutex);
+    while( g_atomic_int_compare_and_exchange(&state,0,-1) == false) // check if destruction occures if not -> execute
+        usleep(1);
 }
 
 
 void DavAvailabilityChecker::get_availability(PluginEndpointStatus * status){
-    pthread_mutex_lock(&update_mutex);
+    Glib::Threads::RWLock::ReaderLock locker(update_mutex);
 	status->state = last_state;
 	status->latency = latency;
 	status->explanation = explanation;
-    pthread_mutex_unlock(&update_mutex);
 }	
 
-void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even, pthread_mutex_t *update_mutex, pthread_mutex_t * income_mutex, long time_interval){
+void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even,  long time_interval){
 
     int res;
     struct timespec start, interval;
@@ -43,8 +41,6 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
     even->sigev_notify = SIGEV_THREAD;
     even->sigev_value.sival_ptr = this;
     even->sigev_notify_function = &DavAvailabilityChecker::polling_task;
-    pthread_mutex_init(update_mutex, NULL);
-    pthread_mutex_init(income_mutex, NULL);
     res = timer_create(CLOCK_MONOTONIC, even,t);
     g_assert(res == 0);
 
@@ -65,7 +61,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     DavAvailabilityChecker* myself = static_cast<DavAvailabilityChecker*>(args.sival_ptr);
     struct timespec t1, t2;
 
-    if( pthread_mutex_trylock(&(myself->income_mutex))  != 0)
+    if( g_atomic_int_compare_and_exchange(&myself->state,0,1) == false) // check if destruction occures if not -> execute
         return;
     Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval );
     int code = 404;
@@ -88,18 +84,20 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     }
     clock_gettime(CLOCK_MONOTONIC, &t2);
 
-    pthread_mutex_lock(&(myself->update_mutex));
-    myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
-    if(code >= 200 && code <400){
-        Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
-        myself->last_state = PLUGIN_ENDPOINT_ONLINE;
-        myself->explanation = "";
+    {
+        Glib::Threads::RWLock::WriterLock locker(myself->update_mutex);
+        myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
+        if(code >= 200 && code <400){
+            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
+            myself->last_state = PLUGIN_ENDPOINT_ONLINE;
+            myself->explanation = "";
 
-    }else{
-        Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, HTTP error code "<< code << ", error : " << myself->explanation);
-        myself->last_state = PLUGIN_ENDPOINT_OFFLINE;
+        }else{
+            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, HTTP error code "<< code << ", error : " << myself->explanation);
+            myself->last_state = PLUGIN_ENDPOINT_OFFLINE;
+        }
+
     }
-    pthread_mutex_unlock(&(myself->update_mutex));
-    pthread_mutex_unlock(&(myself->income_mutex));
- Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
+    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
+    g_atomic_int_set(&myself->state,0);
 }

@@ -37,13 +37,13 @@ private:
     // one timer element
     struct sigevent even;
     timer_t timer;
-    pthread_mutex_t update_mutex;
-    pthread_mutex_t income_mutex;
+    Glib::Threads::RWLock update_mutex;
+    int state;
 
 
     static void polling_task(union sigval);
-    void first_init_timer(timer_t * t, struct sigevent* even, pthread_mutex_t *update_mutex,
-                            pthread_mutex_t * income_mutex, long time_interval);
+    void first_init_timer(timer_t * t, struct sigevent* even,
+                            long time_interval);
 
 
 

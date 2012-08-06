@@ -72,6 +72,7 @@ class SimpleDebug {
 private:
     short fDbgLevel;
     std::string syslogIdent;
+    bool stderr_print;
 
     void DoLog(const char * s);
 
