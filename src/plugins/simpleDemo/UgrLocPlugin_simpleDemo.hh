@@ -1,17 +1,18 @@
 /** @file   UgrLocPlugin_simpleHTTP.hh
- * @brief  Plugin that talks to an HTTP server, simple version
+ * @brief  Demonstration plugin, simple version
  * @author Fabrizio Furano
  * @date   Jan 2012
  */
 
-#ifndef LOCATIONPLUGIN_SIMPLEHTTP_HH
-#define LOCATIONPLUGIN_SIMPLEHTTP_HH
+#ifndef LOCATIONPLUGIN_DEMO_HH
+#define LOCATIONPLUGIN_DEMO_HH
 
-/* LocationPlugin_simpleHTTP
+/* LocationPlugin_simpleDEMO
  * Plugin that talks to an HTTP server, simple version
  *
  *
  * by Fabrizio Furano, CERN, Jan 2012
+ * modification Adrien Devresse, CERN, 2012
  */
 
 #include "../../LocationPlugin.hh"
@@ -20,7 +21,7 @@
 
 
 /** LocationPlugin_simpleHTTP
- * Plugin that talks to an HTTP server, simple version
+ * Demonstration plugin
  *
  *
  * by Fabrizio Furano, CERN, Jan 2012

@@ -1,9 +1,9 @@
-/** @file   UgrLocPlugin_simpleHTTP.cc
- * @brief  Plugin that talks to an HTTP server, simple version
+/** @file   UgrLocPlugin_simpleDemo.cc
+ * @brief  Demonstration plugin, simple version
  * @author Fabrizio Furano
  * @date   Jan 2012
  */
-#include "UgrLocPlugin_simpleHTTP.hh"
+#include "UgrLocPlugin_simpleDemo.hh"
 #include "../../PluginLoader.hh"
 #include <time.h>
 
