@@ -97,8 +97,11 @@ do
 	echo "TARBALL: $RPM_BUILD_DIR/SOURCES/$SRC_NAME"
 	rpm_build_src_package `basename $i` 
 done
+
+echo "Current directory is: `pwd`"
+echo "Copying artifacts to $FINAL_DIR"
 mkdir -p  $FINAL_DIR
-cp $RPM_BUILD_DIR/SRPMS/* $FINAL_DIR
+cp -vv $RPM_BUILD_DIR/SRPMS/* $FINAL_DIR
 ## clean everything
 delete_rpmbuild_env
 	
