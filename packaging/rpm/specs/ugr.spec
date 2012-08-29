@@ -62,14 +62,6 @@ Requires:                       %{name}%{?_isa} = %{version}-%{release}
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
 
-%package demo-plugin
-Summary:                        demonstration plugin for %{name}
-Group:                          Applications/Internet
-Requires:                       %{name}%{?_isa} = %{version}-%{release}
-
-%description demo-plugin
-Plugin for demonstration purpose for %{name}
-
 
 %clean
 rm -rf %{buildroot};
@@ -125,10 +117,6 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrlocplugin_dmliteclient.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
-
-%files demo-plugin
-%defattr (-,root,root)
-%{_libdir}/libugrlocplugin_simplehttp.so
 
 %changelog
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap

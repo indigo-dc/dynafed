@@ -45,8 +45,13 @@ macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source buil
 #set(CMAKE_BUILD_TYPE Debug)
 
 # fetch from DefineInstallationPaths, std path for packaging
-set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
+#set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
 
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  set(LIBDESTINATION "lib64" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
+ELSE()
+  set(LIBDESTINATION "lib" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
+ENDIF()
 
 
 
