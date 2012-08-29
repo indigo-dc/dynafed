@@ -6,6 +6,7 @@
 #include "UgrLocPlugin_dmliteclient.hh"
 #include "../../PluginLoader.hh"
 #include <time.h>
+#include <dmlite/cpp/catalog.h>
 
 
 using namespace boost;
@@ -41,8 +42,8 @@ LocationPlugin(dbginstance, cfginstance, parms) {
 
 void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     const char *fname = "UgrLocPlugin_dmlite::runsearch";
-    ExtendedStat st;
-    std::vector<FileReplica> repvec;
+    dmlite::ExtendedStat st;
+    std::vector<dmlite::Replica> repvec;
     dmlite::Directory *d = 0;
     bool exc = false;
     std::string xname;
@@ -160,7 +161,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 //op->fi->status_statinfo = UgrFileInfo::NotFound;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
             } else
-                op->fi->takeStat(st);
+                op->fi->takeStat(st.stat);
 
 
             break;
@@ -175,7 +176,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 
-                for (vector<FileReplica>::iterator i = repvec.begin();
+                for (vector<dmlite::Replica>::iterator i = repvec.begin();
                         i != repvec.end();
                         i++) {
 
@@ -207,7 +208,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 //op->fi->status_items = UgrFileInfo::NotFound;
             } else {
 
-                ExtendedStat *dent;
+                dmlite::ExtendedStat *dent;
                 long cnt = 0;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
 
@@ -224,7 +225,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                             break;
                         }
                         it.name = dent->name;
-                        
+
                         op->fi->subdirs.insert(it);
 
                         // We have modified the data, hence set the dirty flag
@@ -235,7 +236,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                             string newlfn = op->fi->name + "/" + dent->name;
                             UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
                             LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirx stat info for  " << dent->name << ", flags " << dent->stat.st_mode << " size : " << dent->stat.st_size);
-                            if (fi) fi->takeStat(*dent);
+                            if (fi) fi->takeStat(dent->stat);
                         }
 
                     }
@@ -310,7 +311,6 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 }
-
 
 
 

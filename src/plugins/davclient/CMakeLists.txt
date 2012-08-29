@@ -7,7 +7,6 @@ IF(PLUGIN_WEBDAV)
 # The source modules
 FILE(GLOB src_dav_plugin "*.cc")
 
-
 message(STATUS "Building the DAV plugin")
 
 pkg_check_modules(DAVIX_PKG REQUIRED davix)

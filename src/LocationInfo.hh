@@ -15,7 +15,6 @@
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sys/stat.h>
-#include "dmlite/common/dm_types.h"
 
 #include <iostream>
 
@@ -388,12 +387,14 @@ public:
 
     // Useful for debugging
     void print(std::ostream &out);
-
-    void takeStat(ExtendedStat &st);
-    
-    // Utility that fixes a path
+  
+    /// Utility that fixes a path
+    /// @param s the string to be treated like a path to fix
     static void trimpath(std::string &s);
 
+    /// Fill the fields from a stat struct
+    /// @param st the stat struct to copy fields from
+    void takeStat(struct stat &st);
 };
 
 

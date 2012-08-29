@@ -6,7 +6,8 @@
 
 #include "LocationInfo.hh"
 #include "UgrMemcached.pb.h"
-#include<iomanip>
+#include <iomanip>
+
 
 using namespace boost;
 using namespace std;
@@ -153,29 +154,6 @@ void UgrFileInfo::print(ostream &out) {
 
 }
 
-void UgrFileInfo::takeStat(ExtendedStat &st) {
-    const char *fname = "UgrFileInfo::takeStat";
-    unique_lock<mutex> l2(*this);
-
-    status_statinfo = Ok;
-
-    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.stat.st_size << " " << st.stat.st_mode);
-    size = st.stat.st_size;
-    status_statinfo = UgrFileInfo::Ok;
-    unixflags = st.stat.st_mode;
-    if ((long) st.stat.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.stat.st_nlink);
-        subdirs.clear();
-        status_items = UgrFileInfo::Error;
-    }
-
-    if (st.stat.st_atim.tv_sec && (st.stat.st_atim.tv_sec > atime)) atime = st.stat.st_atim.tv_sec;
-    if (st.stat.st_mtim.tv_sec && (st.stat.st_mtim.tv_sec > mtime)) mtime = st.stat.st_mtim.tv_sec;
-    if (st.stat.st_ctim.tv_sec && (st.stat.st_ctim.tv_sec < ctime)) ctime = st.stat.st_ctim.tv_sec;
-
-    dirty = true;
-
-}
 
 int UgrFileInfo::encodeToString(std::string &str) {
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -335,5 +313,34 @@ void UgrFileInfo::trimpath(std::string & s) {
 
     if (s.length() == 0) s = "/";
 
+
+}
+
+
+
+
+void UgrFileInfo::takeStat(struct stat &st) {
+    const char *fname = "UgrLocPlugin_dmlite::takeStat";
+    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+    
+    unique_lock<mutex> l2(*this);
+    size = st.st_size;
+    unixflags = st.st_mode;
+    if (st.st_atim.tv_sec && (st.st_atim.tv_sec > atime)) atime = st.st_atim.tv_sec;
+    if (st.st_mtim.tv_sec && (st.st_mtim.tv_sec > mtime)) mtime = st.st_mtim.tv_sec;
+    if (st.st_ctim.tv_sec && (st.st_ctim.tv_sec < ctime)) ctime = st.st_ctim.tv_sec;
+
+    
+    status_statinfo = UgrFileInfo::Ok;
+
+    if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
+        subdirs.clear();
+        status_items = UgrFileInfo::Error;
+    }
+
+
+
+    dirty = true;
 
 }

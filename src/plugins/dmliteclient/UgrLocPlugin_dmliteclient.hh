@@ -10,7 +10,7 @@
 
 #include "../../LocationPlugin.hh"
 #include <dmlite/cpp/dmlite.h>
-#include <dmlite/cpp/dm_exceptions.h>
+#include <dmlite/cpp/inode.h>
 
 /** LocationPlugin_dmlite
  * Plugin that talks to a dmlite catalog
@@ -28,6 +28,7 @@ protected:
     boost::mutex dmlitemutex;
 
     std::map<int, dmlite::StackInstance *> simap;
+    
 public:
 
     UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
@@ -42,6 +43,8 @@ public:
     //virtual int do_List(UgrFileInfo *fi);
 
     virtual void runsearch(struct worktoken *op, int myidx);
+    
+    static void takeStat(UgrFileInfo *fi, dmlite::ExtendedStat &st);
 };
 
 
