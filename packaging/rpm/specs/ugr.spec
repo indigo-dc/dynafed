@@ -94,11 +94,8 @@ make DESTDIR=%{buildroot} install
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_libdir}/ugr/libugrdmlite.so
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
-%config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/ugr.conf
-%config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 %doc RELEASE-NOTES
 
 %files devel
@@ -115,6 +112,9 @@ make DESTDIR=%{buildroot} install
 %files dmlite-plugin
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dmliteclient.so
+%{_libdir}/ugr/libugrdmlite.so
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
+%config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
