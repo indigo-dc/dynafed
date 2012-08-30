@@ -42,8 +42,12 @@ namespace dmlite {
 
         virtual std::vector<Replica> getReplicas(const std::string&) throw (DmException);
 
-        
+
         virtual ExtendedStat extendedStat(const std::string&, bool) throw (DmException);
+
+
+        virtual void changeDir(const std::string&) throw (DmException);
+        virtual std::string getWorkingDir(void) throw (DmException);
 
         virtual Directory* openDir(const std::string&) throw (DmException);
         virtual void closeDir(Directory*) throw (DmException);
@@ -64,6 +68,10 @@ namespace dmlite {
         static UgrConnector *conn;
 
         SecurityCredentials secCredentials;
+        
+        std::string workingdir;
+        
+        std::string getAbsPath(std::string &path);
 
     };
 

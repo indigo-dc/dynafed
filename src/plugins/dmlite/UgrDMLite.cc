@@ -77,8 +77,7 @@ void UgrCatalog::setSecurityContext(const SecurityContext *c) throw (DmException
     secCredentials = c->credentials;
 }
 
-UgrCatalog::UgrCatalog() throw (DmException) :
-DummyCatalog(this) {
+UgrCatalog::UgrCatalog() throw (DmException) : DummyCatalog(NULL)  {
 
 }
 
@@ -90,15 +89,15 @@ std::string UgrCatalog::getImplId() const throw () {
     return std::string("UgrCatalog");
 }
 
-std::vector<Replica> UgrCatalog::getReplicas(const std::string& path) throw (DmException) {
+std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmException) {
     std::vector<Replica> replicas;
 
 
     // Get all of them
     UgrFileInfo *nfo = 0;
 
-
-    if (!getUgrConnector()->locate((std::string&)path, &nfo) && nfo) {
+    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
         Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to sort / choose a proper one");
         // Request UgrConnector to sort a replica set according to proximity to the client
         std::set<UgrFileItem_replica, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remoteAddress, nfo);
@@ -167,7 +166,8 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
 dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
     dmlite::ExtendedStat st;
     UgrFileInfo *nfo = 0;
-    if (!getUgrConnector()->stat((std::string&)path, &nfo) && nfo && (nfo->getInfoStatus() != nfo->NotFound)) {
+    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    if (!getUgrConnector()->stat((std::string&)abspath, &nfo) && nfo && (nfo->getInfoStatus() != nfo->NotFound)) {
         st.csumtype[0] = '\0';
         st.csumvalue[0] = '\0';
         st.guid[0] = '\0';
@@ -193,7 +193,8 @@ class myDirectory {
 
     myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
         idx = finfo->subdirs.begin();
-        memset(&buf, 0, sizeof (buf));
+        buf.clear();
+
         memset(&direntbuf, 0, sizeof (direntbuf));
     }
 
@@ -202,7 +203,8 @@ class myDirectory {
 Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
-    if (!getUgrConnector()->list((std::string&)path, &fi) && fi && (fi->getItemsStatus() == fi->Ok)) {
+    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    if (!getUgrConnector()->list((std::string&)abspath, &fi) && fi && (fi->getItemsStatus() == fi->Ok)) {
 
         // This is just an opaque pointer, we can store what we want
         return (Directory *) (new myDirectory(fi));
@@ -257,10 +259,24 @@ dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException
     return &(d->buf);
 }
 
+void UgrCatalog::changeDir(const std::string &d) throw (DmException) {
+    workingdir = d;
+    UgrFileInfo::trimpath(workingdir);
+}
 
+std::string UgrCatalog::getWorkingDir() throw (DmException) {
+    return workingdir;
+}
 
-
-
+std::string UgrCatalog::getAbsPath(std::string &path) {
+    if (workingdir.empty()) return path;
+    if (path[0] == '/') return path;
+    if (path == ".") return workingdir;
+    
+    
+    std::string s = workingdir + path;
+    return s;
+}
 
 // ---------------------------
 
