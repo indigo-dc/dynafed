@@ -137,7 +137,9 @@ int UgrConnector::init(char *cfgfile) {
                         parms);
                 if (prod) {
                     prod->setGeoPlugin(geoPlugin);
+                    prod->setID(locPlugins.size());
                     locPlugins.push_back(prod);
+                    
                 }
             }
             i++;

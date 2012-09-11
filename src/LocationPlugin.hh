@@ -56,6 +56,8 @@ class LocationPlugin {
 
     int nthreads;
     
+
+    
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
 
@@ -74,6 +76,9 @@ public:
     };
 
 protected:
+    /// ID of this plugin
+    int myID;
+    
     /// The name assigned to this plugin from the creation
     std::string name;
 
@@ -118,6 +123,7 @@ public:
    virtual int start();
 
    virtual void setGeoPlugin(GeoPlugin *gp) { geoPlugin = gp; };
+   void setID(short pluginID) { myID = pluginID; }
    
    ///
    /// return the plugin name ( id )

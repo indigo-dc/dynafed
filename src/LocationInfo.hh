@@ -34,7 +34,8 @@ public:
     // Some info about the location, e.g. galactic coordinates
     std::string location;
     
-    
+    /// The index of the plugin that inserted this subitem
+    short pluginID;
 };
 
 class UgrFileItem_replica: public UgrFileItem {
@@ -48,8 +49,6 @@ public:
     float latitude;
     float longitude;
     
-    /// ID of the plugin that made this replica known
-    int pluginId;
 };
 
 
@@ -328,6 +327,12 @@ public:
     /// Just the keys, in a small structure
     std::set<UgrFileItem_replica, UgrFileItemComp> replicas;
 
+    /// The list of the plugins that inserted this entry
+    std::set<short> ownerpluginIDs;
+    
+    /// Helper to notify which plugin(s) this info comes from
+    void setPluginID(const short pluginID);
+    
     /// The last time there was a request to gather info about this entry
     time_t lastupdreqtime;
 

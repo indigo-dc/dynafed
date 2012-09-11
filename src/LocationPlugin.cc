@@ -38,6 +38,7 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
 
     const char *fname = "LocationPlugin::LocationPlugin";
     nthreads = 0;
+    
 
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
