@@ -222,18 +222,20 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     if (bad_answer == false) {
         try {
             LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+            op->fi->setPluginID(myID);
+            
             switch (op->wop) {
 
                 case LocationPlugin::wop_Stat:
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                     op->fi->takeStat(st);
-
                     break;
 
                 case LocationPlugin::wop_Locate:
                 {
                     UgrFileItem_replica itr;
                     itr.name = cannonical_name;
+                    itr.pluginID = myID;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
 
                     // We have modified the data, hence set the dirty flag
@@ -273,13 +275,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
                         it.name = std::string(dent->d_name);
                         it.location.clear();
+                        it.pluginID = myID;
                         // populate answer
                         op->fi->subdirs.insert(it);
                         // add childrens
-                        string child = op->fi->name + "/" + it.name;
+                        string child = op->fi->name;
+                        UgrFileInfo::trimpath(child);
+                        child += "/" + it.name;
+                        
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
-                                "Worker: Inserting readdirpp stat info for  " << dent->d_name <<
+                                "Worker: Inserting readdirpp stat info for  " << child <<
                                 ", flags " << st.st_mode << " size : " << st.st_size);
                         if (fi) fi->takeStat(st2);
                     }
