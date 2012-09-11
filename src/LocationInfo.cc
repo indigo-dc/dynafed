@@ -308,20 +308,27 @@ int UgrFileInfo::decodeSubitems(void *data, int sz) {
 
 void UgrFileInfo::trimpath(std::string & s) {
 
-    while (*(s.rbegin()) == '/')
+    while ((s.size() > 0) && (*(s.rbegin()) == '/'))
         s.erase(s.size() - 1);
+    
+    while ((s.size() > 0) && (*(s.begin()) == '/'))
+        s.erase(0);
 
-    if (s.length() == 0) s = "/";
+    if (s.length() == 0) s = "/" + s;
 
 
 }
 
 
 
+void UgrFileInfo::setPluginID(const short pluginID) {
+    if (pluginID >= 0)
+        ownerpluginIDs.insert(pluginID);
+}
 
 void UgrFileInfo::takeStat(struct stat &st) {
     const char *fname = "UgrLocPlugin_dmlite::takeStat";
-    Info(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+    Info(SimpleDebug::kHIGHEST, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
     
     unique_lock<mutex> l2(*this);
     size = st.st_size;
@@ -334,12 +341,12 @@ void UgrFileInfo::takeStat(struct stat &st) {
     status_statinfo = UgrFileInfo::Ok;
 
     if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-        Info(SimpleDebug::kMEDIUM, fname, "Setting as non listable. nlink=" << st.st_nlink);
+        Info(SimpleDebug::kMEDIUM, fname, "Setting " << name << " as non listable. nlink=" << st.st_nlink);
         subdirs.clear();
         status_items = UgrFileInfo::Error;
     }
 
-
+    
 
     dirty = true;
 
