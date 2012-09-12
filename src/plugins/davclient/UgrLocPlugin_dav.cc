@@ -281,7 +281,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         // add childrens
                         string child = op->fi->name;
                         UgrFileInfo::trimpath(child);
-                        child += "/" + it.name;
+                        child += "/";
+                        child += it.name;
                         
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
