@@ -182,7 +182,7 @@ namespace dmlite {
                 PluginManager* pm) throw (DmException);
 
         Catalog* createCatalog(PluginManager* pm) throw (DmException) {
-            createCatalog(NULL, pm);
+            return createCatalog(NULL, pm);
         }
 
         Authn* createAuthn(PluginManager* pm) throw (DmException) {

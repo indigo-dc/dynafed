@@ -258,6 +258,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     long cnt = 0;
                     struct stat st2;
                     while ((dent = dav_core->readdirpp(d, &st2)) != NULL) {
+                        UgrFileItem it;
+                        {
                         unique_lock<mutex> l(*(op->fi));
 
                         // We have modified the data, hence set the dirty flag
@@ -271,23 +273,24 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         }
 
                         // create new items
-                        UgrFileItem it;
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
                         it.name = std::string(dent->d_name);
                         it.location.clear();
                         it.pluginID = myID;
                         // populate answer
                         op->fi->subdirs.insert(it);
+                        }
+
                         // add childrens
                         string child = op->fi->name;
-                        UgrFileInfo::trimpath(child);
-                        child += "/";
-                        child += it.name;
+                        if (child[child.length()-1] != '/')
+                         child = child + "/";
+                        child = child + it.name;
                         
-                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
                                 "Worker: Inserting readdirpp stat info for  " << child <<
-                                ", flags " << st.st_mode << " size : " << st.st_size);
+                                ", flags " << st.st_mode << " size : " << st.st_size); 
+                        UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
                         if (fi) fi->takeStat(st2);
                     }
                     dav_core->closedirpp(d);
