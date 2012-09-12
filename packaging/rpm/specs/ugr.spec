@@ -7,7 +7,7 @@
 %endif
 
 Name:				ugr
-Version:			1.0.0
+Version:			1.0.1
 Release:			0.1.%{checkout_tag}%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
