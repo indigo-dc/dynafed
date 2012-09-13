@@ -311,8 +311,8 @@ void UgrFileInfo::trimpath(std::string & s) {
     while ((s.size() > 0) && (*(s.rbegin()) == '/'))
         s.erase(s.size() - 1);
     
-    while ((s.size() > 0) && (*(s.begin()) == '/'))
-        s.erase(0);
+    while ((s.size() > 1) && (s[1] == '/'))
+        s.erase(1);
 
     if (s.length() == 0) s = "/" + s;
 
