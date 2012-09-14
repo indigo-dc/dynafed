@@ -1,0 +1,44 @@
+\contentsline {section}{\numberline {1}Introduction}{4}
+\contentsline {section}{\numberline {2}The goal and the available components}{4}
+\contentsline {section}{\numberline {3}Some use cases}{7}
+\contentsline {subsection}{\numberline {3.1}DPM and dCache via WebDAV}{7}
+\contentsline {subsection}{\numberline {3.2}Add third-party storage farms}{8}
+\contentsline {subsection}{\numberline {3.3}Create a small local federation of close sites sharing storage}{8}
+\contentsline {subsection}{\numberline {3.4}Add resources managed by one or more LFCs}{9}
+\contentsline {subsection}{\numberline {3.5}Federating file caches}{10}
+\contentsline {subsection}{\numberline {3.6}Allow the system to apply geography-aware redirection choices}{10}
+\contentsline {section}{\numberline {4}The system}{11}
+\contentsline {subsection}{\numberline {4.1}Two clients issue a stat() request}{13}
+\contentsline {subsection}{\numberline {4.2}Two clients request the full list of the replicas of a file}{14}
+\contentsline {subsection}{\numberline {4.3}In-memory volatile namespace and caching}{16}
+\contentsline {subsection}{\numberline {4.4}Simple name translations}{16}
+\contentsline {section}{\numberline {5}Typical deployment of a Dynamic Federations frontend}{18}
+\contentsline {section}{\numberline {6}Configuration parameters reference}{19}
+\contentsline {subsection}{\numberline {6.1}Ugr core configuration}{19}
+\contentsline {subsubsection}{\numberline {6.1.1}glb.debug}{19}
+\contentsline {subsubsection}{\numberline {6.1.2}glb.locplugin}{21}
+\contentsline {subsubsection}{\numberline {6.1.3}glb.waittimeout}{21}
+\contentsline {subsubsection}{\numberline {6.1.4}glb.maxlistitems}{22}
+\contentsline {subsection}{\numberline {6.2}Global name translation}{22}
+\contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{22}
+\contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{23}
+\contentsline {subsection}{\numberline {6.3}Infohandler advanced parameters}{23}
+\contentsline {subsubsection}{\numberline {6.3.1}infohandler.maxitems}{23}
+\contentsline {subsubsection}{\numberline {6.3.2}infohandler.itemttl}{23}
+\contentsline {subsubsection}{\numberline {6.3.3}infohandler.itemmaxttl}{23}
+\contentsline {subsubsection}{\numberline {6.3.4}infohandler.itemttl\_negative}{24}
+\contentsline {subsubsection}{\numberline {6.3.5}infohandler.useextcache}{24}
+\contentsline {subsection}{\numberline {6.4}extcache.memcached.server[]}{24}
+\contentsline {subsubsection}{\numberline {6.4.1}extcache.memcached.ttl}{24}
+\contentsline {subsubsection}{\numberline {6.4.2}extcache.memcached.useBinaryProtocol}{25}
+\contentsline {subsection}{\numberline {6.5}DAV plugin}{25}
+\contentsline {subsubsection}{\numberline {6.5.1}glb.locplugin.$<$ID$>$.ssl\_check}{26}
+\contentsline {subsubsection}{\numberline {6.5.2}glb.locplugin.$<$ID$>$.cli\_certificate}{26}
+\contentsline {subsubsection}{\numberline {6.5.3}glb.locplugin.$<$ID$>$.conn\_timeout}{26}
+\contentsline {subsubsection}{\numberline {6.5.4}glb.locplugin.$<$ID$>$.ops\_timeout}{27}
+\contentsline {subsubsection}{\numberline {6.5.5}glb.locplugin.$<$ID$>$.status\_checking}{27}
+\contentsline {subsubsection}{\numberline {6.5.6}glb.locplugin.$<$ID$>$.status\_checker\_frequency}{27}
+\contentsline {subsubsection}{\numberline {6.5.7}glb.locplugin.$<$ID$>$.auth\_login}{27}
+\contentsline {subsubsection}{\numberline {6.5.8}glb.locplugin.$<$ID$>$.auth\_passwd}{28}
+\contentsline {subsection}{\numberline {6.6}DMLite client plugin}{28}
+\contentsline {subsubsection}{\numberline {6.6.1}locplugin.$<$ID$>$.xlatepfx}{28}
