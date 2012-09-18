@@ -10,14 +10,9 @@
 #include <queue>
 
 ExtCacheHandler::ExtCacheHandler() {
-    const char *fname = "ExtCacheHandler";
-
-
     maxttl = CFG->GetLong("extcache.memcached.ttl", 600);
 
     while (!conns.empty()) conns.pop();
-
-
 }
 
 std::string ExtCacheHandler::makekey(UgrFileInfo *fi) {
@@ -330,3 +325,4 @@ void ExtCacheHandler::releaseconn(memcached_st *c) {
     boost::lock_guard<boost::mutex> l(connsmtx);
     if (c) conns.push(c);
 }
+
