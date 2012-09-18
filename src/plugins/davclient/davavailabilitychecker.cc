@@ -10,7 +10,7 @@ DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const
 	last_state = PLUGIN_ENDPOINT_ONLINE;
 	latency =0;
     time_interval = _time_interval;
-    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", "Launch state checker for  :" <<  uri_ping << " with frequency : " << time_interval);
+    Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", "Launch state checker for  :" <<  uri_ping << " with frequency : " << time_interval);
     state =0;
     first_init_timer(&timer,&even, time_interval);
 }
@@ -63,7 +63,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
 
     if( g_atomic_int_compare_and_exchange(&myself->state,0,1) == false) // check if destruction occures if not -> execute
         return;
-    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval );
+    Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval );
     int code = 404;
     boost::shared_ptr<Davix::HttpRequest> req;
     clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -88,7 +88,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
         DavPluginWriterLocker locker(myself->update_mutex);
         myself->latency = (t2.tv_sec - t1.tv_sec)*1000 + (t2.tv_nsec-t1.tv_nsec)/1000000L;
         if(code >= 200 && code <400){
-            Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
+            Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : ONLINE, latency : "<< myself->latency);
             myself->last_state = PLUGIN_ENDPOINT_ONLINE;
             myself->explanation = "";
 
@@ -98,6 +98,6 @@ void DavAvailabilityChecker::polling_task(union sigval args){
         }
 
     }
-    Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
+    Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
     g_atomic_int_set(&myself->state,0);
 }

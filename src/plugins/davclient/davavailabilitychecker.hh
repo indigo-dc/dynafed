@@ -1,4 +1,4 @@
-
+#pragma once
 #ifndef DAVAVAILABILITYCHECKER_HH
 #define DAVAVAILABILITYCHECKER_HH
 
