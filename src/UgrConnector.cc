@@ -123,8 +123,14 @@ int UgrConnector::init(char *cfgfile) {
         if (s != "") {
             vector<string> parms = tokenize(s, " ");
 
-            Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << s);
-            geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) parms[0].c_str(),
+            path plugin_path(parms[0].c_str());   // if not abs path -> load from plugin dir
+            if( !plugin_path.has_root_directory()){
+                plugin_path = plugin_dir;
+                plugin_path /= parms[0];
+            }
+
+            Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << plugin_path.string());
+            geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) plugin_path.string().c_str(),
                     SimpleDebug::Instance(),
                     Config::GetInstance(),
                     parms);
