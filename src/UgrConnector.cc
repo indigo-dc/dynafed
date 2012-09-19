@@ -88,7 +88,7 @@ int UgrConnector::init(char *cfgfile) {
             if(is_directory(plugin_dir)){
                 Info(SimpleDebug::kLOW, fname, "Define Ugr plugin directory to: " << plugin_dir);
             }else{
-                throw filesystem_error("ugr plugin path is not a directory", plugin_dir, system::error_code(ENOTDIR,system::system_category()));
+                throw filesystem_error("ugr plugin path is not a directory", plugin_dir, system::error_code(ENOTDIR,system::get_generic_category()));
             }
         }catch(filesystem_error & e){
             Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
