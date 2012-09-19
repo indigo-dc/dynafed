@@ -17,7 +17,8 @@ if(GEOIP_LIB)
   # Configure the target for the consumer shared library that we want to provide
   add_library(ugrgeoplugin_geoip SHARED ${UgrGeoPlugin_GeoIP_SOURCES})
 
-  SET_TARGET_PROPERTIES(ugrgeoplugin_geoip PROPERTIES LINK_FLAGS "-rdynamic")
+set_target_properties(ugrgeoplugin_geoip        PROPERTIES LINK_FLAGS "-rdynamic"
+                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
   target_link_libraries(ugrgeoplugin_geoip "dl" ugrconnector ${GEOIP_LIB})
 
@@ -25,6 +26,6 @@ if(GEOIP_LIB)
   # How to install. This is a set of plugins that belong to a specific component
   install(TARGETS ugrgeoplugin_geoip
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/ugr COMPONENT plugins-geoip)
+    LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR} COMPONENT plugins-geoip)
 
 ENDIF()

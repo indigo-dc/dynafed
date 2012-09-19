@@ -26,6 +26,9 @@ set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.
   PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc PluginEndpointStatusManager.cc)
 
 
+set(Ugr_default_plugin_dir ${PLUGIN_INSTALL_DIR})
+
+add_definitions( -DUGR_PLUGIN_DIR_DEFAULT="${Ugr_default_plugin_dir}")
 
 # Add the binary tree to the search path for include files
 # so that we can find our Config header file

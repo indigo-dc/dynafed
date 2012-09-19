@@ -15,10 +15,13 @@ if(DMLITE_FOUND)
 
   target_link_libraries(ugrdmlite "dl ${DMLITE_LIBRARIES}" ugrconnector)
 
+set_target_properties(ugrdmlite PROPERTIES LINK_FLAGS "-rdynamic"
+                                       LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+
   # Install the plugin for dmlite
   install(TARGETS ugrdmlite
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/ugr
+    LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
     COMPONENT plugins-dmlite)
 
   # Install the config files

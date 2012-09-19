@@ -6,6 +6,9 @@
 
 
 #include <iostream>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "SimpleDebug.hh"
 #include "PluginLoader.hh"
 #include <string>
@@ -14,11 +17,11 @@
 #include "LocationInfoHandler.hh"
 #include "PluginEndpointStatusManager.hh"
 
-#include <sys/types.h>
-#include <sys/stat.h>
+
 
 using namespace std;
 using namespace boost;
+using namespace boost::filesystem;
 
 
 
@@ -74,8 +77,19 @@ UgrConnector::~UgrConnector() {
 int UgrConnector::init(char *cfgfile) {
     const char *fname = "UgrConnector::init";
     {
+        char* env_plugin_dir;
         boost::lock_guard<boost::mutex> l(mtx);
         if (initdone) return -1;
+
+        // setup plugin directory
+        plugin_dir = (env_plugin_dir = getenv(UGR_PLUGIN_DIR_ENV_VAR))?env_plugin_dir:UGR_PLUGIN_DIR_DEFAULT;
+
+        system::error_code err_plugin_dir;
+        if(!is_directory(plugin_dir, err_plugin_dir)){
+            Error(fname, "Invalid plugin directory" << plugin_dir << " " << err_plugin_dir.message() << endl);
+        }else{
+             Info(SimpleDebug::kLOW, fname, "Define Ugr plugin directory to: " << plugin_dir);
+        }
 
         // Process the config file
         Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
@@ -130,8 +144,13 @@ int UgrConnector::init(char *cfgfile) {
                 vector<string> parms = tokenize(buf, " ");
                 // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
                 // An empty string does not load any plugin, just keeps the default behavior
+                path plugin_path(parms[0].c_str());   // if not abs path -> load from plugin dir
+                if( !plugin_path.is_absolute()){
+                    plugin_path = plugin_dir;
+                    plugin_path /= parms[0];
+                }
                 Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
-                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) parms[0].c_str(),
+                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) plugin_path.generic_string().c_str(),
                         SimpleDebug::Instance(),
                         Config::GetInstance(),
                         parms);

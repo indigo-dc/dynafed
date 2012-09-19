@@ -22,7 +22,8 @@ if(DMLITE_FOUND)
   # Configure the target for the consumer shared library that we want to provide
   add_library(ugrlocplugin_dmliteclient SHARED ${UgrLocPlugin_dmliteclient_SOURCES})
 
-  SET_TARGET_PROPERTIES(ugrlocplugin_dmliteclient PROPERTIES LINK_FLAGS "-rdynamic")
+set_target_properties(ugrlocplugin_dmliteclient PROPERTIES LINK_FLAGS "-rdynamic"
+                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
   target_link_libraries(ugrlocplugin_dmliteclient "dl ${DMLITE_LIBRARIES}" ugrconnector)
 
@@ -30,7 +31,7 @@ if(DMLITE_FOUND)
   # How to install. This is a set of plugins that belong to a specific component
   install(TARGETS ugrlocplugin_dmliteclient
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
-    LIBRARY DESTINATION ${LIB_INSTALL_DIR}/ugr COMPONENT plugins-dmliteclient)
+    LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR} COMPONENT plugins-dmliteclient)
 
   # Install the config files
   if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr/ugrdmliteclient.conf)

@@ -8,6 +8,7 @@
 #define UGRCONNECTOR_HH
 
 
+#include <boost/filesystem.hpp>
 
 #include "SimpleDebug.hh"
 #include "Config.hh"
@@ -20,11 +21,15 @@
 
 #include <string>
 
+#define UGR_PLUGIN_DIR_ENV_VAR "UGR_PLUGIN_DIR"
 
 
 /// The main class that allows to interact with the system
 class UgrConnector {
 private:
+    /// ugr plugin directory path
+    boost::filesystem::path plugin_dir;
+
     /// The thread that ticks
     boost::thread *ticker;
 
