@@ -84,11 +84,14 @@ int UgrConnector::init(char *cfgfile) {
         // setup plugin directory
         plugin_dir = (env_plugin_dir = getenv(UGR_PLUGIN_DIR_ENV_VAR))?env_plugin_dir:UGR_PLUGIN_DIR_DEFAULT;
 
-        system::error_code err_plugin_dir;
-        if(!is_directory(plugin_dir, err_plugin_dir)){
-            Error(fname, "Invalid plugin directory" << plugin_dir << " " << err_plugin_dir.message() << endl);
-        }else{
-             Info(SimpleDebug::kLOW, fname, "Define Ugr plugin directory to: " << plugin_dir);
+        try{
+            if(is_directory(plugin_dir)){
+                Info(SimpleDebug::kLOW, fname, "Define Ugr plugin directory to: " << plugin_dir);
+            }else{
+                throw filesystem_error("ugr plugin path is not a directory", plugin_dir, system::error_code(ENOTDIR,system::system_category()));
+            }
+        }catch(filesystem_error & e){
+            Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
         }
 
         // Process the config file
@@ -145,12 +148,12 @@ int UgrConnector::init(char *cfgfile) {
                 // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
                 // An empty string does not load any plugin, just keeps the default behavior
                 path plugin_path(parms[0].c_str());   // if not abs path -> load from plugin dir
-                if( !plugin_path.is_absolute()){
+                if( !plugin_path.has_root_directory()){
                     plugin_path = plugin_dir;
                     plugin_path /= parms[0];
                 }
-                Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << buf);
-                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) plugin_path.generic_string().c_str(),
+                Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << plugin_path.string());
+                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) plugin_path.string().c_str(),
                         SimpleDebug::Instance(),
                         Config::GetInstance(),
                         parms);
