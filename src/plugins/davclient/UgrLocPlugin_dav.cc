@@ -80,7 +80,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Try to bind UgrLocPlugin_dav with " << parms[3]);
         base_url = parms[3];
         UgrFileInfo::trimpath(base_url);
-        
+
     } else {
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
@@ -122,7 +122,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // get state checker
     // get ssl check
     state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker : " << ( (state_checking)?"ENABLED":"DISABLED"));
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker : " << ((state_checking) ? "ENABLED" : "DISABLED"));
 
     state_checker_freq = c->GetLong(pref_dot + config_endpoint_checker_poll_frequency, 5000);
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker frequency : " << state_checker_freq);
@@ -147,7 +147,7 @@ void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileI
 
 }
 
-int UgrLocPlugin_dav::start(){
+int UgrLocPlugin_dav::start() {
     if (state_checking) {
         state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq));
     }
@@ -177,8 +177,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Bad request Handle : FATAL");
         return;
     }
-    
-    
+
+
     //cannonical_name += "/";
     cannonical_name += op->fi->name;
 
@@ -223,7 +223,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         try {
             LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
             op->fi->setPluginID(myID);
-            
+
             switch (op->wop) {
 
                 case LocationPlugin::wop_Stat:
@@ -260,38 +260,43 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     while ((dent = dav_core->readdirpp(d, &st2)) != NULL) {
                         UgrFileItem it;
                         {
-                        unique_lock<mutex> l(*(op->fi));
+                            unique_lock<mutex> l(*(op->fi));
 
-                        // We have modified the data, hence set the dirty flag
-                        op->fi->dirtyitems = true;
+                            // We have modified the data, hence set the dirty flag
+                            op->fi->dirtyitems = true;
 
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-                            listerror = true;
-                            op->fi->subdirs.clear();
-                            break;
-                        }
+                            if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                                LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                                listerror = true;
+                                op->fi->subdirs.clear();
+                                break;
+                            }
 
-                        // create new items
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
-                        it.name = std::string(dent->d_name);
-                        it.location.clear();
-                        it.pluginID = myID;
-                        // populate answer
-                        op->fi->subdirs.insert(it);
+                            // create new items
+                            LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+                            it.name = std::string(dent->d_name);
+                            it.location.clear();
+                            it.pluginID = myID;
+                            // populate answer
+                            op->fi->subdirs.insert(it);
                         }
 
                         // add childrens
                         string child = op->fi->name;
-                        if (child[child.length()-1] != '/')
-                         child = child + "/";
+                        if (child[child.length() - 1] != '/')
+                            child = child + "/";
                         child = child + it.name;
-                        
+
                         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
                                 "Worker: Inserting readdirpp stat info for  " << child <<
-                                ", flags " << st.st_mode << " size : " << st.st_size); 
+                                ", flags " << st.st_mode << " size : " << st.st_size);
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
-                        if (fi) fi->takeStat(st2);
+
+                        // If the entry was already in cache, don't overwrite
+                        // This avoids a massive, potentially useless burst of writes to the 2nd level cache
+                        if (fi && (fi->status_statinfo != UgrFileInfo::Ok)) {
+                            fi->takeStat(st2);
+                        }
                     }
                     dav_core->closedirpp(d);
 
