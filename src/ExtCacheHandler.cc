@@ -131,7 +131,8 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
                 s.c_str(), s.length() + 1,
                 expirationtime, (uint32_t) 0);
 
-
+        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
+                "key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot write fileinfo to memcached. retval=" << r << " '" << memcached_strerror(conn, r) <<
@@ -185,7 +186,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
                 s.c_str(), s.length() + 1,
                 expirationtime, (uint32_t) 0);
 
-        Info(SimpleDebug::kHIGH, fname, "memcached_set " << "r:" << r <<
+        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
                 "key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {

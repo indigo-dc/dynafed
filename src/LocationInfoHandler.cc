@@ -68,16 +68,20 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
             lrudata.right.erase(lfn);
             lrudata.insert(lrudataitem(++lrutick, lfn));
             fi = p->second;
-            //if (docachesubitemslookup) {
-            //                fi->notifyItemsPending();
-            //                fi->notifyLocationPending();
-            //            }
-            docachesubitemslookup = false;
+            if (docachesubitemslookup) {
+                fi->notifyItemsPending();
+                fi->notifyLocationPending();
+            }
+            //docachesubitemslookup = false;
             dofetch = false;
-            
+
             fi->touch();
         }
     }
+
+    // Here we have either
+    //  - a new empty UgrFileInfo
+    //  - an UgrFileInfo taken from the 1st level cache
 
     if (dofetch) {
 
@@ -94,7 +98,13 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
         // If necessary, get also the subitems from the cache
         // Maybe it's a good idea to store in the ext cache only
         // replica information, not file listings
-        getSubitemsFromCache(fi);
+
+        if (fi->status_statinfo == UgrFileInfo::Ok) {
+
+            if ((fi->status_items != UgrFileInfo::Ok) &&
+                    (fi->status_locations != UgrFileInfo::Ok))
+                getSubitemsFromCache(fi);
+        }
     }
 
     // Found or not, the cache lookup for this object has ended
