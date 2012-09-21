@@ -215,21 +215,24 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 try {
                     UgrFileItem it;
                     while ((dent = catalog->readDirx(d))) {
-                        // Lock the file instance
-                        unique_lock<mutex> l(*(op->fi));
 
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
-                            listerror = true;
-                            op->fi->subdirs.clear();
-                            break;
+                        {
+                            // Lock the file instance
+                            unique_lock<mutex> l(*(op->fi));
+
+                            if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                                LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                                listerror = true;
+                                op->fi->subdirs.clear();
+                                break;
+                            }
+                            it.name = dent->name;
+
+                            op->fi->subdirs.insert(it);
+
+                            // We have modified the data, hence set the dirty flag
+                            op->fi->dirtyitems = true;
                         }
-                        it.name = dent->name;
-
-                        op->fi->subdirs.insert(it);
-
-                        // We have modified the data, hence set the dirty flag
-                        op->fi->dirtyitems = true;
 
                         // We have some info to add to the cache
                         if (op->handler) {
