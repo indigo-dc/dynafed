@@ -239,6 +239,7 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
 dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
+    if (!opaque) return 0;
     if (d->idx == d->nfo->subdirs.end()) return 0;
 
     // Only the name is relevant here, it seems
