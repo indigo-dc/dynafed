@@ -1,5 +1,5 @@
 #include "davavailabilitychecker.hh"
-
+#include <ctime>
 
 
 
@@ -44,11 +44,9 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
     res = timer_create(CLOCK_MONOTONIC, even,t);
     g_assert(res == 0);
 
-    interval.tv_sec = time_interval/1000;
-    interval.tv_nsec = (time_interval%1000)*1000000;
-    start.tv_nsec=10;
-    timer_value.it_interval = interval;
-    timer_value.it_value = start;
+    timer_value.it_interval.tv_sec = time_interval/1000;
+    timer_value.it_interval.tv_nsec = (time_interval%1000)*1000000;
+    timer_value.it_value.tv_nsec=10;
 
     res = timer_settime(*t, 0,&timer_value,
                              NULL);
@@ -63,7 +61,7 @@ void DavAvailabilityChecker::polling_task(union sigval args){
 
     if( g_atomic_int_compare_and_exchange(&myself->state,0,1) == false) // check if destruction occures if not -> execute
         return;
-    Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval );
+    Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " Start checker for " << myself->uri_ping << " with time " << myself->time_interval  << std::endl);
     int code = 404;
     boost::shared_ptr<Davix::HttpRequest> req;
     clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -93,10 +91,14 @@ void DavAvailabilityChecker::polling_task(union sigval args){
             myself->explanation = "";
 
         }else{
+            if(myself->explanation.empty()){
+                std::ostringstream ss;
+                ss << "Server error reported on " << myself->uri_ping << " with code : "<< code << std::endl;
+                myself->explanation= ss.str();
+            }
             Info(SimpleDebug::kLOW,"DavAvailabilityChecker", " Status of " << myself->uri_ping <<  " checked : OFFLINE, HTTP error code "<< code << ", error : " << myself->explanation);
             myself->last_state = PLUGIN_ENDPOINT_OFFLINE;
         }
-
     }
     Info(SimpleDebug::kMEDIUM,"DavAvailabilityChecker", " End checker for " << myself->uri_ping );
     g_atomic_int_set(&myself->state,0);

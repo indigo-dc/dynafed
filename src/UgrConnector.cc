@@ -25,6 +25,15 @@ using namespace boost::filesystem;
 using namespace boost::system;
 
 
+#define EXECUTE_ON_AVAILABLE(myfunc) \
+    do{ \
+    for (unsigned int i = 0; i < locPlugins.size(); i++) { \
+        if (checkpluginAvailability(locPlugins[i], fi)) \
+            locPlugins[i]->myfunc; \
+    }  \
+    } while(0)
+
+
 
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
@@ -239,11 +248,7 @@ void UgrConnector::do_n2n(std::string &path) {
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (checkpluginAvailability(locPlugins[i], fi))
-            locPlugins[i]->do_Stat(fi, &locHandler);
-    }
-
+    EXECUTE_ON_AVAILABLE(do_Stat(fi, &locHandler));
     return 0;
 }
 
@@ -261,9 +266,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
     }
 
     // We also ask the plugins
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_waitStat(fi, tmout);
-
+    EXECUTE_ON_AVAILABLE(do_waitStat(fi, tmout));
     return 0;
 }
 
@@ -344,12 +347,7 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (checkpluginAvailability(locPlugins[i], fi))
-            locPlugins[i]->do_Locate(fi, &locHandler);
-    }
-
-
+    EXECUTE_ON_AVAILABLE(do_Locate(fi, &locHandler));
     return 0;
 }
 
@@ -367,8 +365,8 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
     }
 
     // We also ask the plugins
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_waitLocate(fi, tmout);
+
+    EXECUTE_ON_AVAILABLE(do_waitLocate(fi, tmout));
 
     return 0;
 }
@@ -418,10 +416,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
 int UgrConnector::do_List(UgrFileInfo *fi) {
 
-    for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (checkpluginAvailability(locPlugins[i], fi))
-            locPlugins[i]->do_List(fi, &locHandler);
-    }
+    EXECUTE_ON_AVAILABLE(do_List(fi, &locHandler));
 
     return 0;
 }
@@ -440,8 +435,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
     }
 
     // We also ask to the individual plugins
-    for (unsigned int i = 0; i < locPlugins.size(); i++)
-        locPlugins[i]->do_waitList(fi, tmout);
+    EXECUTE_ON_AVAILABLE(do_waitList(fi, tmout));
 
     return 0;
 }

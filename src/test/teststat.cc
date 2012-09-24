@@ -32,6 +32,7 @@ int main(int argc, char **argv) {
     if (ugr.init(argv[2]))
         return 1;
 
+    sleep(10);
     cout << "Invoking stat" << endl;
     string fn = argv[3];
 
