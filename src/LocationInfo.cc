@@ -53,7 +53,7 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
         waitForSomeUpdate(l, 1);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(SimpleDebug::kHIGH, fname, "Timeout");
+            Info(SimpleDebug::kHIGH, fname, "Timeout. Name:" << name);
             break;
         }
     }
@@ -84,7 +84,7 @@ int UgrFileInfo::waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout
         waitForSomeUpdate(l, 1);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(SimpleDebug::kHIGH, fname, "Timeout");
+            Info(SimpleDebug::kHIGH, fname, "Timeout. Name:" << name);
             break;
         }
     }
@@ -94,8 +94,8 @@ int UgrFileInfo::waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout
 
     // We are here if the plugins have finished OR in the case of timeout
     // If the loc is still marked as in progress it means that some plugin is very late.
-    if ((getLocationStatus() == InProgress) && (status_locations == NoInfo))
-        status_locations = NotFound;
+    //if ((getLocationStatus() == InProgress) && (status_locations == NoInfo))
+    //    status_locations = NotFound;
 
     return 0;
 }
@@ -115,7 +115,7 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
         waitForSomeUpdate(l, 2);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(SimpleDebug::kHIGH, fname, "Timeout");
+            Info(SimpleDebug::kHIGH, fname, "Timeout. Name:" << name);
             break;
         }
     }
@@ -125,8 +125,8 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
 
     // We are here if the plugins have finished OR in the case of timeout
     // If the loc is still marked as in progress it means that some plugin is very late.
-    if ((getItemsStatus() == InProgress) && (status_items == NoInfo))
-        status_items = NotFound;
+    //if ((getItemsStatus() == InProgress) && (status_items == NoInfo))
+    //    status_items = NotFound;
 
     return 0;
 }

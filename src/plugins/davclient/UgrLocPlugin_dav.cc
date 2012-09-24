@@ -293,7 +293,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
 
                         // If the entry was already in cache, don't overwrite
-                        // This avoids a massive, potentially useless burst of writes to the 2nd level cache
+                        // This avoids a massive, potentially useless burst of writes to the 2nd level cache 
                         if (fi && (fi->status_statinfo != UgrFileInfo::Ok)) {
                             fi->takeStat(st2);
                         }

@@ -204,12 +204,16 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
     std::string abspath = getAbsPath(const_cast<std::string&>(path));
-    if (!getUgrConnector()->list((std::string&)abspath, &fi) && fi && (fi->getItemsStatus() == fi->Ok)) {
-
-        // This is just an opaque pointer, we can store what we want
-        return (Directory *) (new myDirectory(fi));
+    if (!getUgrConnector()->list((std::string&)abspath, &fi) && fi) {
+        
+        if ((fi->getItemsStatus() == UgrFileInfo::InProgress) || (fi->getItemsStatus() == UgrFileInfo::Ok))
+                // This is just an opaque pointer, we can store what we want
+                return (Directory *) (new myDirectory(fi));
     }
 
+    if (fi->getItemsStatus() == UgrFileInfo::NotFound)
+        throw DmException(ENOENT, "File not found");
+    
     if (fi->getItemsStatus() == UgrFileInfo::Error)
         throw DmException(DMLITE_MALFORMED, "Error getting directory content (likely the directory is bigger than the limit)");
 
