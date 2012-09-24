@@ -91,19 +91,6 @@ int UgrConnector::init(char *cfgfile) {
         boost::lock_guard<boost::mutex> l(mtx);
         if (initdone) return -1;
 
-        // setup plugin directory
-        plugin_dir = (env_plugin_dir = getenv(UGR_PLUGIN_DIR_ENV_VAR))?env_plugin_dir:UGR_PLUGIN_DIR_DEFAULT;
-
-        try{
-            if(is_directory(plugin_dir)){
-                Info(SimpleDebug::kLOW, fname, "Define Ugr plugin directory to: " << plugin_dir);
-            }else{
-                throw filesystem_error("ugr plugin path is not a directory", plugin_dir, error_code(ENOTDIR,get_generic_category()));
-            }
-        }catch(filesystem_error & e){
-            Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
-        }
-
         // Process the config file
         Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
 
@@ -123,6 +110,18 @@ int UgrConnector::init(char *cfgfile) {
 
         DebugSetLevel(debuglevel);
         SimpleDebug::Instance()->SetStderrPrint(debug_stderr);
+
+        // setup plugin directory
+        plugin_dir = CFG->GetString("glb.plugin_dir", (char *) UGR_PLUGIN_DIR_DEFAULT);
+        try{
+            if(is_directory(plugin_dir)){
+                Info(SimpleDebug::kMEDIUM, fname, "Define Ugr plugin directory to: " << plugin_dir);
+            }else{
+                throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR,get_generic_category()));
+            }
+        }catch(filesystem_error & e){
+            Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
+        }
 
         // Get the tick pace from the config
         ticktime = CFG->GetLong("glb.tick", 10);
