@@ -40,6 +40,8 @@ include_directories(${Boost_INCLUDE_DIRS})
 # Set up the includes to be used for protobuf
 include_directories($PROTOBUF_INCLUDE_DIRS})
 
+include_directories(".")
+
 add_subdirectory(plugins)
 add_subdirectory(test)
 

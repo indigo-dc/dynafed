@@ -23,7 +23,7 @@
 class DavAvailabilityChecker
 {
 public:
-    DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & uri_ping, unsigned long time_interval=5000);
+    DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & uri_ping, unsigned long time_interval=5000, struct timespec* max_latency=NULL);
     virtual ~DavAvailabilityChecker();
 
 	void get_availability(PluginEndpointStatus * status);	
@@ -32,6 +32,7 @@ private:
 	std::string uri_ping;
 	Davix::CoreInterface* dav_context;
     struct itimerspec timer_value;
+    struct timespec max_latency;
 	
 	// stats
 	PluginEndpointState last_state;

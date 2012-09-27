@@ -16,6 +16,7 @@ const std::string config_timeout_conn_key("conn_timeout");
 const std::string config_timeout_ops_key("ops_timeout");
 const std::string config_endpoint_state_check("status_checking");
 const std::string config_endpoint_checker_poll_frequency("status_checker_frequency");
+const std::string config_endpoint_checker_max_latency("max_latency");
 
 using namespace boost;
 using namespace std;
@@ -95,6 +96,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
     std::string pref_dot = prefix + std::string(".");
+    guint latency;
 
     // get ssl check
     ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
@@ -120,12 +122,17 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");
     }
     // get state checker
-    // get ssl check
     state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker : " << ((state_checking) ? "ENABLED" : "DISABLED"));
 
     state_checker_freq = c->GetLong(pref_dot + config_endpoint_checker_poll_frequency, 5000);
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker frequency : " << state_checker_freq);
+    // get maximum latency
+    latency = c->GetLong(pref_dot + config_endpoint_checker_max_latency, 10000);
+    max_latency.tv_sec = latency /1000;
+    max_latency.tv_nsec = (latency%1000)*1000000;
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Maximum Endpoint latency " << (int)max_latency.tv_sec << "s "<<(int) max_latency.tv_nsec << "ns"  );
+
 
     // timeout management
     long timeout;
@@ -149,7 +156,7 @@ void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileI
 
 int UgrLocPlugin_dav::start() {
     if (state_checking) {
-        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq));
+        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq, &max_latency));
     }
     return LocationPlugin::start();
 }
