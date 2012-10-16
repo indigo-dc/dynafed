@@ -20,7 +20,7 @@ BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:		cmake
 BuildRequires:		lfc-devel
 BuildRequires:		dmlite-devel
-BuildRequires:		davix-devel
+BuildRequires:		davix-devel >= 0.0.6
 %if 0%{?el5}
 BuildRequires:		boost141-devel
 %else
