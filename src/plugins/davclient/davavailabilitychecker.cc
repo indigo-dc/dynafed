@@ -5,7 +5,7 @@
 
 
 
-DavAvailabilityChecker::DavAvailabilityChecker(Davix::CoreInterface* davx, const std::string & _uri_ping,
+DavAvailabilityChecker::DavAvailabilityChecker(Davix::Context* davx, const std::string & _uri_ping,
                                                     unsigned long _time_interval, struct timespec* max_latency) :
 			uri_ping(_uri_ping), dav_context(davx)
 {
@@ -72,10 +72,10 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     boost::shared_ptr<Davix::HttpRequest> req;
     clock_gettime(CLOCK_MONOTONIC, &t1);
     try{
-        req = boost::shared_ptr<Davix::HttpRequest>( static_cast<Davix::HttpRequest*>(myself->dav_context->getSessionFactory()->create_request(myself->uri_ping)));
-        req->set_requestcustom("HEAD");
+        req = boost::shared_ptr<Davix::HttpRequest>( static_cast<Davix::HttpRequest*>(myself->dav_context->createRequest(myself->uri_ping)));
+        req->setRequestMethod("HEAD");
         req->execute_sync();
-        code = req->get_request_code();
+        code = req->getRequestCode();
 
     }catch(Glib::Error & e){
         std::ostringstream ss;

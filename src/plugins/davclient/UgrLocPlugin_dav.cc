@@ -73,7 +73,7 @@ int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_
 }
 
 UgrLocPlugin_dav::UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_create()) {
+    LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
@@ -87,9 +87,9 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(Davix::davix_context_c
     }
     load_configuration(CONFIG_PREFIX + name);
 
-    params.set_ssl_ca_check(ssl_check);
-    params.set_authentification_controller(this, &UgrLocPlugin_dav::davix_credential_callback);
-    dav_core->getSessionFactory()->set_parameters(params);
+    params.setSSLCAcheck(ssl_check);
+    params.setAuthentificationCallback(this, &UgrLocPlugin_dav::davix_credential_callback);
+   // dav_core->getSessionFactory()->set_parameters(params);
 
 }
 
@@ -136,12 +136,15 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
 
     // timeout management
     long timeout;
+    struct timespec spec_timeout;
     if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connection timeout is set to : " << timeout);
-        params.set_connexion_timeout(timeout);
+        spec_timeout.tv_sec = timeout;
+        params.setConnexionTimeout(&spec_timeout);
     }
     if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0) {
-        params.set_operation_timeout(timeout);
+        spec_timeout.tv_sec = timeout;
+        params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
     }
 }
@@ -196,17 +199,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_Stat:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << cannonical_name << ")");
-                dav_core->stat(cannonical_name, &st);
+                pos.stat(&params, cannonical_name, &st);
                 break;
 
             case LocationPlugin::wop_Locate:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << cannonical_name << ")");
-                dav_core->stat(cannonical_name, &st);
+                pos.stat(&params, cannonical_name, &st);
                 break;
 
             case LocationPlugin::wop_List:
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << cannonical_name << ")");
-                d = dav_core->opendirpp(cannonical_name);
+                d = pos.opendirpp(&params, cannonical_name);
                 // if reach here -> valid opendir -> specify file as well
                 op->fi->unixflags |= S_IFDIR;
                 break;
@@ -264,7 +267,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     dirent * dent;
                     long cnt = 0;
                     struct stat st2;
-                    while ((dent = dav_core->readdirpp(d, &st2)) != NULL) {
+                    while ((dent = pos.readdirpp(d, &st2)) != NULL) {
                         UgrFileItem it;
                         {
                             unique_lock<mutex> l(*(op->fi));
@@ -305,7 +308,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                             fi->takeStat(st2);
                         }
                     }
-                    dav_core->closedirpp(d);
+                    pos.closedirpp(d);
 
 
                 }
