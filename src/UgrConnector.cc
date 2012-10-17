@@ -87,7 +87,6 @@ UgrConnector::~UgrConnector() {
 int UgrConnector::init(char *cfgfile) {
     const char *fname = "UgrConnector::init";
     {
-        char* env_plugin_dir;
         boost::lock_guard<boost::mutex> l(mtx);
         if (initdone) return -1;
 
@@ -227,6 +226,13 @@ int UgrConnector::init(char *cfgfile) {
     Info(SimpleDebug::kLOW, fname, "Initialization complete.");
 
     return 0;
+}
+
+
+bool UgrConnector::isEndpointOK(int pluginID) {
+    if ((pluginID > (int)locPlugins.size()) || (pluginID < 0)) return false;
+    
+    return checkpluginAvailability(locPlugins[pluginID], 0);
 }
 
 void UgrConnector::do_n2n(std::string &path) {

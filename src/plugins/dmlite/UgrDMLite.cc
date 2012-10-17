@@ -106,6 +106,13 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
         Replica r;
 
         for (std::set<UgrFileItem_replica>::iterator i = repls.begin(); i != repls.end(); ++i) {
+            
+            // Filter out the replicas that belong to dead endpoints
+            if (!getUgrConnector()->isEndpointOK(i->pluginID)) {
+                Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "Skipping " << i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
+                continue;
+            }
+            
             Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
             r.fileid = 0;
             r.replicaid = 0;

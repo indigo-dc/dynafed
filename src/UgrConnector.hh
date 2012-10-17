@@ -106,6 +106,9 @@ public:
     /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
     bool resetinit() { initdone = false; return true; }
+    
+    // Tells us if the endpoint represented by the given pluginID is up or down
+    bool isEndpointOK(int pluginID);
 
     /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
     /// This could be a list of replicas
