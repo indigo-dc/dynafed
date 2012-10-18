@@ -286,7 +286,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                             LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
                             it.name = std::string(dent->d_name);
                             it.location.clear();
-                            it.pluginID = myID;
+                           
                             // populate answer
                             op->fi->subdirs.insert(it);
                         }

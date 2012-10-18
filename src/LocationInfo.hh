@@ -34,13 +34,13 @@ public:
     // Some info about the location, e.g. galactic coordinates
     std::string location;
     
-    /// The index of the plugin that inserted this subitem
-    short pluginID;
 };
 
 class UgrFileItem_replica: public UgrFileItem {
 public: 
-    UgrFileItem_replica(): UgrFileItem(), latitude(0.0), longitude(0.0) {};
+    UgrFileItem_replica(): UgrFileItem(), latitude(0.0), longitude(0.0) {
+        pluginID = -1;
+    };
     
     // Some info about the location, e.g. galactic coordinates
     std::string location;
@@ -49,6 +49,8 @@ public:
     float latitude;
     float longitude;
     
+    /// The index of the plugin that inserted this replica
+    short pluginID;
 };
 
 

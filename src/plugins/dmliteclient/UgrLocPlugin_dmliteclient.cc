@@ -160,8 +160,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
             if (exc) {
                 //op->fi->status_statinfo = UgrFileInfo::NotFound;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
-            } else
+            } else {
+                op->fi->setPluginID(myID);
                 op->fi->takeStat(st.stat);
+            }
 
 
             break;
@@ -172,9 +174,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
             } else {
 
-
-
-
+                op->fi->setPluginID(myID);
 
                 for (vector<dmlite::Replica>::iterator i = repvec.begin();
                         i != repvec.end();
@@ -182,6 +182,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                     UgrFileItem_replica it;
                     it.name = i->rfn;
+                    it.pluginID = myID;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
                     // Process it with the Geo plugin, if needed
@@ -211,6 +212,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 dmlite::ExtendedStat *dent;
                 long cnt = 0;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
+                op->fi->setPluginID(myID);
 
                 try {
                     UgrFileItem it;
