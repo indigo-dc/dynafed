@@ -51,7 +51,7 @@ int UgrLocPlugin_dav::davix_credential_callback(davix_auth_t token, const davix_
 
     switch (t->auth) {
         case DAVIX_CLI_CERT_PKCS12:
-            ret = davix_set_pkcs12_auth(token, me->pkcs12_credential_path.c_str(),
+            ret = davix_auth_set_pkcs12_cli_cert(token, me->pkcs12_credential_path.c_str(),
                     (me->pkcs12_credential_password.size() == 0) ? NULL : me->pkcs12_credential_password.c_str(),
                     &tmp_err);
             if (ret != 0) {

@@ -64,6 +64,7 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
 void DavAvailabilityChecker::polling_task(union sigval args){
     DavAvailabilityChecker* myself = static_cast<DavAvailabilityChecker*>(args.sival_ptr);
     struct timespec t1, t2;
+    Davix::DavixError* tmp_err = NULL;
 
     if( g_atomic_int_compare_and_exchange(&myself->state,0,1) == false) // check if destruction occures if not -> execute
         return;
@@ -71,21 +72,21 @@ void DavAvailabilityChecker::polling_task(union sigval args){
     int code = 404;
     boost::shared_ptr<Davix::HttpRequest> req;
     clock_gettime(CLOCK_MONOTONIC, &t1);
-    try{
-        req = boost::shared_ptr<Davix::HttpRequest>( static_cast<Davix::HttpRequest*>(myself->dav_context->createRequest(myself->uri_ping)));
-        req->setRequestMethod("HEAD");
-        req->execute_sync();
-        code = req->getRequestCode();
+    
+	req = boost::shared_ptr<Davix::HttpRequest>( static_cast<Davix::HttpRequest*>(myself->dav_context->createRequest(myself->uri_ping, &tmp_err)));
+	if(req.get() != NULL){
+		req->setRequestMethod("HEAD");
+		if( req->executeRequest(&tmp_err) == 0 )
+			code = req->getRequestCode();
+	}
 
-    }catch(Glib::Error & e){
+    if(tmp_err){
         std::ostringstream ss;
-        ss << "HTTP status error on " << myself->uri_ping << " "<< e.what();
+        ss << "HTTP status error on " << myself->uri_ping << " "<< tmp_err->getErrMsg();
         myself->explanation = ss.str();
         code = -1;
-    }catch(...){
-        myself->explanation = "Unknow string Error";
-        code = -2;
     }
+    
     clock_gettime(CLOCK_MONOTONIC, &t2);
 
     {
