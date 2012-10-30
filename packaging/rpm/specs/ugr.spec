@@ -7,7 +7,7 @@
 %endif
 
 Name:				ugr
-Version:			1.0.2
+Version:			1.0.3
 Release:			0.1.%{checkout_tag}%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
@@ -20,7 +20,7 @@ BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 BuildRequires:		cmake
 BuildRequires:		lfc-devel
 BuildRequires:		dmlite-devel
-BuildRequires:		davix-devel >= 0.0.6
+BuildRequires:		davix-devel >= 0.0.9
 %if 0%{?el5}
 BuildRequires:		boost141-devel
 %else
