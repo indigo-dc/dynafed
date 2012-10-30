@@ -83,7 +83,7 @@ protected:
 
     virtual int start();
 	
-	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, GError** err); 	
+	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err); 	
 };
 
 
