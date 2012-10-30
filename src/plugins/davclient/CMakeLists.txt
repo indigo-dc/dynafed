@@ -10,14 +10,16 @@ FILE(GLOB src_dav_plugin "*.cc")
 message(STATUS "Building the DAV plugin")
 
 pkg_check_modules(DAVIX_PKG REQUIRED davix)
+# glibmm for dav plugin
+pkg_search_module(GLIBMM_PKG REQUIRED glibmm glibmm-2.6 glibmm-2.4) 
 
-include_directories(${DAVIX_PKG_INCLUDE_DIRS})
+include_directories(${DAVIX_PKG_INCLUDE_DIRS} ${GLIBMM_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
 add_library(ugrlocplugin_dav SHARED ${src_dav_plugin})
 set_target_properties(ugrlocplugin_dav PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
-target_link_libraries(ugrlocplugin_dav ugrconnector ${DAVIX_PKG_LIBRARIES})
+target_link_libraries(ugrlocplugin_dav ugrconnector ${DAVIX_PKG_LIBRARIES} ${GLIBMM_PKG_LIBRARIES})
 
 
 # How to install. This is a set of plugins that belong to a specific component

@@ -17,18 +17,19 @@ URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}-%{checkout_tag}.tar.gz 
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-BuildRequires:		cmake
-BuildRequires:		lfc-devel
-BuildRequires:		dmlite-devel
-BuildRequires:		davix-devel >= 0.0.9
 %if 0%{?el5}
 BuildRequires:		boost141-devel
 %else
 BuildRequires:		boost-devel
 %endif
+BuildRequires:		cmake
+BuildRequires:		dmlite-devel
+BuildRequires:		davix-devel >= 0.0.9
 BuildRequires:		GeoIP-devel
-BuildRequires:		protobuf-devel
 BuildRequires:		libmemcached-devel
+BuildRequires:		lfc-devel
+BuildRequires:		protobuf-devel
+
 
 %description
 Ugr provides a powerfull, fast and scalable dynamic storage federation 
