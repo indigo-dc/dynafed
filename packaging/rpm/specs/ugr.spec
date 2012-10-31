@@ -26,6 +26,7 @@ BuildRequires:		cmake
 BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel >= 0.0.9
 BuildRequires:		GeoIP-devel
+BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		lfc-devel
 BuildRequires:		protobuf-devel
