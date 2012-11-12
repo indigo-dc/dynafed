@@ -4,7 +4,7 @@
 
 
 /** 
- * @file   UgrLocPlugin_dav.hh
+ * @file   UgrLocPlugin_http.hh
  * @brief  Plugin that talks to any Webdav compatible endpoint
  * @author Devresse Adrien
  * @date   Feb 2012
@@ -13,14 +13,15 @@
 #include <davix_cpp.hpp>
 #include <string>
 #include <glibmm.h>
-#include "davavailabilitychecker.hh"
-#include "ugr_loc_plugin_dav_type.hh"
+#include "httpavailabilitychecker.hh"
+#include "ugr_loc_plugin_http_type.hh"
 #include "../../LocationPlugin.hh"
 
-class DavAvailabilityChecker;
+
+class HttpAvailabilityChecker;
 
 /**
- *  Dav plugin config parameters
+ *  Http plugin config parameters
  *  ssl_check : TRUE | FALSE   - enable or disable the CA check for the server certificate
  *  cli_certificate : path     - path to the credential to use for this endpoint
  *  cli_password : password    - password to use for this credential
@@ -28,57 +29,61 @@ class DavAvailabilityChecker;
  *  auth_passwd : password	   - password to use for the basic HTTP authentification
  * */
 
-
 /** 
  * Location Plugin for Ugr, inherit from the LocationPlugin
  *  allow to do basic query to a webdav endpoint
- **/  
-class UgrLocPlugin_dav : public LocationPlugin {
+ **/
+class UgrLocPlugin_http : public LocationPlugin {
 protected:
 
 
 public:
 
-	/**
-	 * Follow the standard LocationPlugin construction
-	 * 
-	 * */
-    UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    /**
+     * Follow the standard LocationPlugin construction
+     * 
+     * */
+    UgrLocPlugin_http(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
 
 
     /**
      *  main executor for the plugin    
      **/
-     virtual void runsearch(struct worktoken *op, int myidx);
+    virtual void runsearch(struct worktoken *op, int myidx);
 
-     virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
+    virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
 
+    
+   /// With http we cannot do listings, hence we shortcircuit the request
+   virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
+       return 0;
+   }
 protected:
-	std::string base_url;
-	std::string pkcs12_credential_path;
-	std::string pkcs12_credential_password;
-	bool ssl_check;
-	std::string login;
-	std::string password;
-	
+    std::string base_url;
+    std::string pkcs12_credential_path;
+    std::string pkcs12_credential_password;
+    bool ssl_check;
+    std::string login;
+    std::string password;
+
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;
     Davix::RequestParams params;
 
     //plugin state checker
     bool state_checking;
-    boost::shared_ptr<DavAvailabilityChecker> state_checker;
+    boost::shared_ptr<HttpAvailabilityChecker> state_checker;
     unsigned long state_checker_freq;
     struct timespec max_latency;
-	
-	void load_configuration(const std::string & prefix);
+
+    void load_configuration(const std::string & prefix);
 
     // stop the plugin behavior
     virtual void stop();
 
     virtual int start();
-	
-	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err); 	
+
+    static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err);
 };
 
 

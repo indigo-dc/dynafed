@@ -20,12 +20,6 @@ configure_file (
 	       "${PROJECT_BINARY_DIR}/Doxyfile.cfg"
 )
 
-# add configure build options
-SET(PLUGIN_WEBDAV TRUE 
-	CACHE STRING "enable compilation of the Webdav plugin")
-
-
-
 
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (eg MacroOutOfSourceBuild.cmake):
