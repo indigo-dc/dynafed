@@ -199,6 +199,10 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 		case LocationPlugin::wop_Stat:
 			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << cannonical_name << ")");
 			pos.stat(&params, cannonical_name, &st, &tmp_err);
+			// force path finishing with '/' like a directory, impossible to get the type of a file in plain http
+			if( cannonical_name.at(cannonical_name.length()-1) == '/'){ 
+				st.st_mode |= S_IFDIR;
+			}
 			break;
 
 		case LocationPlugin::wop_Locate:
