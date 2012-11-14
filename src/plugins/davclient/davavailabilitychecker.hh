@@ -17,26 +17,22 @@
 #include "UgrLocPlugin_dav.hh"
 #include "ugr_loc_plugin_dav_type.hh"
 
-
-
-
-class DavAvailabilityChecker
-{
+class DavAvailabilityChecker {
 public:
-    DavAvailabilityChecker(Davix::Context* davx, const std::string & uri_ping, unsigned long time_interval=5000, struct timespec* max_latency=NULL);
+    DavAvailabilityChecker(Davix::Context* davx, const std::string & uri_ping, unsigned long time_interval = 5000, struct timespec* max_latency = NULL);
     virtual ~DavAvailabilityChecker();
 
-	void get_availability(PluginEndpointStatus * status);	
+    void get_availability(PluginEndpointStatus * status);
 private:
-	unsigned long time_interval;	
-	std::string uri_ping;
+    unsigned long time_interval;
+    std::string uri_ping;
     Davix::Context* dav_context;
     struct itimerspec timer_value;
     struct timespec max_latency;
-	
-	// stats
-	PluginEndpointState last_state;
-	unsigned long latency;
+
+    // stats
+    PluginEndpointState last_state;
+    unsigned long latency;
     std::string explanation;
     //
 
@@ -49,9 +45,9 @@ private:
 
     static void polling_task(union sigval);
     void first_init_timer(timer_t * t, struct sigevent* even,
-                            long time_interval);
+            long time_interval);
 
-
+    void setLastState(PluginEndpointState newstate, int httpcode);
 
 };
 

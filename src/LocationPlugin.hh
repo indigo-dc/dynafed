@@ -23,27 +23,27 @@
 #define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
 #define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << myidx << " " << c);
 
-enum PluginEndpointState{
-	PLUGIN_ENDPOINT_ONLINE=0,
-	PLUGIN_ENDPOINT_OFFLINE,
-	PLUGIN_ENDPOINT_TEMPORARY_OFFLINE,
+enum PluginEndpointState {
+    PLUGIN_ENDPOINT_UNKNOWN = 0,
+    PLUGIN_ENDPOINT_ONLINE,
+    PLUGIN_ENDPOINT_OFFLINE,
+    PLUGIN_ENDPOINT_TEMPORARY_OFFLINE,
     PLUGIN_ENDPOINT_NOT_EXIST,
-	PLUGIN_ENDPOINT_OVERLOADED,
-	PLUGIN_ENDPOINT_ERROR_AUTH,
-	PLUGIN_ENDPOINT_ERROR_OTHER,
+    PLUGIN_ENDPOINT_OVERLOADED,
+    PLUGIN_ENDPOINT_ERROR_AUTH,
+    PLUGIN_ENDPOINT_ERROR_OTHER,
 };
 
 /// contain information about the availability of the plugin endpoint
-struct PluginEndpointStatus{
-	/// current status of the plugin's endpoint
-	PluginEndpointState state;
-	/// average latency in ms
-	unsigned long latency;
-	/// string description
-	std::string explanation;
+
+struct PluginEndpointStatus {
+    /// current status of the plugin's endpoint
+    PluginEndpointState state;
+    /// average latency in ms
+    unsigned long latency;
+    /// string description
+    std::string explanation;
 };
-
-
 
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
@@ -53,22 +53,23 @@ struct PluginEndpointStatus{
  * 
  */
 class LocationPlugin {
-
     int nthreads;
-    
 
-    
+
+
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
 
 public:
-	enum workOp {
-		wop_Nop = 0,
-		wop_Stat,
-		wop_Locate,
-		wop_List
-	};
+
+    enum workOp {
+        wop_Nop = 0,
+        wop_Stat,
+        wop_Locate,
+        wop_List
+    };
     /// The description of an operation to be done asynchronously
+
     struct worktoken {
         UgrFileInfo *fi;
         workOp wop;
@@ -78,7 +79,7 @@ public:
 protected:
     /// ID of this plugin
     int myID;
-    
+
     /// The name assigned to this plugin from the creation
     std::string name;
 
@@ -109,68 +110,74 @@ protected:
     /// The method that performs the operation
     /// This has to be overridden in the true plugins
     virtual void runsearch(struct worktoken *wtk, int myidx);
-    
+
 
     // The simple, default global name translation
     std::string xlatepfx_from, xlatepfx_to;
 
 public:
-    
-   LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
-   virtual ~LocationPlugin();
 
-   virtual void stop();
-   virtual int start();
+    LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    virtual ~LocationPlugin();
 
-   virtual void setGeoPlugin(GeoPlugin *gp) { geoPlugin = gp; };
-   void setID(short pluginID) { myID = pluginID; }
-   
-   ///
-   /// return the plugin name ( id )
-   ///
-   virtual const std::string & get_Name(){
-	   return name;
-   }
-   
+    virtual void stop();
+    virtual int start();
+
+    virtual void setGeoPlugin(GeoPlugin *gp) {
+        geoPlugin = gp;
+    };
+
+    void setID(short pluginID) {
+        myID = pluginID;
+    }
+
+    ///
+    /// return the plugin name ( id )
+    ///
+
+    virtual const std::string & get_Name() {
+        return name;
+    }
+
     /// Check current availability of this plugin for a given operation
     /// the implementation of this call should be as fast as possible ( executed in the main thread )
-    virtual void check_availability(PluginEndpointStatus * status, UgrFileInfo *fi);   
+    virtual void check_availability(PluginEndpointStatus * status, UgrFileInfo *fi);
 
-   // Calls that characterize the behevior of the plugin
-   // In general:
-   //  do_XXX triggers the start of an async task that gathers a specific kind of info
-   //   it's not serialized, and it has to return immediately, exposing a non-blocking behavior
-   //  do_waitXXX waits for the completion of the task that was triggered by the corresponding
-   //   invokation of do_XXX. This is a blocking function, that must honour the timeout value that
-   //   is given
-      
-   // The async stat process will put (asynchronously) the required info directly in the data fields of
-   // the given instance of UgrFileInfo. Access to this data struct has to be properly protected, since it's
-   // a shared thing
+    // Calls that characterize the behevior of the plugin
+    // In general:
+    //  do_XXX triggers the start of an async task that gathers a specific kind of info
+    //   it's not serialized, and it has to return immediately, exposing a non-blocking behavior
+    //  do_waitXXX waits for the completion of the task that was triggered by the corresponding
+    //   invokation of do_XXX. This is a blocking function, that must honour the timeout value that
+    //   is given
 
-   /// Start the async stat process
-   /// @param fi UgrFileInfo instance to populate
-   virtual int do_Stat(UgrFileInfo *fi, LocationInfoHandler *handler);
-   /// Waits max a number of seconds for a stat process to be complete
-   /// @param fi UgrFileInfo instance to wait for
-   /// @param tmout Timeout for waiting
-   virtual int do_waitStat(UgrFileInfo *fi, int tmout=5);
+    // The async stat process will put (asynchronously) the required info directly in the data fields of
+    // the given instance of UgrFileInfo. Access to this data struct has to be properly protected, since it's
+    // a shared thing
 
-   /// Start the async location process
-   /// @param fi UgrFileInfo instance to populate
-   virtual int do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler);
-   /// Waits max a number of seconds for a locate process to be complete
-   /// @param fi UgrFileInfo instance to wait for
-   /// @param tmout Timeout for waiting
-   virtual int do_waitLocate(UgrFileInfo *fi, int tmout=5);
+    /// Start the async stat process
+    /// @param fi UgrFileInfo instance to populate
+    virtual int do_Stat(UgrFileInfo *fi, LocationInfoHandler *handler);
+    /// Waits max a number of seconds for a stat process to be complete
+    /// @param fi UgrFileInfo instance to wait for
+    /// @param tmout Timeout for waiting
+    virtual int do_waitStat(UgrFileInfo *fi, int tmout = 5);
 
-   /// Start the async listing process
-   /// @param fi UgrFileInfo instance to populate
-   virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
-   /// Waits max a number of seconds for a list process to be complete
-   /// @param fi UgrFileInfo instance to wait for
-   /// @param tmout Timeout for waiting
-   virtual int do_waitList(UgrFileInfo *fi, int tmout=5);
+    /// Start the async location process
+    /// @param fi UgrFileInfo instance to populate
+    virtual int do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler);
+    /// Waits max a number of seconds for a locate process to be complete
+    /// @param fi UgrFileInfo instance to wait for
+    /// @param tmout Timeout for waiting
+    virtual int do_waitLocate(UgrFileInfo *fi, int tmout = 5);
+
+    /// Start the async listing process
+    /// @param fi UgrFileInfo instance to populate
+    virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
+    /// Waits max a number of seconds for a list process to be complete
+    /// @param fi UgrFileInfo instance to wait for
+    /// @param tmout Timeout for waiting
+    virtual int do_waitList(UgrFileInfo *fi, int tmout = 5);
 
 };
 
