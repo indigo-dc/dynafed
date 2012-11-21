@@ -49,7 +49,7 @@ Requires:			pkgconfig
 development files for %{name}
 
 %package dav-plugin
-Summary:			WebDav plugin for %{name}
+Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 
