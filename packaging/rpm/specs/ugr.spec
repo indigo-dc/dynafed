@@ -110,6 +110,9 @@ make DESTDIR=%{buildroot} install
 %files dav-plugin
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dav.so
+%{_libdir}/ugr/libugrlocplugin_http.so
+
+
 
 %files dmlite-plugin
 %defattr (-,root,root)
