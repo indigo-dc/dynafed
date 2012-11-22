@@ -1,5 +1,5 @@
+
 #include "davavailabilitychecker.hh"
-#include <ctime>
 #include <libs/time_utils.h>
 
 DavAvailabilityChecker::DavAvailabilityChecker(Davix::Context* davx, const Davix::RequestParams & params,
@@ -52,15 +52,16 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
     even->sigev_value.sival_ptr = this;
     even->sigev_notify_function = &DavAvailabilityChecker::polling_task;
     res = timer_create(CLOCK_MONOTONIC, even, t);
-    g_assert(res == 0);
+    if( res ==0){
+        timer_value.it_interval.tv_sec = time_interval / 1000;
+        timer_value.it_interval.tv_nsec = (time_interval % 1000)*1000000;
+        timer_value.it_value.tv_nsec = 10;
 
-    timer_value.it_interval.tv_sec = time_interval / 1000;
-    timer_value.it_interval.tv_nsec = (time_interval % 1000)*1000000;
-    timer_value.it_value.tv_nsec = 10;
-
-    res = timer_settime(*t, 0, &timer_value,
-            NULL);
-    g_assert(res == 0);
+        res = timer_settime(*t, 0, &timer_value,
+                NULL);
+    }
+    if(res !=0)
+        Info(SimpleDebug::kMEDIUM, "DavAvailabilityChecker", "WARNING : Status checker init for " << uri_ping << "failed, checker disabled");
 
 }
 
