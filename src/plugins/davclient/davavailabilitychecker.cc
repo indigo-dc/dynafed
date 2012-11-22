@@ -2,19 +2,27 @@
 #include <ctime>
 #include <libs/time_utils.h>
 
-DavAvailabilityChecker::DavAvailabilityChecker(Davix::Context* davx, const std::string & _uri_ping,
-        unsigned long _time_interval, struct timespec* max_latency) :
-uri_ping(_uri_ping), dav_context(davx) {
+DavAvailabilityChecker::DavAvailabilityChecker(Davix::Context* davx, const Davix::RequestParams & params,
+                     const std::string & _uri_ping, unsigned long _time_interval ,
+                                               struct timespec* max_latency ) :
+    uri_ping(_uri_ping),
+    dav_context(davx),
+    checker_params(params)
+{
     last_state = PLUGIN_ENDPOINT_UNKNOWN;
     latency = 0;
     time_interval = _time_interval;
     Info(SimpleDebug::kMEDIUM, "DavAvailabilityChecker", "Launch state checker for  :" << uri_ping << " with frequency : " << time_interval);
     state = 0;
     first_init_timer(&timer, &even, time_interval);
-    if (max_latency)
+    if (max_latency){
+        Info(SimpleDebug::kMEDIUM, "DavAvailabilityChecker", "Launch state checker for  :" << uri_ping << " with frequency : " << time_interval);
         timespec_copy(&(this->max_latency), max_latency);
-    else
+        checker_params.setConnexionTimeout(max_latency);
+        checker_params.setOperationTimeout(max_latency);
+    }else{
         timespec_clear(&(this->max_latency));
+    }
 }
 
 DavAvailabilityChecker::~DavAvailabilityChecker() {
@@ -39,6 +47,7 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
     memset(&start, 0, sizeof (struct timespec));
     memset(&interval, 0, sizeof (struct timespec));
 
+
     even->sigev_notify = SIGEV_THREAD;
     even->sigev_value.sival_ptr = this;
     even->sigev_notify_function = &DavAvailabilityChecker::polling_task;
@@ -60,7 +69,6 @@ void DavAvailabilityChecker::polling_task(union sigval args) {
     
     struct timespec t1, t2, tmout;
     Davix::DavixError* tmp_err = NULL;
-    Davix::RequestParams reqparams;
     int code = 404;
 
     if (g_atomic_int_compare_and_exchange(&myself->state, 0, 1) == false) // check if destruction occures if not -> execute
@@ -69,16 +77,14 @@ void DavAvailabilityChecker::polling_task(union sigval args) {
 
     boost::shared_ptr<Davix::HttpRequest> req;
 
+
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
     req = boost::shared_ptr<Davix::HttpRequest > (static_cast<Davix::HttpRequest*> (myself->dav_context->createRequest(myself->uri_ping, &tmp_err)));
 
     // Set decent timeout values for the operation
-    tmout.tv_sec = myself->max_latency.tv_sec;
-    reqparams.setConnexionTimeout(&tmout);
-    reqparams.setOperationTimeout(&tmout);
-    req->set_parameters(reqparams);
+    req->set_parameters(myself->checker_params);
 
     if (req.get() != NULL) {
         req->setRequestMethod("HEAD");

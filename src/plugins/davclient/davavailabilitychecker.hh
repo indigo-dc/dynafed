@@ -19,16 +19,18 @@
 
 class DavAvailabilityChecker {
 public:
-    DavAvailabilityChecker(Davix::Context* davx, const std::string & uri_ping, unsigned long time_interval = 5000, struct timespec* max_latency = NULL);
+    DavAvailabilityChecker(Davix::Context* davx, const Davix::RequestParams & p, const std::string & uri_ping, unsigned long time_interval = 5000, struct timespec* max_latency = NULL);
     virtual ~DavAvailabilityChecker();
 
     void get_availability(PluginEndpointStatus * status);
 private:
+    // parameters
     unsigned long time_interval;
     std::string uri_ping;
     Davix::Context* dav_context;
     struct itimerspec timer_value;
     struct timespec max_latency;
+    Davix::RequestParams checker_params;
 
     // stats
     PluginEndpointState last_state;

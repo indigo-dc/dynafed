@@ -159,7 +159,7 @@ void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileI
 
 int UgrLocPlugin_dav::start() {
     if (state_checking) {
-        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), base_url, state_checker_freq, &max_latency));
+        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), params, base_url, state_checker_freq, &max_latency));
     }
     return LocationPlugin::start();
 }
