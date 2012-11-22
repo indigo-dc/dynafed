@@ -68,7 +68,7 @@ void DavAvailabilityChecker::first_init_timer(timer_t * t, struct sigevent* even
 void DavAvailabilityChecker::polling_task(union sigval args) {
     DavAvailabilityChecker* myself = static_cast<DavAvailabilityChecker*> (args.sival_ptr);
     
-    struct timespec t1, t2, tmout;
+    struct timespec t1, t2;
     Davix::DavixError* tmp_err = NULL;
     int code = 404;
 
