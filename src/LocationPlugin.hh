@@ -114,6 +114,8 @@ protected:
 
     // The simple, default global name translation
     std::string xlatepfx_from, xlatepfx_to;
+    
+    virtual int doNameXlation(std::string &from, std::string &to);
 
 public:
 

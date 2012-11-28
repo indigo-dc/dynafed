@@ -178,36 +178,38 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     struct stat st;
     Davix::DavixError * tmp_err=NULL;
     static const char * fname = "UgrLocPlugin_http::runsearch";
-    std::string cannonical_name = base_url;
+    std::string canonical_name = base_url;
+    std::string xname;
     bool bad_answer = true;
 
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
     if (op == NULL || op->fi == NULL) {
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Bad request Handle : FATAL");
+        Error(fname, " Bad request Handle : search aborted");
         return;
     }
 
-
-    //cannonical_name += "/";
-    cannonical_name += op->fi->name;
-
+    // Do the default name translation for this plugin (prefix xlation)
+    doNameXlation(op->fi->name, xname);
+    // Then prepend the URL prefix
+    canonical_name += xname;
+    
     memset(&st, 0, sizeof (st));
 
 	switch (op->wop) {
 
 		case LocationPlugin::wop_Stat:
-			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << cannonical_name << ")");
-			pos.stat(&params, cannonical_name, &st, &tmp_err);
+			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << canonical_name << ")");
+			pos.stat(&params, canonical_name, &st, &tmp_err);
 			// force path finishing with '/' like a directory, impossible to get the type of a file in plain http
-			if( cannonical_name.at(cannonical_name.length()-1) == '/'){ 
+			if( canonical_name.at(canonical_name.length()-1) == '/'){ 
 				st.st_mode |= S_IFDIR;
 			}
 			break;
 
 		case LocationPlugin::wop_Locate:
-			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << cannonical_name << ")");
-			pos.stat(&params, cannonical_name, &st, &tmp_err);
+			LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
+			pos.stat(&params, canonical_name, &st, &tmp_err);
 			break;
 
 
@@ -238,9 +240,9 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 			case LocationPlugin::wop_Locate:
 			{
 				UgrFileItem_replica itr;
-				itr.name = cannonical_name;
+				itr.name = canonical_name;
 				itr.pluginID = myID;
-				LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << cannonical_name);
+				LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << canonical_name);
 
 				// We have modified the data, hence set the dirty flag
 				op->fi->dirtyitems = true;

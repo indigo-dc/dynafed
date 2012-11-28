@@ -18,7 +18,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
     // Get some work to do
     while (!pl->exiting) {
 
-    
+
         struct LocationPlugin::worktoken *op = pl->getOp();
         if (op && op->fi && op->wop) {
 
@@ -38,7 +38,7 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
 
     const char *fname = "LocationPlugin::LocationPlugin";
     nthreads = 0;
-    
+
 
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
@@ -69,16 +69,15 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     std::string s = "locplugin.";
     s += name;
     s += ".xlatepfx";
-    
+
     std::string v;
-    v = CFG->GetString(s.c_str(), (char *)"");
+    v = CFG->GetString(s.c_str(), (char *) "");
 
     if (v.size() > 0) {
         vector<string> parms = tokenize(v, " ");
         if (parms.size() < 2) {
             Error(fname, "Bad xlatepfx: '" << v << "'");
-        }
-        else {
+        } else {
             xlatepfx_from = parms[0];
             xlatepfx_to = parms[1];
         }
@@ -87,11 +86,9 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     geoPlugin = 0;
 
     exiting = false;
-    
-    
+
+
 };
-
-
 
 void LocationPlugin::stop() {
     const char *fname = "LocationPlugin::stop";
@@ -100,9 +97,9 @@ void LocationPlugin::stop() {
 
     /// Note: this tends to hang due to a known bug in boost
     //for (unsigned int i = 0; i < workers.size(); i++) {
-//        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Interrupting thread: " << i);
-//        workers[i]->interrupt();
-//    }
+    //        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Interrupting thread: " << i);
+    //        workers[i]->interrupt();
+    //    }
 
     for (unsigned int i = 0; i < workers.size(); i++) {
 
@@ -127,18 +124,18 @@ int LocationPlugin::start() {
     // Create our pool of threads
     LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
     for (int i = 0; i < nthreads; i++) {
-            workers.push_back(new boost::thread(pluginFunc, this, i));
+        workers.push_back(new boost::thread(pluginFunc, this, i));
     }
 
     return 0;
 }
 
-
 LocationPlugin::~LocationPlugin() {
-    
+
 }
 
 // Pushes a new op in the queue
+
 void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop) {
     const char *fname = "LocationPlugin::pushOp";
 
@@ -159,6 +156,7 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
 }
 
 // Gets an op from the queue, or timeout
+
 struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     struct worktoken *mytk = 0;
     const char *fname = "LocationPlugin::getOp";
@@ -216,7 +214,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
             op->fi->unixflags = 0775;
             op->fi->unixflags |= S_IFDIR;
         }
-        
+
         // Create a fake list information
         UgrFileItem fit;
         for (int ii = 0; ii < 10; ii++) {
@@ -224,7 +222,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
             fit.location = "Gal.Coord. 2489573495.37856.34765347865.3478563487";
             op->fi->subdirs.insert(fit);
         }
-        
+
 
         // We have modified the data, hence set the dirty flag
         op->fi->dirty = true;
@@ -273,6 +271,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
 
 // Start the async stat process
 // Mark the fileinfo with one more pending stat request (by this plugin)
+
 int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_Stat";
 
@@ -308,6 +307,7 @@ int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
 // N seconds at max, where M is the number of hosts that are known
 //
 // The result will be in the FileInfo object
+
 int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
     return 0;
 }
@@ -315,6 +315,7 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 // Start the async location process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
+
 int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_Locate";
 
@@ -331,6 +332,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
 }
 
 // Waits max a number of seconds for a locate process to be complete
+
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
     return 0;
 }
@@ -338,6 +340,7 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // Start the async listing process
 // In practice, trigger all the location plugins, possibly together,
 // so they act concurrently
+
 int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_List";
 
@@ -354,19 +357,37 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
 }
 
 // Waits max a number of seconds for a list process to be complete
+
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
 // default implment, overloading should be fast 
-void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileInfo *fi){
-	status->state= PLUGIN_ENDPOINT_ONLINE;
-	status->latency = 0;
-	status->explanation = "";
+
+void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileInfo *fi) {
+    status->state = PLUGIN_ENDPOINT_ONLINE;
+    status->latency = 0;
+    status->explanation = "";
 }
 
+// default name xlation
+
+int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
+
+    if ((xlatepfx_from.size() > 0) &&
+            ((from.size() == 0) || (from.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0)) ) {
+
+        if (from.size() == 0)
+            to = xlatepfx_to;
+        else
+            to = xlatepfx_to + from.substr(xlatepfx_from.length());
+
+    }
 
 
+    // Always OK in this simple implementation!
+    return 0;
+}
 
 
 
@@ -385,6 +406,7 @@ void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileIn
 
 // The plugin functionality. This function invokes the plugin loader, looking for the
 // plugin where to call the hook function
+
 LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) {
     const char *fname = "GetLocationPluginClass_local";
     PluginLoader *myLib = 0;
@@ -430,6 +452,7 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
 /// The plugin hook function. GetLocationPluginClass must be given the name of this function
 /// for the plugin to be loaded
+
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     return (LocationPlugin *)new LocationPlugin(dbginstance, cfginstance, parms);
 }

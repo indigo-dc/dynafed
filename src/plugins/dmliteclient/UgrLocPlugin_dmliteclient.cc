@@ -96,7 +96,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     // getIdMap/setUserblahblah
 
     // Now xlate the name , by applying the default xlation
-    xname = op->fi->name;
+    doNameXlation(op->fi->name, xname);
+        
     if ((xlatepfx_from.size() > 0) && ((op->fi->name.size() == 0) || (op->fi->name.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0))) {
 
         if (op->fi->name.size() == 0)
