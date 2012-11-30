@@ -373,18 +373,19 @@ void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileIn
 // default name xlation
 
 int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
+    const char *fname = "LocationPlugin::doNameXlation";
 
     if ((xlatepfx_from.size() > 0) &&
-            ((from.size() == 0) || (from.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0)) ) {
+            ((from.size() == 0) || (from.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0))) {
 
         if (from.size() == 0)
             to = xlatepfx_to;
         else
             to = xlatepfx_to + from.substr(xlatepfx_from.length());
 
-    }
+    } else to = from;
 
-
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, from << "->" << to);
     // Always OK in this simple implementation!
     return 0;
 }

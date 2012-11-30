@@ -54,7 +54,7 @@ private:
     ExtCacheHandler *extcache;
 
     /// Purge an item from the buffer, to make space
-    void purgeLRUitem();
+    int purgeLRUitem();
 
     /// Purge the old items from the buffer
     void purgeExpired();

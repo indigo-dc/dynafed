@@ -27,9 +27,11 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
         p = data.find(lfn);
         if (p == data.end()) {
 
-            // If we reached the max number of items, delete one
-            if (data.size() > maxitems) purgeLRUitem();
-
+            // If we reached the max number of items, delete as much as we can
+            while (data.size() > maxitems) {
+                if (purgeLRUitem()) break;
+            }
+            
             // If we still have no space, try to garbage collect the old items
             if (data.size() > maxitems) {
                 Info(SimpleDebug::kLOW, fname, "Too many items, running garbage collection...");
@@ -126,22 +128,51 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 }
 
 // Purge from the local workspace the least recently used element
+// Returns 0 if the element was purged, non0 if it was not possible
 
-void LocationInfoHandler::purgeLRUitem() {
+int LocationInfoHandler::purgeLRUitem() {
+    const char *fname = "LocationInfoHandler::purgeLRUitem";
 
-    // Take the key of the lru item
+    // No LRU item, the LRU list is empty
+    if (lrudata.empty()) {
+        Info(SimpleDebug::kHIGHEST, fname, "LRU list is empty. Nothing to purge.");
+        return 1;
+    }
+
+    // Take the key of the lru item   
     std::string s = lrudata.left.begin()->second;
+    Info(SimpleDebug::kHIGHEST, fname, "LRU item is " << s);
 
-
-    // Purge it
-    lrudata.right.erase(s);
-    // Remove it from the lru list
+    // Lookup its instance in the cache
     UgrFileInfo *fi = data[s];
+
+    if (!fi) {
+        Error(fname, "Could not find the LRU item in the cache.");
+        return 2;
+    }
+
+
+    {
+        unique_lock<mutex> lck(*fi);
+        if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
+            Error(fname, "The LRU item is marked as pending. Cannot purge " << fi->name);
+            return 3;
+        }
+    }
+
+    // We have decided that we can delete it...
+
+    // Purge it from the lru list
+    lrudata.right.erase(s);
+
     // Remove the item from the map
     data.erase(s);
 
+
     // Delete it, eventually sending it to a 2nd level cache before
     delete fi;
+
+    return 0;
 }
 
 // Purge the items that were not touched since a longer time
@@ -167,29 +198,35 @@ void LocationInfoHandler::purgeExpired() {
 
         UgrFileInfo *fi = i->second;
 
-
         if (fi) {
-            time_t tl = timelimit;
-            if (fi->getInfoStatus() == UgrFileInfo::NotFound)
-                tl = timelimit_neg;
 
-            if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
-                // The item is old...
-                Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
+            {
+                unique_lock<mutex> lck(*fi);
 
-                if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
-                    Error(fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
-                    continue;
+                time_t tl = timelimit;
+                if (fi->getInfoStatus() == UgrFileInfo::NotFound)
+                    tl = timelimit_neg;
+
+                if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
+                    // The item is old...
+                    Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
+
+                    if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
+                        Error(fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
+                        continue;
+                    }
+
+
+                    lrudata.right.erase(i->first);
+                    dodelete = true;
+                    i_deleteme = i;
+
+                    d++;
+
                 }
-
-
-                lrudata.right.erase(i->first);
-                dodelete = true;
-                i_deleteme = i;
-                //data.erase(i);
-                delete(fi);
-                d++;
             }
+
+            if (dodelete && fi) delete fi;
 
         }
 
@@ -211,6 +248,14 @@ void LocationInfoHandler::tick() {
     boost::lock_guard<LocationInfoHandler> l(*this);
 
     purgeExpired();
+
+    // If we reached the max number of items, delete as much as we can
+    while (data.size() > maxitems) {
+        if (purgeLRUitem()) break;
+    }
+
+    Info(SimpleDebug::kHIGHEST, fname, "Cache status. nItems:" << data.size() << " nLRUItems: " << lrudata.size());
+
 
 }
 
