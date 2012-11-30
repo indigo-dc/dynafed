@@ -136,6 +136,7 @@ public:
 
         dirty = false;
         dirtyitems = false;
+        pinned = 0;
         
     }
 
@@ -146,6 +147,15 @@ public:
     /// The purpose of this is to be able to implement write-through caching
     bool dirty;
     bool dirtyitems;
+    
+    /// Indicates that this entry cannot be purged from the 1st level cache
+    /// because it is in temporary use.
+    /// The typical usage of this is between opendir/closedir
+    int pinned;
+    
+    void pin() { pinned++; };
+    void unpin() { if (pinned > 0) pinned--; };
+    int ispinned() { return pinned; };
     
     /// The filename this record refers to (the lfn)
     std::string name;

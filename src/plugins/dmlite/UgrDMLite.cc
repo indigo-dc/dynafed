@@ -77,7 +77,7 @@ void UgrCatalog::setSecurityContext(const SecurityContext *c) throw (DmException
     secCredentials = c->credentials;
 }
 
-UgrCatalog::UgrCatalog() throw (DmException) : DummyCatalog(NULL)  {
+UgrCatalog::UgrCatalog() throw (DmException) : DummyCatalog(NULL) {
 
 }
 
@@ -96,7 +96,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     // Get all of them
     UgrFileInfo *nfo = 0;
 
-    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    std::string abspath = getAbsPath(const_cast<std::string&> (path));
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
         Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to sort / choose a proper one");
         // Request UgrConnector to sort a replica set according to proximity to the client
@@ -106,13 +106,13 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
         Replica r;
 
         for (std::set<UgrFileItem_replica>::iterator i = repls.begin(); i != repls.end(); ++i) {
-            
+
             // Filter out the replicas that belong to dead endpoints
             if (!getUgrConnector()->isEndpointOK(i->pluginID)) {
                 Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "Skipping " << i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
                 continue;
             }
-            
+
             Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
             r.fileid = 0;
             r.replicaid = 0;
@@ -173,7 +173,7 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
 dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
     dmlite::ExtendedStat st;
     UgrFileInfo *nfo = 0;
-    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    std::string abspath = getAbsPath(const_cast<std::string&> (path));
     if (!getUgrConnector()->stat((std::string&)abspath, &nfo) && nfo && (nfo->getInfoStatus() != nfo->NotFound)) {
         st.csumtype[0] = '\0';
         st.csumvalue[0] = '\0';
@@ -210,17 +210,23 @@ class myDirectory {
 Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
-    std::string abspath = getAbsPath(const_cast<std::string&>(path));
+    std::string abspath = getAbsPath(const_cast<std::string&> (path));
     if (!getUgrConnector()->list((std::string&)abspath, &fi) && fi) {
-        
-        if ((fi->getItemsStatus() == UgrFileInfo::InProgress) || (fi->getItemsStatus() == UgrFileInfo::Ok))
-                // This is just an opaque pointer, we can store what we want
-                return (Directory *) (new myDirectory(fi));
+
+        if (fi->getItemsStatus() == UgrFileInfo::Ok) {
+            boost::lock_guard<UgrFileInfo > l(*fi);
+            fi->pin();
+            // This is just an opaque pointer, we can store what we want
+            return (Directory *) (new myDirectory(fi));
+        }
     }
 
     if (fi->getItemsStatus() == UgrFileInfo::NotFound)
         throw DmException(ENOENT, "File not found");
-    
+
+    if (fi->getItemsStatus() == UgrFileInfo::InProgress)
+        throw DmException(DMLITE_MALFORMED, "Error getting directory content. Timeout.");
+
     if (fi->getItemsStatus() == UgrFileInfo::Error)
         throw DmException(DMLITE_MALFORMED, "Error getting directory content (likely the directory is bigger than the limit)");
 
@@ -230,43 +236,63 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
 
 void UgrCatalog::closeDir(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
-    delete d;
+    
+    if (d && d->nfo) {
+        boost::lock_guard<UgrFileInfo > l(*d->nfo);
+        d->nfo->unpin();
+        delete d;
+    }
 }
 
 struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
 
-    if (d->idx == d->nfo->subdirs.end()) return 0;
+    if (!opaque) return 0;
+    if (!d->nfo) return 0;
 
-    // Only the name is relevant here, it seems
-    strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof (d->direntbuf.d_name));
-    d->direntbuf.d_name[sizeof (d->direntbuf.d_name) - 1] = '\0';
+    {
+        boost::lock_guard<UgrFileInfo > l(*d->nfo);
+        d->nfo->touch();
 
-    d->idx++;
+        if (d->idx == d->nfo->subdirs.end()) return 0;
+
+        // Only the name is relevant here, it seems
+        strncpy(d->direntbuf.d_name, (d->idx)->name.c_str(), sizeof (d->direntbuf.d_name));
+        d->direntbuf.d_name[sizeof (d->direntbuf.d_name) - 1] = '\0';
+
+        d->idx++;
+    }
 
     return &(d->direntbuf);
 }
 
 dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
+    std::string s;
 
     if (!opaque) return 0;
-    if (d->idx == d->nfo->subdirs.end()) return 0;
+    if (!d->nfo) return 0;
 
-    // Only the name is relevant here, it seems
-    d->buf.name = (d->idx)->name;
+    {
+        boost::lock_guard<UgrFileInfo > l(*d->nfo);
+        d->nfo->touch();
+        s = d->nfo->name;
+        if (d->idx == d->nfo->subdirs.end()) return 0;
 
+        // Only the name is relevant here, it seems
+        d->buf.name = (d->idx)->name;
+        d->idx++;
+    }
 
-    std::string s = d->nfo->name;
 
     if (*s.rbegin() != '/')
         s += "/";
 
     s += d->buf.name;
-
     d->buf.stat = extendedStat(s, true).stat;
 
-    d->idx++;
+
+
 
     return &(d->buf);
 }
@@ -284,8 +310,8 @@ std::string UgrCatalog::getAbsPath(std::string &path) {
     if (workingdir.empty()) return path;
     if (path[0] == '/') return path;
     if (path == ".") return workingdir;
-    
-    
+
+
     std::string s = workingdir + path;
     return s;
 }

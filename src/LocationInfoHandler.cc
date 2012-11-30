@@ -34,13 +34,13 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
             
             // If we still have no space, try to garbage collect the old items
             if (data.size() > maxitems) {
-                Info(SimpleDebug::kLOW, fname, "Too many items, running garbage collection...");
+                Info(SimpleDebug::kLOW, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
                 purgeExpired();
             }
 
             // If we still have no space, complain and do it anyway.
             if (data.size() > maxitems) {
-                Error(fname, "Maximum capacity exceeded.");
+                Error(fname, "Maximum capacity exceeded. " << data.size() << ">" << maxitems);
             }
 
 
@@ -158,6 +158,10 @@ int LocationInfoHandler::purgeLRUitem() {
             Error(fname, "The LRU item is marked as pending. Cannot purge " << fi->name);
             return 3;
         }
+        if (fi->ispinned()) {
+            Error(fname, "The LRU item is marked as pinned. Cannot purge " << fi->name);
+            return 4;
+        }
     }
 
     // We have decided that we can delete it...
@@ -170,6 +174,7 @@ int LocationInfoHandler::purgeLRUitem() {
 
 
     // Delete it, eventually sending it to a 2nd level cache before
+    putFileInfoToCache(fi);
     delete fi;
 
     return 0;
@@ -216,6 +221,10 @@ void LocationInfoHandler::purgeExpired() {
                         continue;
                     }
 
+                    if (fi->ispinned()) {
+                        Error(fname, "Found entry pinned from a long time. Cannot purge " << fi->name);
+                        continue;
+                    }
 
                     lrudata.right.erase(i->first);
                     dodelete = true;
