@@ -137,12 +137,12 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // timeout management
     long timeout;
     struct timespec spec_timeout;
-    if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 0)) != 0) {
+    if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 120)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
         params.setConnexionTimeout(&spec_timeout);
     }
-    if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 0)) != 0) {
+    if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 120)) != 0) {
         spec_timeout.tv_sec = timeout;
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
