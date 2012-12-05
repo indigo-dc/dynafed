@@ -53,7 +53,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0beta}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.1beta}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -399,7 +399,7 @@ where:
 \begin{itemize}
 \item \verb"<path/name.so>" is the full path to the shared library that implements the plugin
 \item \verb"<ID>" is a unique name that is given to this plugin instance. This is used to identify it in this configuration file, and give settings that are private to that loaded instance. These other settings have the syntax:\\
-      \verb"glb.locplugin.<ID>.<parm>: <value>"\\
+      \verb"locplugin.<ID>.<parm>: <value>"\\
      where <parm> is the plugin-specific parameter that we want to set.
 \item \verb"<max_concurrency>" is the maximum number of threads that can enter the plugin at the same time
 \item \verb"[parameters]" is a plugin-specific series of space-limited parameters
@@ -492,6 +492,7 @@ Default value: 10
 
 \subsubsection{infohandler.useextcache}
 If true, instantiate a 2nd level cache that uses \textit{memcached}. This cache will be shared among all the processes that are spawned.\\
+This cache will also be used to store other information, like the status of the endpoints.
 Syntax:\\
 \verb"infohandler.useextcache: <true|false>"\\
 Default value: true
@@ -519,16 +520,19 @@ Syntax:\\
 \verb"extcache.memcached.useBinaryProtocol: <true|false>"\\
 Default value: true\\
 
-\subsection{DAV plugin}
+\subsection{DAV and HTTP plugin}
 
 The DAV plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 
 Syntax:\\
-\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"
+\verb"locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"\\
+or
+\verb"locplugin[]: /usr/lib64/ugr/libugrlocplugin_http.so <ID> <concurrency> <URL prefix>"
+
 
 The parameters \verb"<ID> <concurrency>" have already been described in the section \ref{glb.locplugin}
 
-The parameter \verb"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \verb"http://" and \verb"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it has to be added to this \verb"URL prefix". \\
+The parameter \verb"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \verb"http://" and \verb"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it can be added to this \verb"URL prefix". \\
 
 A typical example of this is the following:\\
 \verb"dav_plugin_dcache_desy 30 http://sligo.desy.de:2880/pnfs/desy.de/data"\\ \\
@@ -543,45 +547,45 @@ will be known to UGR as\\
 
 The DAV plugin has several parameters that configure the way it works and authenticates with the servers. For all these parameters, \verb"<ID>" is the name that was assigned to the specific plugin instance we want to refer to.
 
-\subsubsection{glb.locplugin.$<$ID$>$.ssl\_check}
+\subsubsection{locplugin.$<$ID$>$.ssl\_check}
 Enable or disable the SSL validity check of the remote host.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.ssl_check: <true|false>"\\
+\verb"locplugin.<ID>.ssl_check: <true|false>"\\
 Default value: true\\
-\subsubsection{glb.locplugin.$<$ID$>$.cli\_certificate}
+\subsubsection{locplugin.$<$ID$>$.cli\_certificate}
 Path to a local file containing the client side credentials to use when contacting this endpoint. Only the p12 format is supported.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.cli_certificate: <path/file>"\\
+\verb"locplugin.<ID>.cli_certificate: <path/file>"\\
 Default value: none\\
-\subsubsection{glb.locplugin.$<$ID$>$.conn\_timeout}
+\subsubsection{locplugin.$<$ID$>$.conn\_timeout}
 TCP connection timeout (in seconds) to use when establishing a connection to this endpoint. \\
 Syntax:\\
-\verb"glb.locplugin.<ID>.conn_timeout: <timeout>"\\
+\verb"locplugin.<ID>.conn_timeout: <timeout>"\\
 Default value: 5\\
-\subsubsection{glb.locplugin.$<$ID$>$.ops\_timeout}
+\subsubsection{locplugin.$<$ID$>$.ops\_timeout}
 TCP communication timeout (in seconds) to use when sending/receiving data from this endpoint.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.ops_timeout: <timeout>"\\
+\verb"locplugin.<ID>.ops_timeout: <timeout>"\\
 Default value: 60\\
-\subsubsection{glb.locplugin.$<$ID$>$.status\_checking}
+\subsubsection{locplugin.$<$ID$>$.status\_checking}
 Enable or disable the asynchronous endpoint status checker. If enabled, the endpoint will be probed at regular intervals of time.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.status_checking: <true|false>"\\
+\verb"locplugin.<ID>.status_checking: <true|false>"\\
 Default value: true\\
-\subsubsection{glb.locplugin.$<$ID$>$.status\_checker\_frequency}
+\subsubsection{locplugin.$<$ID$>$.status\_checker\_frequency}
 Set the frequency (in milliseconds) of the status checker.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.status_checker_frequency: <time>"\\
+\verb"locplugin.<ID>.status_checker_frequency: <time>"\\
 Default value: 10000\\
-\subsubsection{glb.locplugin.$<$ID$>$.auth\_login}
+\subsubsection{locplugin.$<$ID$>$.auth\_login}
 Set the username to use in the case of endpoints that support user/pasword login.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.auth_login: <username>"\\
+\verb"locplugin.<ID>.auth_login: <username>"\\
 Default value: none\\
-\subsubsection{glb.locplugin.$<$ID$>$.auth\_passwd}
+\subsubsection{locplugin.$<$ID$>$.auth\_passwd}
 Set the password to use in the case of endpoints that support user/password login.\\
 Syntax:\\
-\verb"glb.locplugin.<ID>.auth_passwd: <password>"\\
+\verb"locplugin.<ID>.auth_passwd: <password>"\\
 Default value: none\\
 
 
