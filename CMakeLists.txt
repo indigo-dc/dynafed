@@ -6,9 +6,14 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo"
     CACHE STRING "build type")
 
 # The version number
-set (UGR_VERSION_MAJOR 0)
+set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
-set (UGR_VERSION_PATCH 0)
+set (UGR_VERSION_PATCH 1)
+
+execute_process( COMMAND date +%d%m%y-%H%M%S
+  OUTPUT_VARIABLE UGR_VERSION_CHECKOUTTAG
+  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
 execute_process( COMMAND uname -m
   OUTPUT_VARIABLE ARCH
   OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -20,6 +25,14 @@ configure_file (
 	       "${PROJECT_BINARY_DIR}/Doxyfile.cfg"
 )
 
+# create the specfile
+configure_file (
+	       "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/ugr.spec.in"
+	       "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/ugr.spec"
+               @ONLY
+)
+
+message(STATUS "Checkout tag: ${UGR_VERSION_CHECKOUTTAG}")
 
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (eg MacroOutOfSourceBuild.cmake):
