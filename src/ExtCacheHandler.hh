@@ -10,6 +10,7 @@
 
 #include "Config.hh"
 #include "LocationInfo.hh"
+#include "LocationPlugin.hh"
 #include <libmemcached/memcached.h>
 #include <string>
 #include <queue>
@@ -17,6 +18,8 @@
 /// This class implement basic functions that retrieve or store
 /// FileInfo objects in an external cache, that is shared by multiple
 /// concurrent instances of UGR
+
+class PluginEndpointStatus;
 
 class ExtCacheHandler {
 private:
@@ -38,6 +41,8 @@ private:
 
     std::string makekey(UgrFileInfo *fi);
     std::string makekey_subitems(UgrFileInfo *fi);
+    
+    std::string makekey_endpointstatus(std::string endpointname);
 public:
 
 
@@ -47,9 +52,14 @@ public:
     int getSubitems(UgrFileInfo *fi);
     int putFileInfo(UgrFileInfo *fi);
     int putSubitems(UgrFileInfo *fi);
+    
+    int getEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
+    int putEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
 
-    ExtCacheHandler();
+    ExtCacheHandler() {};
 
+    void Init();
+    
     ~ExtCacheHandler() {
         while (!conns.empty()) {
             memcached_free(conns.front());

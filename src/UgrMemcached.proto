@@ -39,3 +39,20 @@ message SerialUgrReplicas {
     repeated SerialUgrReplica replicas = 1;
 
 }
+
+
+
+
+
+message SerialEndpointStatus {
+
+    required int32 state = 1;
+
+    required int32 latency_ms = 2;
+    
+    required int32 errcode = 3;
+    
+    required int64 lastcheck = 4;
+
+
+}

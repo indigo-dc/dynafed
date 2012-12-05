@@ -9,7 +9,7 @@
 #include <libmemcached/memcached.h>
 #include <queue>
 
-ExtCacheHandler::ExtCacheHandler() {
+void ExtCacheHandler::Init() {
     maxttl = CFG->GetLong("extcache.memcached.ttl", 600);
 
     while (!conns.empty()) conns.pop();
@@ -25,6 +25,15 @@ std::string ExtCacheHandler::makekey(UgrFileInfo *fi) {
 std::string ExtCacheHandler::makekey_subitems(UgrFileInfo *fi) {
     return "items_" + fi->name;
 }
+
+
+
+std::string ExtCacheHandler::makekey_endpointstatus(std::string endpointname) {
+    return "endpoint_" + endpointname;
+}
+
+
+
 
 int ExtCacheHandler::getFileInfo(UgrFileInfo *fi) {
     const char *fname = "ExtCacheHandler::getFileInfo";
@@ -124,7 +133,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
     if (s.length() > 0) {
 
         Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
-                "key:" << k << " len:" << s.length());
+                " key:" << k << " len:" << s.length());
 
         memcached_return r = memcached_set(conn,
                 k.c_str(), k.length(),
@@ -132,7 +141,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
                 expirationtime, (uint32_t) 0);
 
         Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
-                "key:" << k << " len:" << s.length());
+                " key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot write fileinfo to memcached. retval=" << r << " '" << memcached_strerror(conn, r) <<
@@ -179,7 +188,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
         if (!conn) return 0;
 
         Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
-                "key:" << k << " len:" << s.length());
+                " key:" << k << " len:" << s.length());
 
         memcached_return r = memcached_set(conn,
                 k.c_str(), k.length(),
@@ -187,7 +196,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
                 expirationtime, (uint32_t) 0);
 
         Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
-                "key:" << k << " len:" << s.length());
+                " key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot write subitems to memcached. retval=" << r << " '" << memcached_strerror(conn, r) <<
@@ -325,5 +334,88 @@ void ExtCacheHandler::releaseconn(memcached_st *c) {
 
     boost::lock_guard<boost::mutex> l(connsmtx);
     if (c) conns.push(c);
+}
+
+int ExtCacheHandler::getEndpointStatus(PluginEndpointStatus *st, std::string endpointname) {
+    const char *fname = "ExtCacheHandler::getEndpointStatus";
+    memcached_st *conn = getconn();
+    if (!conn) return 0;
+
+    size_t value_len = 0;
+    memcached_return err;
+    uint32_t flags;
+    std::string k;
+
+    k = makekey_endpointstatus(endpointname);
+
+    char *strnfo = memcached_get(conn, k.c_str(), k.length(),
+            &value_len, &flags, &err);
+
+    Info(SimpleDebug::kHIGH, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
+
+    releaseconn(conn);
+
+    if (err != MEMCACHED_SUCCESS) {
+        return 1;
+    }
+
+    if (!strnfo) {
+        Error(fname, "Memcached retured a null value. Key=" << k);
+        return 1;
+    }
+
+    st->decode(strnfo, value_len);
+
+    free(strnfo);
+    
+    return 0;
+}
+
+int ExtCacheHandler::putEndpointStatus(PluginEndpointStatus *st, std::string endpointname) {
+    const char *fname = "ExtCacheHandler::putEndpointStatus";
+
+
+    std::string s, s1, k;
+    time_t expirationtime = time(0) + maxttl;
+
+    
+        
+        st->encodeToString(s);
+    
+
+
+    memcached_st *conn = getconn();
+    if (!conn) return 0;
+
+    k = makekey_endpointstatus(endpointname);
+
+    if (s.length() > 0) {
+
+        Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
+                " key:" << k << " len:" << s.length());
+
+        memcached_return r = memcached_set(conn,
+                k.c_str(), k.length(),
+                s.c_str(), s.length() + 1,
+                expirationtime, (uint32_t) 0);
+
+        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
+                " key:" << k << " len:" << s.length());
+
+        if (r != MEMCACHED_SUCCESS) {
+            Error(fname, "Cannot write endpointstatus to memcached. retval=" << r << " '" << memcached_strerror(conn, r) <<
+                    "' Key= " << k <<
+                    " Valuelen: " << s.length());
+
+            releaseconn(conn);
+
+            return 1;
+        }
+
+        releaseconn(conn);
+
+    }
+
+    return 0;
 }
 

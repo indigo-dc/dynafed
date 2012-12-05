@@ -10,12 +10,13 @@
 
 #include "Config.hh"
 #include "LocationInfo.hh"
-#include "ExtCacheHandler.hh"
 
 #include <string>
 #include <map>
 #include <boost/thread.hpp>
 #include <boost/bimap.hpp>
+
+class ExtCacheHandler;
 
 
 /// This class acts like a repository of file locations/information that has to
@@ -67,7 +68,7 @@ public:
         extcache = 0;
     };
 
-    void Init() {
+    void Init(ExtCacheHandler *cache) {
         // Get the max capacity from the config
         maxitems = CFG->GetLong("infohandler.maxitems", 1000000);
         // Get the lifetime of an entry after the last reference
@@ -75,11 +76,10 @@ public:
         // Get the maximum allowed lifetime of an entry
         maxmaxttl = CFG->GetLong("infohandler.itemmaxttl", 86400);
         maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
-
-
+       
         if (CFG->GetBool("infohandler.useextcache", true)) {
-            Info(SimpleDebug::kLOW, "LocationInfoHandler::Init", "Creating ExtCacheHandler");
-            extcache = new ExtCacheHandler();
+            Info(SimpleDebug::kLOW, "LocationInfoHandler::Init", "Setting the ExtCacheHandler");
+            extcache = cache;
         }
 
     }
@@ -93,31 +93,10 @@ public:
     UgrFileInfo *getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup=true, bool docachesubitemslookup=false);
 
     // Ext Cache in/out
-
-    int getFileInfoFromCache(UgrFileInfo *fi) {
-        if (extcache)
-            return extcache->getFileInfo(fi);
-        return 0;
-    };
-
-    int getSubitemsFromCache(UgrFileInfo *fi) {
-        if (extcache)
-            return extcache->getSubitems(fi);
-        return 0;
-    };
-
-    int putFileInfoToCache(UgrFileInfo *fi) {
-        if (extcache)
-            return extcache->putFileInfo(fi);
-        return 0;
-    };
-
-    int putSubitemsToCache(UgrFileInfo *fi) {
-        if (extcache)
-            return extcache->putSubitems(fi);
-
-        return 0;
-    };
+    int getFileInfoFromCache(UgrFileInfo *fi);
+    int getSubitemsFromCache(UgrFileInfo *fi);
+    int putFileInfoToCache(UgrFileInfo *fi);
+    int putSubitemsToCache(UgrFileInfo *fi);
 
     /// Gives life to this obj
     void tick();

@@ -31,7 +31,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
             while (data.size() > maxitems) {
                 if (purgeLRUitem()) break;
             }
-            
+
             // If we still have no space, try to garbage collect the old items
             if (data.size() > maxitems) {
                 Info(SimpleDebug::kLOW, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
@@ -268,3 +268,27 @@ void LocationInfoHandler::tick() {
 
 }
 
+int LocationInfoHandler::getFileInfoFromCache(UgrFileInfo *fi) {
+    if (extcache)
+        return extcache->getFileInfo(fi);
+    return 0;
+};
+
+int LocationInfoHandler::getSubitemsFromCache(UgrFileInfo *fi) {
+    if (extcache)
+        return extcache->getSubitems(fi);
+    return 0;
+};
+
+int LocationInfoHandler::putFileInfoToCache(UgrFileInfo *fi) {
+    if (extcache)
+        return extcache->putFileInfo(fi);
+    return 0;
+};
+
+int LocationInfoHandler::putSubitemsToCache(UgrFileInfo *fi) {
+    if (extcache)
+        return extcache->putSubitems(fi);
+
+    return 0;
+};

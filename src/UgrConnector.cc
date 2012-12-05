@@ -15,7 +15,6 @@
 #include "UgrConnector.hh"
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
-#include "PluginEndpointStatusManager.hh"
 
 
 
@@ -28,7 +27,7 @@ using namespace boost::system;
 #define EXECUTE_ON_AVAILABLE(myfunc) \
     do{ \
     for (unsigned int i = 0; i < locPlugins.size(); i++) { \
-        if (checkpluginAvailability(locPlugins[i], fi)) \
+        if (locPlugins[i].) \
             locPlugins[i]->myfunc; \
     }  \
     } while(0)
@@ -51,8 +50,17 @@ void UgrConnector::tick(int parm) {
 
     while (!ticker->interruption_requested()) {
         Info(SimpleDebug::kHIGHEST, fname, "Tick.");
+        time_t timenow = time(0);
+
         sleep(ticktime);
+
+        // Tick the location handler, caches, etc
         locHandler.tick();
+
+        // Tick the plugins
+        for (unsigned int i = 0; i < locPlugins.size(); i++) {
+            locPlugins[i]->Tick(timenow);
+        }
     }
 
     Info(SimpleDebug::kLOW, fname, "Ticker exiting");
@@ -112,13 +120,13 @@ int UgrConnector::init(char *cfgfile) {
 
         // setup plugin directory
         plugin_dir = CFG->GetString("glb.plugin_dir", (char *) UGR_PLUGIN_DIR_DEFAULT);
-        try{
-            if(is_directory(plugin_dir)){
+        try {
+            if (is_directory(plugin_dir)) {
                 Info(SimpleDebug::kMEDIUM, fname, "Define Ugr plugin directory to: " << plugin_dir);
-            }else{
-                throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR,get_generic_category()));
+            } else {
+                throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, get_generic_category()));
             }
-        }catch(filesystem_error & e){
+        } catch (filesystem_error & e) {
             Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
         }
 
@@ -131,8 +139,8 @@ int UgrConnector::init(char *cfgfile) {
         if (s != "") {
             vector<string> parms = tokenize(s, " ");
 
-            path plugin_path(parms[0].c_str());   // if not abs path -> load from plugin dir
-            if( !plugin_path.has_root_directory()){
+            path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
+            if (!plugin_path.has_root_directory()) {
                 plugin_path = plugin_dir;
                 plugin_path /= parms[0];
             }
@@ -151,6 +159,15 @@ int UgrConnector::init(char *cfgfile) {
 
         }
 
+
+
+        // Init the extcache, as now we have the cfg parameters
+        extCache.Init();
+        this->locHandler.Init(&extCache);
+
+
+
+
         // Cycle through the location plugins that have to be loaded
         char buf[1024];
         int i = 0;
@@ -161,8 +178,8 @@ int UgrConnector::init(char *cfgfile) {
                 vector<string> parms = tokenize(buf, " ");
                 // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
                 // An empty string does not load any plugin, just keeps the default behavior
-                path plugin_path(parms[0].c_str());   // if not abs path -> load from plugin dir
-                if( !plugin_path.has_root_directory()){
+                path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
+                if (!plugin_path.has_root_directory()) {
                     plugin_path = plugin_dir;
                     plugin_path /= parms[0];
                 }
@@ -175,7 +192,7 @@ int UgrConnector::init(char *cfgfile) {
                     prod->setGeoPlugin(geoPlugin);
                     prod->setID(locPlugins.size());
                     locPlugins.push_back(prod);
-                    
+
                 }
             }
             i++;
@@ -199,24 +216,24 @@ int UgrConnector::init(char *cfgfile) {
             Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
 
 
-        ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
-
-        Info(SimpleDebug::kHIGH, fname, "Starting the plugins.");
-        for (unsigned int i = 0; i < locPlugins.size(); i++) {
-            if (locPlugins[i]->start())
-                Error(fname, "Could not start plugin " << i);
-        }
-        Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
-
-
         n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
         n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
         UgrFileInfo::trimpath(n2n_pfx);
         UgrFileInfo::trimpath(n2n_newpfx);
         Info(SimpleDebug::kLOW, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
 
-        // Init the extcache
-        this->locHandler.Init();
+
+        Info(SimpleDebug::kHIGH, fname, "Starting the plugins.");
+        for (unsigned int i = 0; i < locPlugins.size(); i++) {
+            if (locPlugins[i]->start(&extCache))
+                Error(fname, "Could not start plugin " << i);
+        }
+
+        Info(SimpleDebug::kLOW, fname, locPlugins.size() << " plugins started.");
+
+
+        // Start the ticker
+        ticker = new boost::thread(boost::bind(&UgrConnector::tick, this, 0));
 
 
         initdone = true;
@@ -228,11 +245,10 @@ int UgrConnector::init(char *cfgfile) {
     return 0;
 }
 
-
 bool UgrConnector::isEndpointOK(int pluginID) {
-    if ((pluginID > (int)locPlugins.size()) || (pluginID < 0)) return false;
-    
-    return checkpluginAvailability(locPlugins[pluginID], 0);
+    if ((pluginID > (int) locPlugins.size()) || (pluginID < 0)) return false;
+
+    return locPlugins[pluginID]->isOK();
 }
 
 void UgrConnector::do_n2n(std::string &path) {
@@ -253,7 +269,11 @@ void UgrConnector::do_n2n(std::string &path) {
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
-    EXECUTE_ON_AVAILABLE(do_Stat(fi, &locHandler));
+    // Ask all the plugins that are online
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (locPlugins[i]->isOK()) locPlugins[i]->do_Stat(fi, &locHandler);
+    }
+
     return 0;
 }
 
@@ -270,8 +290,6 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
         return fi->waitStat(lck, tmout);
     }
 
-    // We also ask the plugins
-    EXECUTE_ON_AVAILABLE(do_waitStat(fi, tmout));
     return 0;
 }
 
@@ -352,7 +370,11 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
-    EXECUTE_ON_AVAILABLE(do_Locate(fi, &locHandler));
+    // Ask all the plugins that are online
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (locPlugins[i]->isOK()) locPlugins[i]->do_Locate(fi, &locHandler);
+    }
+
     return 0;
 }
 
@@ -368,10 +390,6 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
         // then we recheck...
         return fi->waitLocations(lck, tmout);
     }
-
-    // We also ask the plugins
-
-    EXECUTE_ON_AVAILABLE(do_waitLocate(fi, tmout));
 
     return 0;
 }
@@ -421,7 +439,12 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
 int UgrConnector::do_List(UgrFileInfo *fi) {
 
-    EXECUTE_ON_AVAILABLE(do_List(fi, &locHandler));
+
+    // Ask all the plugins that are online
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if (locPlugins[i]->isOK()) locPlugins[i]->do_List(fi, &locHandler);
+    }
+
 
     return 0;
 }
@@ -439,8 +462,6 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
         return fi->waitItems(lck, tmout);
     }
 
-    // We also ask to the individual plugins
-    EXECUTE_ON_AVAILABLE(do_waitList(fi, tmout));
 
     return 0;
 }

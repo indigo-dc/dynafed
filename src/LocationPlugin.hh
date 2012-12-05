@@ -18,6 +18,7 @@
 #include <boost/thread.hpp>
 #include "GeoPlugin.hh"
 
+class LocationInfoHandler;
 
 #define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
 #define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
@@ -34,15 +35,80 @@ enum PluginEndpointState {
     PLUGIN_ENDPOINT_ERROR_OTHER,
 };
 
-/// contain information about the availability of the plugin endpoint
+/// contains information about the availability of the plugin endpoint
 
-struct PluginEndpointStatus {
+class PluginEndpointStatus {
+public:
     /// current status of the plugin's endpoint
     PluginEndpointState state;
     /// average latency in ms
-    unsigned long latency;
+    int latency_ms;
+    /// error code (e.g. the http one)
+    int errcode;
     /// string description
     std::string explanation;
+    /// when the status was checked last
+    time_t lastcheck;
+
+        /// We will like to be able to encode this info to a string, e.g. for external caching purposes
+    int encodeToString(std::string &str);
+
+    /// We will like to be able to encode this info to a string, e.g. for external caching purposes
+    int decode(void *data, int sz);
+    
+    PluginEndpointStatus() {
+        lastcheck = 0;
+        state = PLUGIN_ENDPOINT_UNKNOWN;
+        latency_ms = 0;
+        errcode = 0;
+    };
+};
+
+class PluginAvailabilityInfo {
+public:
+    PluginAvailabilityInfo(int interval_ms = 5000, int latency_ms = 5000);
+    
+
+    /// Do we do any status checking at all?
+    bool state_checking;
+    /// How often the check has to be made
+    int time_interval_ms;
+    /// The maximum allowed latency
+    int max_latency_ms;
+
+    virtual bool isOK() {
+        return (status.state <= PLUGIN_ENDPOINT_ONLINE);
+    }
+
+    bool getCheckRunning();
+    bool setCheckRunning(bool b);
+
+    bool isExpired(time_t timenow);
+
+    /// Gets the current status for this plugin/endpoint
+    virtual void getStatus(PluginEndpointStatus &st);
+
+    /// Sets the current status for this plugin/endpoint, set dirty
+    virtual void setStatus(PluginEndpointStatus &st, bool setdirty, char *logname);
+
+    virtual bool isDirty() {
+        return status_dirty;
+    }
+    
+    virtual void setDirty(bool d) {
+        boost::unique_lock< boost::mutex > l(workmutex);
+        status_dirty = d;
+    }
+private:
+    boost::mutex workmutex;
+    bool isCheckRunning;
+
+
+    /// The current status
+    PluginEndpointStatus status;
+    bool status_dirty;
+
+
 };
 
 /** LocationPlugin
@@ -66,7 +132,8 @@ public:
         wop_Nop = 0,
         wop_Stat,
         wop_Locate,
-        wop_List
+        wop_List,
+        wop_Check
     };
     /// The description of an operation to be done asynchronously
 
@@ -91,7 +158,13 @@ protected:
     /// that gives GPS coordinates to file replicas
     GeoPlugin *geoPlugin;
 
+    /// Online/offline, etc
+    PluginAvailabilityInfo availInfo;
 
+    // Ext cache
+    ExtCacheHandler *extCache;
+    
+    
     // Workaround for a bug in boost, where interrupt() hangs
     bool exiting;
 
@@ -112,10 +185,17 @@ protected:
     virtual void runsearch(struct worktoken *wtk, int myidx);
 
 
+
+
     // The simple, default global name translation
     std::string xlatepfx_from, xlatepfx_to;
-    
+
+    /// Applies the plugin-specific name translation
     virtual int doNameXlation(std::string &from, std::string &to);
+
+    virtual void do_Check() {
+    };
+
 
 public:
 
@@ -123,7 +203,7 @@ public:
     virtual ~LocationPlugin();
 
     virtual void stop();
-    virtual int start();
+    virtual int start(ExtCacheHandler *c);
 
     virtual void setGeoPlugin(GeoPlugin *gp) {
         geoPlugin = gp;
@@ -131,6 +211,14 @@ public:
 
     void setID(short pluginID) {
         myID = pluginID;
+    }
+
+
+    /// Gives life to the object
+    virtual int Tick(time_t timenow);
+
+    virtual int isOK() {
+        return availInfo.isOK();
     }
 
     ///
@@ -141,11 +229,8 @@ public:
         return name;
     }
 
-    /// Check current availability of this plugin for a given operation
-    /// the implementation of this call should be as fast as possible ( executed in the main thread )
-    virtual void check_availability(PluginEndpointStatus * status, UgrFileInfo *fi);
 
-    // Calls that characterize the behevior of the plugin
+    // Calls that characterize the behavior of the plugin
     // In general:
     //  do_XXX triggers the start of an async task that gathers a specific kind of info
     //   it's not serialized, and it has to return immediately, exposing a non-blocking behavior

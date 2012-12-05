@@ -13,11 +13,7 @@
 #include <davix_cpp.hpp>
 #include <string>
 #include <glibmm.h>
-#include "davavailabilitychecker.hh"
-#include "ugr_loc_plugin_dav_type.hh"
 #include "../../LocationPlugin.hh"
-
-class DavAvailabilityChecker;
 
 /**
  *  Dav plugin config parameters
@@ -28,57 +24,44 @@ class DavAvailabilityChecker;
  *  auth_passwd : password	   - password to use for the basic HTTP authentification
  * */
 
-
 /** 
  * Location Plugin for Ugr, inherit from the LocationPlugin
  *  allow to do basic query to a webdav endpoint
- **/  
+ **/
 class UgrLocPlugin_dav : public LocationPlugin {
 protected:
 
-
+    virtual void do_Check();
 public:
 
-	/**
-	 * Follow the standard LocationPlugin construction
-	 * 
-	 * */
+    /**
+     * Follow the standard LocationPlugin construction
+     * 
+     * */
     UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
 
 
     /**
      *  main executor for the plugin    
      **/
-     virtual void runsearch(struct worktoken *op, int myidx);
-
-     virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
+    virtual void runsearch(struct worktoken *op, int myidx);
 
 protected:
-	std::string base_url;
-	std::string pkcs12_credential_path;
-	std::string pkcs12_credential_password;
-	bool ssl_check;
-	std::string login;
-	std::string password;
-	
+    std::string base_url;
+    std::string pkcs12_credential_path;
+    std::string pkcs12_credential_password;
+    bool ssl_check;
+    std::string login;
+    std::string password;
+
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;
     Davix::RequestParams params;
+    Davix::RequestParams checker_params;
 
-    //plugin state checker
-    bool state_checking;
-    boost::shared_ptr<DavAvailabilityChecker> state_checker;
-    unsigned long state_checker_freq;
-    struct timespec max_latency;
-	
-	void load_configuration(const std::string & prefix);
+    void load_configuration(const std::string & prefix);
 
-    // stop the plugin behavior
-    virtual void stop();
-
-    virtual int start();
-	
-	static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err); 	
+    static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err);
 };
 
 

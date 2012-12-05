@@ -17,12 +17,10 @@
 #include "HostsInfoHandler.hh"
 #include "LocationPlugin.hh"
 #include "GeoPlugin.hh"
+#include "ExtCacheHandler.hh"
 
 
 #include <string>
-
-#define UGR_PLUGIN_DIR_ENV_VAR "UGR_PLUGIN_DIR"
-
 
 /// The main class that allows to interact with the system
 class UgrConnector {
@@ -58,6 +56,10 @@ protected:
     /// When a location process is started, all the plugins are triggered in parallel
     std::vector<LocationPlugin *> locPlugins;
 
+    /// The main instance of the cache handler
+    /// The eventual responsibility of destroying it is of this class
+    ExtCacheHandler extCache;
+    
     /// Info needed for a simple implementation of n2n functionalities
     /// Prefix to substitute and new prefix
     std::string n2n_pfx, n2n_newpfx;

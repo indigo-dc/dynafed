@@ -5,6 +5,8 @@
  */
 #include "LocationPlugin.hh"
 #include "PluginLoader.hh"
+#include "UgrMemcached.pb.h"
+#include "ExtCacheHandler.hh"
 #include <time.h>
 #include <sys/stat.h>
 
@@ -20,6 +22,21 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
 
         struct LocationPlugin::worktoken *op = pl->getOp();
+
+
+
+        // Check if a ping has to be performed
+        if (op && (op->wop == LocationPlugin::wop_Check)) {
+
+            // If it was already running, ignore the req
+            // If not, set it to running and process the check
+            if (pl->availInfo.setCheckRunning(true)) continue;
+            pl->do_Check();
+            pl->availInfo.setCheckRunning(false);
+
+            continue;
+        }
+
         if (op && op->fi && op->wop) {
 
             // Run this search, including notifying the various calls
@@ -38,7 +55,7 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
 
     const char *fname = "LocationPlugin::LocationPlugin";
     nthreads = 0;
-
+    extCache = 0;
 
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
@@ -57,7 +74,6 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
         nthreads = 10000;
     }
 
-
     // Now get from the config any item built as:
     // locplugin.<name>.variablename
     // or
@@ -66,8 +82,10 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     // locplugin.dmlite1.xlatepfx /dpm/cern.ch/ /
     // locplugin.http1.host[] http://exthost.y.z/path_pfx_to_strip
 
-    std::string s = "locplugin.";
-    s += name;
+    std::string pfx = "locplugin.";
+    pfx += name;
+
+    std::string s = pfx;
     s += ".xlatepfx";
 
     std::string v;
@@ -83,6 +101,17 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
         }
     }
 
+    // get state checker
+    availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
+    Info(SimpleDebug::kLOW, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
+
+    availInfo.time_interval_ms = CFG->GetLong(pfx + ".status_checker_frequency", 5000);
+    Info(SimpleDebug::kLOW, fname, " State checker frequency : " << availInfo.time_interval_ms);
+
+    // get maximum latency
+    availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
+    Info(SimpleDebug::kLOW, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
+
     geoPlugin = 0;
 
     exiting = false;
@@ -94,6 +123,7 @@ void LocationPlugin::stop() {
     const char *fname = "LocationPlugin::stop";
 
     exiting = true;
+    availInfo.state_checking = false;
 
     /// Note: this tends to hang due to a known bug in boost
     //for (unsigned int i = 0; i < workers.size(); i++) {
@@ -118,8 +148,10 @@ void LocationPlugin::stop() {
     }
 }
 
-int LocationPlugin::start() {
+int LocationPlugin::start(ExtCacheHandler *c) {
     const char *fname = "LocationPlugin::start";
+
+    extCache = c;
 
     // Create our pool of threads
     LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
@@ -196,7 +228,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
     LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
 
     // Now put the results
-    {
+    if (op) {
 
         unique_lock<mutex> l(*(op->fi));
 
@@ -248,9 +280,11 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
                 break;
         }
 
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
+
 
     }
+
+    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
 }
 
 
@@ -362,13 +396,7 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-// default implment, overloading should be fast 
 
-void LocationPlugin::check_availability(PluginEndpointStatus * status, UgrFileInfo *fi) {
-    status->state = PLUGIN_ENDPOINT_ONLINE;
-    status->latency = 0;
-    status->explanation = "";
-}
 
 // default name xlation
 
@@ -395,8 +423,137 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
 
 
 
+/// Gives life to the object
+
+int LocationPlugin::Tick(time_t timenow) {
+    PluginEndpointStatus st;
+
+    // If the status is dirty and the info is valid, write to the extcache
+    if (extCache && !availInfo.isExpired(timenow) && availInfo.isDirty()) {
+
+        availInfo.setDirty(false);
+        availInfo.getStatus(st);
+        extCache->putEndpointStatus(&st, name);
+    }
+
+    // If the curr status is expired, if possible get from the extcache one
+    // that is not expired
+    if (availInfo.isExpired(timenow)) {
+        if (extCache && !extCache->getEndpointStatus(&st, name)) {
+            availInfo.setStatus(st, false, (char *) name.c_str());
+        }
+    }
+
+    // If the info is still expired then trigger a refresh towards the endpoint
+    // The refresh will write updated info into the extcache
+    if (availInfo.isExpired(timenow)) {
+        pushOp(0, 0, wop_Check);
+    }
+
+    return 0;
+}
+
+PluginAvailabilityInfo::PluginAvailabilityInfo(int interval_ms, int latency_ms) {
+    isCheckRunning = false;
+    status_dirty = false;
+    time_interval_ms = interval_ms;
+    max_latency_ms = latency_ms;
+}
+
+bool PluginAvailabilityInfo::getCheckRunning() {
+    boost::unique_lock< boost::mutex > l(workmutex);
+    return isCheckRunning;
+}
+
+bool PluginAvailabilityInfo::setCheckRunning(bool b) {
+    boost::unique_lock< boost::mutex > l(workmutex);
+    bool r = isCheckRunning;
+    isCheckRunning = b;
+    return r;
+}
+
+bool PluginAvailabilityInfo::isExpired(time_t timenow) {
+    return (timenow - this->status.lastcheck)*1000 > time_interval_ms;
+}
+
+void PluginAvailabilityInfo::getStatus(PluginEndpointStatus &st) {
+    boost::unique_lock< boost::mutex > l(workmutex);
+    st = status;
+}
+
+void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, char *logname) {
+
+    // Set state, log the status change
+    // A status change in an endpoint is logged at level kLOW
+    // A status setting is logged at level kHIGHEST
+    short lvl = SimpleDebug::kHIGH;
+    const char *online = "ONLINE";
+    const char *offline = "OFFLINE";
+    const char *s = online;
+    bool reject = true;
+
+    {
+        boost::unique_lock< boost::mutex > l(workmutex);
+
+        // Reject the status if it is older than the one that we already have
+        if (st.lastcheck > status.lastcheck) {
+            if (st.state != PLUGIN_ENDPOINT_ONLINE) s = offline;
+            if (st.state != status.state) lvl = SimpleDebug::kLOW;
+            status = st;
+            if (setdirty) status_dirty = true;
+            reject = false;
+        }
+    }
+
+    if (reject) {
+        Info(SimpleDebug::kHIGHEST, "PluginAvailabilityInfo::setStatus",
+                " Status of " << logname <<
+                " checked: " << s << " was rejected.");
+    } else {
+        Info(lvl, "PluginAvailabilityInfo::setStatus",
+                " Status of " << logname <<
+                " checked: " << s << ", HTTP code: " << st.errcode <<
+                " latency: " << st.latency_ms << "ms" <<
+                " desc: " << st.explanation);
+    }
+    
+}
 
 
+
+/// We will like to be able to encode this info to a string, e.g. for external caching purposes
+
+int PluginEndpointStatus::encodeToString(std::string &str) {
+    GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    ugrmemcached::SerialEndpointStatus ses;
+
+    ses.set_errcode(errcode);
+    ses.set_lastcheck(lastcheck);
+    ses.set_latency_ms(latency_ms);
+    ses.set_state(state);
+
+    str = ses.SerializeAsString();
+
+    return (str.length() > 0);
+}
+
+/// We will like to be able to encode this info to a string, e.g. for external caching purposes
+
+int PluginEndpointStatus::decode(void *data, int sz) {
+    if (!sz) return 1;
+
+    ugrmemcached::SerialEndpointStatus ses;
+
+    ses.ParseFromArray(data, sz);
+
+    errcode = ses.errcode();
+    lastcheck = ses.lastcheck();
+    latency_ms = ses.latency_ms();
+    state = (PluginEndpointState) ses.state();
+
+    return 0;
+}
 
 
 // ------------------------------------------------------------------------------------

@@ -8,15 +8,14 @@
 
 #include "UgrLocPlugin_dav.hh"
 #include "../../PluginLoader.hh"
+#include "../../ExtCacheHandler.hh"
 #include <time.h>
+#include "libs/time_utils.h"
 
-
-const std::string CONFIG_PREFIX("glb.locplugin.");
+const std::string CONFIG_PREFIX("locplugin.");
 const std::string config_timeout_conn_key("conn_timeout");
 const std::string config_timeout_ops_key("ops_timeout");
-const std::string config_endpoint_state_check("status_checking");
-const std::string config_endpoint_checker_poll_frequency("status_checker_frequency");
-const std::string config_endpoint_checker_max_latency("max_latency");
+
 
 using namespace boost;
 using namespace std;
@@ -89,14 +88,14 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
 
     params.setSSLCAcheck(ssl_check);
     params.setAuthentificationCallback(this, &UgrLocPlugin_dav::davix_credential_callback);
-    // dav_core->getSessionFactory()->set_parameters(params);
+    checker_params.setSSLCAcheck(ssl_check);
+    checker_params.setAuthentificationCallback(this, &UgrLocPlugin_dav::davix_credential_callback);
 
 }
 
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
     std::string pref_dot = prefix + std::string(".");
-    guint latency;
 
     // get ssl check
     ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
@@ -121,18 +120,6 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     if (password.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " basic auth password defined  ");
     }
-    // get state checker
-    state_checking = c->GetBool(pref_dot + config_endpoint_state_check, true);
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker : " << ((state_checking) ? "ENABLED" : "DISABLED"));
-
-    state_checker_freq = c->GetLong(pref_dot + config_endpoint_checker_poll_frequency, 5000);
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " State checker frequency : " << state_checker_freq);
-    // get maximum latency
-    latency = c->GetLong(pref_dot + config_endpoint_checker_max_latency, 10000);
-    max_latency.tv_sec = latency / 1000;
-    max_latency.tv_nsec = (latency % 1000)*1000000;
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Maximum Endpoint latency " << (int) max_latency.tv_sec << "s " << (int) max_latency.tv_nsec << "ns");
-
 
     // timeout management
     long timeout;
@@ -147,30 +134,11 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
     }
-}
-
-void UgrLocPlugin_dav::check_availability(PluginEndpointStatus *status, UgrFileInfo *fi) {
-    if (state_checking)
-        state_checker->get_availability(status);
-    else
-        LocationPlugin::check_availability(status, fi);
-
-}
-
-int UgrLocPlugin_dav::start() {
-    if (state_checking) {
-        state_checker = boost::shared_ptr<DavAvailabilityChecker > (new DavAvailabilityChecker(dav_core.get(), params, base_url, state_checker_freq, &max_latency));
-    }
-    return LocationPlugin::start();
-}
-
-void UgrLocPlugin_dav::stop() {
-    LocationPlugin::stop();
-    if (state_checking) {
-        state_checking = false;
-        state_checker.reset();
-    }
-
+    
+    spec_timeout.tv_sec = this->availInfo.time_interval_ms / 1000;
+    spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
+    checker_params.setOperationTimeout(&spec_timeout);
+    checker_params.setConnexionTimeout(&spec_timeout);
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
@@ -223,7 +191,33 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
     if (!tmp_err) {
         bad_answer = false; // reach here -> request complete
+
+        // Everything OK... keep the online status
+
+        PluginEndpointStatus st;
+        availInfo.getStatus(st);
+        st.lastcheck = time(0);
+        if (st.state == PLUGIN_ENDPOINT_ONLINE)
+            availInfo.setStatus(st, true, (char *) name.c_str());
+
+
+
     } else {
+
+        // Connection problem... it's offline for sure!
+        if ((tmp_err->getStatus() == Davix::StatusCode::ConnexionProblem) ||
+                (tmp_err->getStatus() == Davix::StatusCode::ConnexionTimeout)) {
+            PluginEndpointStatus st;
+            availInfo.getStatus(st);
+            st.lastcheck = time(0);
+            st.state = PLUGIN_ENDPOINT_OFFLINE;
+            availInfo.setStatus(st, true, (char *) name.c_str());
+            // Propagate this fresh result to the extcache
+            if (extCache)
+                extCache->putEndpointStatus(&st, name);
+        }
+
+
         LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
     }
 
@@ -322,6 +316,9 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         if (tmp_err) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
         }
+
+
+
     }
 
 
@@ -361,3 +358,91 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     }
 
 }
+
+void UgrLocPlugin_dav::do_Check() {
+    const char *fname = "UgrLocPlugin_dav::do_Check";
+
+    struct timespec t1, t2;
+    Davix::DavixError* tmp_err = NULL;
+
+    PluginEndpointStatus st;
+    st.errcode = 404;
+
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << base_url << " with time " << availInfo.time_interval_ms);
+
+    boost::shared_ptr<Davix::HttpRequest> req;
+
+    // Measure the time needed
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    req = boost::shared_ptr<Davix::HttpRequest > (static_cast<Davix::HttpRequest*> (dav_core->createRequest(base_url, &tmp_err)));
+
+    // Set decent timeout values for the operation
+    req->set_parameters(checker_params);
+
+    if (req.get() != NULL) {
+        req->setRequestMethod("HEAD");
+        if (req->executeRequest(&tmp_err) == 0)
+            st.errcode = req->getRequestCode();
+    }
+
+    // Prepare the text status message to display
+    if (tmp_err) {
+        std::ostringstream ss;
+        ss << "HTTP status error on " << base_url << " " << tmp_err->getErrMsg();
+        st.explanation = ss.str();
+        st.errcode = -1;
+    }
+
+    // Finish measuring the time needed
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+
+
+    // Calculate the latency
+    struct timespec diff_time;
+    timespec_sub(&t2, &t1, &diff_time);
+    st.latency_ms = (diff_time.tv_sec)*1000 + (diff_time.tv_nsec) / 1000000L;
+
+
+    // For DAV we can also check that the prefix directory is known
+    if (st.errcode >= 200 && st.errcode < 400) {
+        if (st.latency_ms > availInfo.max_latency_ms) {
+            std::ostringstream ss;
+            ss << "Latency of the endpoint " << st.latency_ms << "ms is superior to the limit " << availInfo.max_latency_ms << "ms";
+            st.explanation = ss.str();
+
+            st.state = PLUGIN_ENDPOINT_OFFLINE;
+
+        } else {
+            st.explanation = "";
+            st.state = PLUGIN_ENDPOINT_ONLINE;
+        }
+
+    } else {
+        if (st.explanation.empty()) {
+            std::ostringstream ss;
+            ss << "Server error reported : " << st.errcode;
+            st.explanation = ss.str();
+        }
+        st.state = PLUGIN_ENDPOINT_OFFLINE;
+
+    }
+
+    st.lastcheck = time(0);
+    availInfo.setStatus(st, true, (char *) name.c_str());
+
+
+    // Propagate this fresh result to the extcache
+    if (extCache)
+        extCache->putEndpointStatus(&st, name);
+
+
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << base_url);
+
+}
+
+
+
+
+
+

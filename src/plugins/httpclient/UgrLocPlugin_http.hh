@@ -13,8 +13,6 @@
 #include <davix_cpp.hpp>
 #include <string>
 #include <glibmm.h>
-#include "httpavailabilitychecker.hh"
-#include "ugr_loc_plugin_http_type.hh"
 #include "../../LocationPlugin.hh"
 
 
@@ -36,7 +34,7 @@ class HttpAvailabilityChecker;
 class UgrLocPlugin_http : public LocationPlugin {
 protected:
 
-
+    virtual void do_Check();
 public:
 
     /**
@@ -53,11 +51,12 @@ public:
 
     virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
 
-    
-   /// With http we cannot do listings, hence we shortcircuit the request
-   virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
-       return 0;
-   }
+
+    /// With http we cannot do listings, hence we shortcircuit the request
+
+    virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
+        return 0;
+    }
 protected:
     std::string base_url;
     std::string pkcs12_credential_path;
@@ -69,19 +68,9 @@ protected:
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;
     Davix::RequestParams params;
-
-    //plugin state checker
-    bool state_checking;
-    boost::shared_ptr<HttpAvailabilityChecker> state_checker;
-    unsigned long state_checker_freq;
-    struct timespec max_latency;
+    Davix::RequestParams checker_params;
 
     void load_configuration(const std::string & prefix);
-
-    // stop the plugin behavior
-    virtual void stop();
-
-    virtual int start();
 
     static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err);
 };
