@@ -24,7 +24,7 @@ BuildRequires:		boost-devel
 %endif
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel
-BuildRequires:		davix-devel >= 0.0.17
+BuildRequires:		davix-devel >= 0.0.18
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
