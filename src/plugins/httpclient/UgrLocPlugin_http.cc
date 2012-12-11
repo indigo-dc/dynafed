@@ -34,7 +34,7 @@ using namespace std;
  * Hook for the dav plugin Location plugin
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    g_logger_set_globalfilter(G_LOG_LEVEL_WARNING);
+    davix_set_log_level(DAVIX_LOG_WARNING);
     return (LocationPlugin *)new UgrLocPlugin_http(dbginstance, cfginstance, parms);
 }
 
@@ -64,7 +64,7 @@ int UgrLocPlugin_http::davix_credential_callback(davix_auth_t token, const davix
             }
             break;
         default:
-            Davix::DavixError::setupError(&tmp_err, std::string("UgrLocPlugin_http::davix_credential_callback"), Davix::StatusCode::authentificationError, " Unsupported authentification required by davix ! bug ");
+            Davix::DavixError::setupError(&tmp_err, std::string("UgrLocPlugin_http::davix_credential_callback"), Davix::StatusCode::AuthentificationError, " Unsupported authentification required by davix ! bug ");
     }
     if (tmp_err)
         Davix::DavixError::propagateError((Davix::DavixError**) err, tmp_err);
@@ -128,7 +128,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 120)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
-        params.setConnexionTimeout(&spec_timeout);
+        params.setConnectionTimeout(&spec_timeout);
     }
     if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 120)) != 0) {
         spec_timeout.tv_sec = timeout;
@@ -140,7 +140,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     spec_timeout.tv_sec = this->availInfo.time_interval_ms / 1000;
     spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
     checker_params.setOperationTimeout(&spec_timeout);
-    checker_params.setConnexionTimeout(&spec_timeout);
+    checker_params.setConnectionTimeout(&spec_timeout);
 }
 
 void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
@@ -289,7 +289,7 @@ void UgrLocPlugin_http::do_Check() {
     req = boost::shared_ptr<Davix::HttpRequest > (static_cast<Davix::HttpRequest*> (dav_core->createRequest(base_url, &tmp_err)));
 
     // Set decent timeout values for the operation
-    req->set_parameters(checker_params);
+    req->setParameters(checker_params);
 
     if (req.get() != NULL) {
         req->setRequestMethod("HEAD");
