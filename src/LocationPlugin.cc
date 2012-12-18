@@ -30,7 +30,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
             // If it was already running, ignore the req
             // If not, set it to running and process the check
-            if (pl->availInfo.setCheckRunning(true)) continue;
+            if (!pl->availInfo.setCheckRunning(true)) continue;
             pl->do_Check();
             pl->availInfo.setCheckRunning(false);
 
@@ -468,8 +468,14 @@ bool PluginAvailabilityInfo::getCheckRunning() {
 bool PluginAvailabilityInfo::setCheckRunning(bool b) {
     boost::unique_lock< boost::mutex > l(workmutex);
     bool r = isCheckRunning;
+    
+    // Return false if the status was what we are setting
+    if (r == b) return false;
+    
     isCheckRunning = b;
-    return r;
+    
+    // Return true if we changed the status
+    return true;
 }
 
 bool PluginAvailabilityInfo::isExpired(time_t timenow) {
