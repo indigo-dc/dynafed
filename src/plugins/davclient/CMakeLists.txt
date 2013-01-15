@@ -7,7 +7,7 @@ FILE(GLOB src_dav_plugin "*.cc")
 
 message(STATUS "Building the DAV plugin")
 
-pkg_check_modules(DAVIX_PKG REQUIRED davix)
+pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.0.20)
 # glibmm for dav plugin
 pkg_search_module(GLIBMM_PKG REQUIRED glibmm glibmm-2.6 glibmm-2.4) 
 
