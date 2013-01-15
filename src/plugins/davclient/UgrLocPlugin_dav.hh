@@ -48,11 +48,8 @@ public:
 
 protected:
     std::string base_url;
-    std::string pkcs12_credential_path;
-    std::string pkcs12_credential_password;
+
     bool ssl_check;
-    std::string login;
-    std::string password;
 
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;
@@ -60,8 +57,6 @@ protected:
     Davix::RequestParams checker_params;
 
     void load_configuration(const std::string & prefix);
-
-    static int davix_credential_callback(davix_auth_t token, const davix_auth_info_t* t, void* userdata, Davix_error** err);
 };
 
 
