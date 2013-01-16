@@ -167,7 +167,7 @@ int UgrFileInfo::encodeToString(std::string &str) {
     sufi.set_owner(owner);
     sufi.set_size(size);
     sufi.set_unixflags(unixflags);
-
+    
     str = sufi.SerializeAsString();
 
 
@@ -236,6 +236,7 @@ int UgrFileInfo::encodeSubitemsToString(std::string &str) {
             pnt->set_latitude(it->latitude);
             pnt->set_location(it->location);
             pnt->set_longitude(it->longitude);
+            pnt->set_pluginid(it->pluginID);
         }
 
         str = replist.SerializeAsString();
@@ -288,6 +289,8 @@ int UgrFileInfo::decodeSubitems(void *data, int sz) {
             itr.latitude = rep.latitude();
             itr.longitude = rep.longitude();
             itr.location = rep.location();
+            itr.pluginID = rep.pluginid();
+            setPluginID(itr.pluginID);
             replicas.insert(itr);
         }
         

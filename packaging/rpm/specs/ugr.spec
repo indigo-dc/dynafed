@@ -1,4 +1,4 @@
-%global checkout_tag 140113152153
+%global checkout_tag 160113110147
 
 %if 0%{?el5}
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
@@ -7,7 +7,7 @@
 %endif
 
 Name:				ugr
-Version:			1.0.1
+Version:			1.0.2
 Release:			0.1.%{checkout_tag}%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet

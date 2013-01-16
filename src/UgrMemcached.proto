@@ -12,6 +12,7 @@ message SerialUgrfileInfo {
     required int64 mtime = 6;
     required int64 ctime = 7;
 
+    repeated int32 pluginids = 8;
 }
 
 
@@ -24,6 +25,8 @@ message SerialUgrReplica {
     required string location = 2;
     required float latitude = 3;
     required float longitude = 4;
+
+    required int32 pluginid = 5;
 }
 
 
