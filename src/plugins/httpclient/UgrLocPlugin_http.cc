@@ -133,11 +133,28 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
         return;
     }
 
-    // Do the default name translation for this plugin (prefix xlation)
-    doNameXlation(op->fi->name, xname);
-    // Then prepend the URL prefix
-    canonical_name += xname;
+    
+    
+    if (op->wop == wop_CheckReplica) {
+        
+        // Do the default name translation for this plugin (prefix xlation)
+        if(doNameXlation(op->repl, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            op->fi->notifyLocationNotPending();
+            return;
+        }
+            // Then prepend the URL prefix
+        else canonical_name = base_url + xname;
+    } else {
+        // Do the default name translation for this plugin (prefix xlation)
+        doNameXlation(op->fi->name, xname);
+        // Then prepend the URL prefix
+        canonical_name = base_url + xname;
+    }
 
+    
+    
+    
     memset(&st, 0, sizeof (st));
 
     switch (op->wop) {
@@ -156,7 +173,11 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
 
-
+        case LocationPlugin::wop_CheckReplica:
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << op->repl << ")");
+            pos.stat(&params, op->repl, &st, &tmp_err);
+            break;
+            
         default:
             break;
     }
@@ -202,7 +223,30 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 break;
             }
+            
+            case LocationPlugin::wop_CheckReplica:
+            {
+                UgrFileItem_replica itr;
+                doNameXlation(op->repl, itr.name);
+                
+                itr.pluginID = myID;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
 
+                // We have modified the data, hence set the dirty flag
+                op->fi->dirtyitems = true;
+
+                // Process it with the Geo plugin, if needed
+                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+                {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
+
+                    op->fi->replicas.insert(itr);
+                }
+
+                break;
+            }
+            
             default:
                 break;
         }
@@ -227,6 +271,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
+            case LocationPlugin::wop_CheckReplica:
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();

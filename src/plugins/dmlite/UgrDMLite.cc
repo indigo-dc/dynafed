@@ -118,13 +118,21 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
             r.replicaid = 0;
             r.status = Replica::kAvailable;
 
-            Url u(i->name);
-
-
             r.rfn = i->name;
 
+            // We need to get the server from the full url that we have
 
-            r.server = u.domain;
+            // Look for ://, then for the subsequent / or :
+            unsigned int p1;
+            p1 = i->name.find("://", 0, 16);
+            if (p1 != i->name.npos) {
+                unsigned int p2 = i->name.find_first_of(":/", p1 + 3);
+                if (p2 != i->name.npos) {
+                    r.server = i->name.substr(p1 + 3, p2 - p1 + 3);
+                }
+            }
+
+
 
 
 
@@ -236,7 +244,7 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
 
 void UgrCatalog::closeDir(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
-    
+
     if (d && d->nfo) {
         boost::lock_guard<UgrFileInfo > l(*d->nfo);
         d->nfo->unpin();

@@ -19,6 +19,7 @@
 #include "GeoPlugin.hh"
 
 class LocationInfoHandler;
+class UgrConnector;
 
 #define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
 #define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
@@ -50,12 +51,12 @@ public:
     /// when the status was checked last
     time_t lastcheck;
 
-        /// We will like to be able to encode this info to a string, e.g. for external caching purposes
+    /// We will like to be able to encode this info to a string, e.g. for external caching purposes
     int encodeToString(std::string &str);
 
     /// We will like to be able to encode this info to a string, e.g. for external caching purposes
     int decode(void *data, int sz);
-    
+
     PluginEndpointStatus() {
         lastcheck = 0;
         state = PLUGIN_ENDPOINT_UNKNOWN;
@@ -67,7 +68,7 @@ public:
 class PluginAvailabilityInfo {
 public:
     PluginAvailabilityInfo(int interval_ms = 5000, int latency_ms = 5000);
-    
+
 
     /// Do we do any status checking at all?
     bool state_checking;
@@ -94,7 +95,7 @@ public:
     virtual bool isDirty() {
         return status_dirty;
     }
-    
+
     virtual void setDirty(bool d) {
         boost::unique_lock< boost::mutex > l(workmutex);
         status_dirty = d;
@@ -119,12 +120,14 @@ private:
  * 
  */
 class LocationPlugin {
+private:
     int nthreads;
-
-
-
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
+
+
+    /// Reference to the ugrconnector we belong to. Useful for callbacks like req_checkreplica
+    UgrConnector *myUgr;
 
 public:
 
@@ -133,7 +136,8 @@ public:
         wop_Stat,
         wop_Locate,
         wop_List,
-        wop_Check
+        wop_Check,
+        wop_CheckReplica
     };
     /// The description of an operation to be done asynchronously
 
@@ -141,6 +145,7 @@ public:
         UgrFileInfo *fi;
         workOp wop;
         LocationInfoHandler *handler;
+        std::string repl;
     };
 
 protected:
@@ -163,10 +168,15 @@ protected:
 
     // Ext cache
     ExtCacheHandler *extCache;
-    
-    
+
+
     // Workaround for a bug in boost, where interrupt() hangs
     bool exiting;
+
+    /// Tells us if this plugin is invoked directly by UgrConnector (slave=false) or by another plugin (slave=true)
+    bool slave;
+    /// Tells us if this plugin demands the validation of the replicas to the slave plugins
+    bool replicaXlator;
 
     /// Queue of the pending operations
     std::deque< struct worktoken *> workqueue;
@@ -177,6 +187,7 @@ protected:
 
     /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
     void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop);
+    void pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handler, std::string &rep);
     /// Gets the next op to perform
     struct worktoken *getOp();
 
@@ -188,10 +199,14 @@ protected:
 
 
     // The simple, default global name translation
-    std::string xlatepfx_from, xlatepfx_to;
+    std::vector<std::string> xlatepfx_from;
+    std::string xlatepfx_to;
 
     /// Applies the plugin-specific name translation
     virtual int doNameXlation(std::string &from, std::string &to);
+
+    /// Invokes a full round of CheckReplica towards other slave plugins
+    virtual void req_checkreplica(UgrFileInfo *fi, std::string &repl);
 
     virtual void do_Check() {
     };
@@ -209,6 +224,10 @@ public:
         geoPlugin = gp;
     };
 
+    virtual void setUgrCallback(UgrConnector *u) {
+        myUgr = u;
+    };
+
     void setID(short pluginID) {
         myID = pluginID;
     }
@@ -219,6 +238,18 @@ public:
 
     virtual int isOK() {
         return availInfo.isOK();
+    }
+
+    /// Tells us if this plugin is invoked directly by UgrConnector (slave=false) or by another plugin (slave=true)
+
+    bool isSlave() {
+        return slave;
+    };
+
+    /// Tells us if this plugin demands the validation of the replicas to the slave plugins
+
+    bool isReplicaXlator() {
+        return replicaXlator;
     }
 
     ///
@@ -244,6 +275,7 @@ public:
 
     /// Start the async stat process
     /// @param fi UgrFileInfo instance to populate
+    /// @param handler the location info handler to write into
     virtual int do_Stat(UgrFileInfo *fi, LocationInfoHandler *handler);
     /// Waits max a number of seconds for a stat process to be complete
     /// @param fi UgrFileInfo instance to wait for
@@ -252,6 +284,7 @@ public:
 
     /// Start the async location process
     /// @param fi UgrFileInfo instance to populate
+    /// @param handler the location info handler to write into
     virtual int do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler);
     /// Waits max a number of seconds for a locate process to be complete
     /// @param fi UgrFileInfo instance to wait for
@@ -260,11 +293,19 @@ public:
 
     /// Start the async listing process
     /// @param fi UgrFileInfo instance to populate
+    /// @param handler the location info handler to write into
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
     /// Waits max a number of seconds for a list process to be complete
     /// @param fi UgrFileInfo instance to wait for
     /// @param tmout Timeout for waiting
     virtual int do_waitList(UgrFileInfo *fi, int tmout = 5);
+
+    /// Asynchronously check if this plugin knows about the given replica
+    /// Eventually add the replica
+    /// @param fi UgrFileInfo instance to populate
+    /// @param rep the replica to check
+    /// @param handler the location info handler to write into
+    virtual int do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler);
 
 };
 

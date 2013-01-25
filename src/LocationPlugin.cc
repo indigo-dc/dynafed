@@ -4,6 +4,7 @@
  * @date   Oct 2011
  */
 #include "LocationPlugin.hh"
+#include "UgrConnector.hh"
 #include "PluginLoader.hh"
 #include "UgrMemcached.pb.h"
 #include "ExtCacheHandler.hh"
@@ -57,6 +58,8 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     nthreads = 0;
     extCache = 0;
 
+    myUgr = 0;
+
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
     else name = strdup("Unnamed");
@@ -92,12 +95,20 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     v = CFG->GetString(s.c_str(), (char *) "");
 
     if (v.size() > 0) {
+
+
         vector<string> parms = tokenize(v, " ");
         if (parms.size() < 2) {
             Error(fname, "Bad xlatepfx: '" << v << "'");
         } else {
-            xlatepfx_from = parms[0];
-            xlatepfx_to = parms[1];
+            unsigned int i;
+            for (i = 0; i < parms.size() - 1; i++)
+                xlatepfx_from.push_back(parms[i]);
+            xlatepfx_to = parms[parms.size()-1];
+
+            for (i = 0; i < parms.size() - 1; i++) {
+                Info(SimpleDebug::kLOW, fname, " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
+            }
         }
     }
 
@@ -111,6 +122,14 @@ LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, st
     // get maximum latency
     availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
     Info(SimpleDebug::kLOW, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
+
+    // get slave status
+    slave = CFG->GetBool(pfx + ".slave", false);
+    Info(SimpleDebug::kLOW, fname, " Slave : " << ((slave) ? "true" : "false"));
+
+    // get replica xlator
+    replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
+    Info(SimpleDebug::kLOW, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
     geoPlugin = 0;
 
@@ -181,11 +200,41 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop);
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop << " " << (fi ? fi->name : ""));
 
     workcondvar.notify_one();
 
 }
+
+void LocationPlugin::pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handler, std::string &rep) {
+    const char *fname = "LocationPlugin::pushRepCheckOp";
+
+    {
+        boost::lock_guard< boost::mutex > l(workmutex);
+
+        worktoken *tk = new(worktoken);
+        tk->fi = fi;
+        tk->wop = wop_CheckReplica;
+        tk->handler = handler;
+        tk->repl = rep;
+        workqueue.push_back(tk);
+    }
+
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op: wop_CheckReplica " << rep);
+
+    workcondvar.notify_one();
+
+}
+
+
+/// Invokes a full round of CheckReplica towards other slave plugins
+
+void LocationPlugin::req_checkreplica(UgrFileInfo *fi, std::string &repl) {
+    if (myUgr)
+        myUgr->do_checkreplica(fi, repl);
+}
+
+
 
 // Gets an op from the queue, or timeout
 
@@ -365,6 +414,23 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
     return 0;
 }
 
+int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler) {
+    const char *fname = "LocationPlugin::do_CheckReplica";
+
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+
+    // We immediately notify that this plugin is starting a search for this info
+    // Depending on the plugin, the symmetric notifyNotPending() will be done
+    // in a parallel thread, or inside do_waitstat
+    fi->notifyLocationPending();
+
+    pushRepCheckOp(fi, handler, rep);
+
+    return 0;
+}
+
+
+
 // Waits max a number of seconds for a locate process to be complete
 
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
@@ -399,23 +465,33 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
 
 
 // default name xlation
+// Return 0 if the prefix was found
 
 int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
     const char *fname = "LocationPlugin::doNameXlation";
+    int r = 1;
+    unsigned int i;
 
-    if ((xlatepfx_from.size() > 0) &&
-            ((from.size() == 0) || (from.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0))) {
+    for (i = 0; i < xlatepfx_from.size(); i++) {
+        if ((xlatepfx_from[i].size() > 0) &&
+                ((from.size() == 0) || (from.compare(0, xlatepfx_from[i].length(), xlatepfx_from[i]) == 0))) {
 
-        if (from.size() == 0)
-            to = xlatepfx_to;
-        else
-            to = xlatepfx_to + from.substr(xlatepfx_from.length());
+            if (from.size() == 0)
+                to = xlatepfx_to;
+            else
+                to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
 
-    } else to = from;
+            r = 0;
+            break;
+
+        }
+    }
+
+    if (r) to = from;
 
     LocPluginLogInfo(SimpleDebug::kHIGH, fname, from << "->" << to);
-    // Always OK in this simple implementation!
-    return 0;
+
+    return r;
 }
 
 
@@ -468,12 +544,12 @@ bool PluginAvailabilityInfo::getCheckRunning() {
 bool PluginAvailabilityInfo::setCheckRunning(bool b) {
     boost::unique_lock< boost::mutex > l(workmutex);
     bool r = isCheckRunning;
-    
+
     // Return false if the status was what we are setting
     if (r == b) return false;
-    
+
     isCheckRunning = b;
-    
+
     // Return true if we changed the status
     return true;
 }
@@ -522,7 +598,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
                 " latency: " << st.latency_ms << "ms" <<
                 " desc: " << st.explanation);
     }
-    
+
 }
 
 

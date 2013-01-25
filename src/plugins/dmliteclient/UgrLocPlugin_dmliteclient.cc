@@ -55,7 +55,21 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     if (!pluginManager) return;
     if (!catalogfactory) return;
+      
+    if (op->wop == wop_CheckReplica) {
+        
+        // Do the default name translation for this plugin (prefix xlation)
+        if(doNameXlation(op->repl, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            op->fi->notifyLocationNotPending();
+            return;
+        }
 
+    } else {
+        // Do the default name translation for this plugin (prefix xlation)
+        doNameXlation(op->fi->name, xname);
+    } 
+    
     // Catalog
     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
     {
@@ -95,18 +109,6 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     // We act using the identity of this service, hence we don't need to invoke
     // getIdMap/setUserblahblah
 
-    // Now xlate the name , by applying the default xlation
-    doNameXlation(op->fi->name, xname);
-        
-    if ((xlatepfx_from.size() > 0) && ((op->fi->name.size() == 0) || (op->fi->name.compare(0, xlatepfx_from.length(), xlatepfx_from) == 0))) {
-
-        if (op->fi->name.size() == 0)
-            xname = xlatepfx_to;
-        else
-            xname = xlatepfx_to + op->fi->name.substr(xlatepfx_from.length());
-
-    }
-
     if (!exc) {
 
 
@@ -124,6 +126,13 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 case LocationPlugin::wop_Locate:
                     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << xname << ")");
                     repvec = catalog->getReplicas(xname);
+                    break;
+
+                case LocationPlugin::wop_CheckReplica:
+                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xname << ")");
+
+                    // For now I don't see why it should not follow the links here
+                    st = catalog->extendedStat(op->repl, true);
                     break;
 
                 case LocationPlugin::wop_List:
@@ -192,18 +201,46 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
 
-                    {
+                    if (!isReplicaXlator()) {
                         // Lock the file instance
                         unique_lock<mutex> l(*(op->fi));
 
                         op->fi->replicas.insert(it);
                     }
+                    else {
+                        req_checkreplica(op->fi, i->rfn);
+                    }
+                    
                 }
             }
 
 
             break;
 
+
+        case LocationPlugin::wop_CheckReplica:
+            if (!exc) {
+                UgrFileItem_replica itr;
+                doNameXlation(op->repl, itr.name);
+                
+                itr.pluginID = myID;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
+
+                // We have modified the data, hence set the dirty flag
+                op->fi->dirtyitems = true;
+
+                // Process it with the Geo plugin, if needed
+                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+                {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
+
+                    op->fi->replicas.insert(itr);
+                }
+
+                break;
+            }
+            
         case LocationPlugin::wop_List:
             if (exc) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
@@ -288,6 +325,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
+            case LocationPlugin::wop_CheckReplica:
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;

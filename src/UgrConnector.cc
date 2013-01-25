@@ -189,6 +189,7 @@ int UgrConnector::init(char *cfgfile) {
                         Config::GetInstance(),
                         parms);
                 if (prod) {
+                    prod->setUgrCallback(this);
                     prod->setGeoPlugin(geoPlugin);
                     prod->setID(locPlugins.size());
                     locPlugins.push_back(prod);
@@ -269,9 +270,9 @@ void UgrConnector::do_n2n(std::string &path) {
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
-    // Ask all the plugins that are online
+    // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (locPlugins[i]->isOK()) locPlugins[i]->do_Stat(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())) locPlugins[i]->do_Stat(fi, &locHandler);
     }
 
     return 0;
@@ -370,9 +371,9 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
 int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
-    // Ask all the plugins that are online
+    // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (locPlugins[i]->isOK()) locPlugins[i]->do_Locate(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK()) ) locPlugins[i]->do_Locate(fi, &locHandler);
     }
 
     return 0;
@@ -393,6 +394,33 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
     return 0;
 }
+
+
+
+
+
+int UgrConnector::do_checkreplica(UgrFileInfo *fi, std::string rep) {
+
+    if (!fi) return -1;
+    
+    // Propagate the request to the slave checker plugins. This is an async operation, as we
+    // suppose that there already is a thread that is waiting for this result
+    
+    // Ask all the slave plugins that are online
+    for (unsigned int i = 0; i < locPlugins.size(); i++) {
+        if ( (locPlugins[i]->isSlave()) && (locPlugins[i]->isOK()) ) locPlugins[i]->do_CheckReplica(fi, rep, &locHandler);
+    }
+
+    // Touch the item anyway, it has been referenced
+    fi->touch();
+
+    Info(SimpleDebug::kLOW, "UgrConnector::do_checkreplica", "Checking " << fi->name << "rep:" << rep << " Status: " << fi->getLocationStatus() <<
+            " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
+
+    return 0;
+}
+
+
 
 int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 
@@ -432,7 +460,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
     this->locHandler.putSubitemsToCache(fi);
 
     Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
-            " status_statinfo: " << fi->status_locations << " pending_statinfo: " << fi->pending_locations);
+            " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
 
     return 0;
 }
@@ -440,9 +468,9 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
 int UgrConnector::do_List(UgrFileInfo *fi) {
 
 
-    // Ask all the plugins that are online
+    // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if (locPlugins[i]->isOK()) locPlugins[i]->do_List(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK()) ) locPlugins[i]->do_List(fi, &locHandler);
     }
 
 

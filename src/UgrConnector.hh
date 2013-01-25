@@ -85,7 +85,7 @@ protected:
     int do_List(UgrFileInfo *fi);
     /// Waits max a number of seconds for a list process to be complete
     int do_waitList(UgrFileInfo *fi, int tmout = 30);
-
+   
     /// Invoked by the ticker thread, gives life to the object
     virtual void tick(int parm);
 
@@ -143,6 +143,10 @@ public:
     /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
     virtual int stat(std::string &lfn, UgrFileInfo **nfo);
 
+    /// Start an async process that finds the endpoint that has the given replica
+    /// There is no wait primitive associated to this, as the normal do_waitLocate will do
+    int do_checkreplica(UgrFileInfo *fi, std::string rep);
+    
     /// Return the replica set sorted by increasing distance to the client IP given
     std::set<UgrFileItem_replica, UgrFileItemGeoComp> getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo);
 };

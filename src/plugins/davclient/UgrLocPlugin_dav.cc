@@ -38,7 +38,6 @@ extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     return (LocationPlugin *)new UgrLocPlugin_dav(dbginstance, cfginstance, parms);
 }
 
-
 UgrLocPlugin_dav::UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
 LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "Creating instance named " << name);
@@ -62,7 +61,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
     std::string pref_dot = prefix + std::string(".");
-    Davix::DavixError * tmp_err=NULL;
+    Davix::DavixError * tmp_err = NULL;
     Davix::X509Credential cred;
 
     // get ssl check
@@ -74,13 +73,13 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     const std::string pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
     if (pkcs12_credential_path.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);
-        if( pkcs12_credential_password.size() > 0)
+        if (pkcs12_credential_password.size() > 0)
             Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");
-        if( cred.loadFromFileP12(pkcs12_credential_path, pkcs12_credential_password, &tmp_err) <0 ){
+        if (cred.loadFromFileP12(pkcs12_credential_path, pkcs12_credential_password, &tmp_err) < 0) {
             Info(SimpleDebug::kHIGH, "UgrLocPlugin_dav", "Error: impossible to load credential "
-                 + pkcs12_credential_path + " :" + tmp_err->getErrMsg());
+                    + pkcs12_credential_path + " :" + tmp_err->getErrMsg());
             Davix::DavixError::clearError(&tmp_err);
-        }else{
+        } else {
             params.setClientCertX509(cred);
         }
     }
@@ -90,7 +89,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     const std::string password = c->GetString(pref_dot + std::string("auth_passwd"), "");
     if (password.size() > 0 && login.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "login and password setup for authentication");
-        params.setClientLoginPassword(login,password);
+        params.setClientLoginPassword(login, password);
     }
 
     // timeout management
@@ -106,8 +105,8 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
     }
-    
-    checker_params = params;  // clone the parameters for the checker
+
+    checker_params = params; // clone the parameters for the checker
     spec_timeout.tv_sec = this->availInfo.time_interval_ms / 1000;
     spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
     checker_params.setOperationTimeout(&spec_timeout);
@@ -118,7 +117,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     struct stat st;
     Davix::DavixError * tmp_err = NULL;
     static const char * fname = "UgrLocPlugin_dav::runsearch";
-    std::string canonical_name = base_url;
+    std::string canonical_name;
     std::string xname;
     bool bad_answer = true;
     DAVIX_DIR* d = NULL;
@@ -132,13 +131,27 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     }
 
 
-    // Do the default name translation for this plugin (prefix xlation)
-    doNameXlation(op->fi->name, xname);
-    // Then prepend the URL prefix
-    canonical_name += xname;
+    if (op->wop == wop_CheckReplica) {
+        
+        // Do the default name translation for this plugin (prefix xlation)
+        if(doNameXlation(op->repl, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            op->fi->notifyLocationNotPending();
+            return;
+        }
+            // Then prepend the URL prefix
+        else canonical_name = base_url + xname;
+    } else {
+        // Do the default name translation for this plugin (prefix xlation)
+        doNameXlation(op->fi->name, xname);
+        // Then prepend the URL prefix
+        canonical_name = base_url + xname;
+    }
 
     memset(&st, 0, sizeof (st));
 
+          
+    
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
@@ -150,7 +163,10 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
-
+        case LocationPlugin::wop_CheckReplica:
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
+            pos.stat(&params, canonical_name, &st, &tmp_err);
+            break;
         case LocationPlugin::wop_List:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
             d = pos.opendirpp(&params, canonical_name, &tmp_err);
@@ -214,6 +230,29 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 itr.name = canonical_name;
                 itr.pluginID = myID;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << canonical_name);
+
+                // We have modified the data, hence set the dirty flag
+                op->fi->dirtyitems = true;
+
+                // Process it with the Geo plugin, if needed
+                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+                {
+                    // Lock the file instance
+                    unique_lock<mutex> l(*(op->fi));
+
+                    op->fi->replicas.insert(itr);
+                }
+
+                break;
+            }
+            case LocationPlugin::wop_CheckReplica:
+            {
+                UgrFileItem_replica itr;
+                itr.name = canonical_name;
+
+
+                itr.pluginID = myID;
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -308,6 +347,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 break;
 
             case LocationPlugin::wop_Locate:
+            case LocationPlugin::wop_CheckReplica:
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
