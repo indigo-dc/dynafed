@@ -38,7 +38,6 @@ extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     return (LocationPlugin *)new UgrLocPlugin_http(dbginstance, cfginstance, parms);
 }
 
-
 UgrLocPlugin_http::UgrLocPlugin_http(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
 LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_http", "Creating instance named " << name);
@@ -62,7 +61,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
 void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     Config * c = Config::GetInstance();
     std::string pref_dot = prefix + std::string(".");
-    Davix::DavixError* tmp_err=NULL;
+    Davix::DavixError* tmp_err = NULL;
     Davix::X509Credential cred;
 
     params.setProtocol(DAVIX_PROTOCOL_HTTP);
@@ -76,13 +75,13 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     const std::string pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
     if (pkcs12_credential_path.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);
-        if( pkcs12_credential_password.size() > 0)
+        if (pkcs12_credential_password.size() > 0)
             Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");
-        if( cred.loadFromFileP12(pkcs12_credential_path, pkcs12_credential_password, &tmp_err) <0 ){
+        if (cred.loadFromFileP12(pkcs12_credential_path, pkcs12_credential_password, &tmp_err) < 0) {
             Info(SimpleDebug::kHIGH, "UgrLocPlugin_dav", "Error: impossible to load credential "
-                 + pkcs12_credential_path + " :" + tmp_err->getErrMsg());
+                    + pkcs12_credential_path + " :" + tmp_err->getErrMsg());
             Davix::DavixError::clearError(&tmp_err);
-        }else{
+        } else {
             params.setClientCertX509(cred);
         }
     }
@@ -92,7 +91,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     const std::string password = c->GetString(pref_dot + std::string("auth_passwd"), "");
     if (password.size() > 0 && login.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "login and password setup for authentication");
-        params.setClientLoginPassword(login,password);
+        params.setClientLoginPassword(login, password);
     }
 
     // timeout management
@@ -133,28 +132,48 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
         return;
     }
 
-    
-    
+
+
     if (op->wop == wop_CheckReplica) {
-        
+
         // Do the default name translation for this plugin (prefix xlation)
-        if(doNameXlation(op->repl, xname)) {
+        if (doNameXlation(op->repl, xname)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
-        }
-            // Then prepend the URL prefix
+        }// Then prepend the URL prefix
         else canonical_name = base_url + xname;
     } else {
+
         // Do the default name translation for this plugin (prefix xlation)
-        doNameXlation(op->fi->name, xname);
+        if (doNameXlation(op->fi->name, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            switch (op->wop) {
+                case LocationPlugin::wop_Stat:
+                    op->fi->notifyStatNotPending();
+                    break;
+
+                case LocationPlugin::wop_Locate:
+                    op->fi->notifyLocationNotPending();
+                    break;
+
+                case LocationPlugin::wop_List:
+                    op->fi->notifyItemsNotPending();
+                    break;
+
+                default:
+                    break;
+            }
+            return;
+        }
+
         // Then prepend the URL prefix
         canonical_name = base_url + xname;
     }
 
-    
-    
-    
+
+
+
     memset(&st, 0, sizeof (st));
 
     switch (op->wop) {
@@ -174,10 +193,10 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             break;
 
         case LocationPlugin::wop_CheckReplica:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << op->repl << ")");
-            pos.stat(&params, op->repl, &st, &tmp_err);
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
+            pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
-            
+
         default:
             break;
     }
@@ -223,14 +242,14 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 break;
             }
-            
+
             case LocationPlugin::wop_CheckReplica:
             {
                 UgrFileItem_replica itr;
-                doNameXlation(op->repl, itr.name);
-                
+                itr.name = canonical_name;
+
                 itr.pluginID = myID;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -246,7 +265,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 break;
             }
-            
+
             default:
                 break;
         }
@@ -357,7 +376,7 @@ void UgrLocPlugin_http::do_Check() {
         st.state = PLUGIN_ENDPOINT_OFFLINE;
 
     }
-    
+
     st.lastcheck = time(0);
     availInfo.setStatus(st, true, (char *) name.c_str());
 

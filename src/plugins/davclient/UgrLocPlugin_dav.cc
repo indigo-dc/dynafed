@@ -132,26 +132,46 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
 
     if (op->wop == wop_CheckReplica) {
-        
+
         // Do the default name translation for this plugin (prefix xlation)
-        if(doNameXlation(op->repl, xname)) {
+        if (doNameXlation(op->repl, xname)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
-        }
-            // Then prepend the URL prefix
+        }// Then prepend the URL prefix
         else canonical_name = base_url + xname;
     } else {
+
         // Do the default name translation for this plugin (prefix xlation)
-        doNameXlation(op->fi->name, xname);
+        if (doNameXlation(op->fi->name, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            switch (op->wop) {
+                case LocationPlugin::wop_Stat:
+                    op->fi->notifyStatNotPending();
+                    break;
+
+                case LocationPlugin::wop_Locate:
+                    op->fi->notifyLocationNotPending();
+                    break;
+
+                case LocationPlugin::wop_List:
+                    op->fi->notifyItemsNotPending();
+                    break;
+
+                default:
+                    break;
+            }
+            return;
+        }
+
         // Then prepend the URL prefix
         canonical_name = base_url + xname;
     }
 
     memset(&st, 0, sizeof (st));
 
-          
-    
+
+
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
@@ -252,7 +272,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
 
                 itr.pluginID = myID;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;

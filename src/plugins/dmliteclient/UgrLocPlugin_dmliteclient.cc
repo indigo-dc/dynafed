@@ -55,11 +55,11 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     if (!pluginManager) return;
     if (!catalogfactory) return;
-      
+
     if (op->wop == wop_CheckReplica) {
-        
+
         // Do the default name translation for this plugin (prefix xlation)
-        if(doNameXlation(op->repl, xname)) {
+        if (doNameXlation(op->repl, xname)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
@@ -67,9 +67,29 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     } else {
         // Do the default name translation for this plugin (prefix xlation)
-        doNameXlation(op->fi->name, xname);
-    } 
-    
+        if (doNameXlation(op->fi->name, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            switch (op->wop) {
+                case LocationPlugin::wop_Stat:
+                    op->fi->notifyStatNotPending();
+                    break;
+
+                case LocationPlugin::wop_Locate:
+                    op->fi->notifyLocationNotPending();
+                    break;
+
+                case LocationPlugin::wop_List:
+                    op->fi->notifyItemsNotPending();
+                    break;
+
+                default:
+                    break;
+            }
+            return;
+        }
+
+    }
+
     // Catalog
     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
     {
@@ -206,11 +226,10 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         unique_lock<mutex> l(*(op->fi));
 
                         op->fi->replicas.insert(it);
-                    }
-                    else {
+                    } else {
                         req_checkreplica(op->fi, i->rfn);
                     }
-                    
+
                 }
             }
 
@@ -222,7 +241,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
             if (!exc) {
                 UgrFileItem_replica itr;
                 doNameXlation(op->repl, itr.name);
-                
+
                 itr.pluginID = myID;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
 
@@ -240,7 +259,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                 break;
             }
-            
+
         case LocationPlugin::wop_List:
             if (exc) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");

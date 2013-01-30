@@ -49,9 +49,6 @@ public:
      **/
     virtual void runsearch(struct worktoken *op, int myidx);
 
-    virtual void check_availability(PluginEndpointStatus *status, UgrFileInfo *fi);
-
-
     /// With http we cannot do listings, hence we shortcircuit the request
 
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {

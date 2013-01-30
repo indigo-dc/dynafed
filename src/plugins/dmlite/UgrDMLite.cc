@@ -98,14 +98,14 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
-        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", " get location with success, try to sort / choose a proper one");
+        
         // Request UgrConnector to sort a replica set according to proximity to the client
         std::set<UgrFileItem_replica, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remoteAddress, nfo);
 
-        // Populate the vector
-        Replica r;
 
         for (std::set<UgrFileItem_replica>::iterator i = repls.begin(); i != repls.end(); ++i) {
+            // Populate the vector
+            Replica r;
 
             // Filter out the replicas that belong to dead endpoints
             if (!getUgrConnector()->isEndpointOK(i->pluginID)) {
@@ -113,40 +113,64 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
                 continue;
             }
 
-            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
+            
             r.fileid = 0;
             r.replicaid = 0;
             r.status = Replica::kAvailable;
 
-            r.rfn = i->name;
+
 
             // We need to get the server from the full url that we have
+            r.rfn = i->name;
+
 
             // Look for ://, then for the subsequent / or :
-            unsigned int p1;
-            p1 = i->name.find("://", 0, 16);
+            size_t p1;
+            p1 = i->name.find("://");
+            //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas000", p1 << " " <<  i->name.npos);
             if (p1 != i->name.npos) {
-                unsigned int p2 = i->name.find_first_of(":/", p1 + 3);
-                if (p2 != i->name.npos) {
-                    r.server = i->name.substr(p1 + 3, p2 - p1 + 3);
+                //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas00", r.server);
+                // get the name of the server
+                size_t p2 = i->name.find_first_of(":/", p1 + 3);
+                if (p2 != std::string::npos) {
+                    r.server = i->name.substr(p1 + 3, p2 - p1 - 3);
+                    //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas0", r.server);
                 }
+
+
             }
 
 
-
-
-
+//            // Fix the rest of the url, eliminate double slashes
+//            size_t pslh = 10;
+//
+//            for (pslh = 10; pslh < r.rfn.size() - 1; pslh++) {
+//
+//                if ((r.rfn[pslh] == '/') && (r.rfn[pslh + 1] == '/')) {
+//                    Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas1", r.rfn << "-" << r.server << "-" << pslh);
+//                    r.rfn.erase(pslh + 1, 1);
+//                    Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas2", r.rfn << " " << r.server << " " << pslh);
+//                }
+//
+//
+//
+//            };
+            
+            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
             replicas.push_back(r);
         }
 
 
     } else {
-        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", "  -> failure in get location ");
+        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", "Failure in get location. " << path);
     }
 
     // Return
-    if (replicas.size() == 0)
-        throw DmException(DMLITE_NO_REPLICAS, "There are no available replicas");
+    if (replicas.size() == 0) {
+        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "There are no available replicas. " << path);
+        throw DmException(DMLITE_NO_REPLICAS, "There are no available replicas. " + path);
+    }
+    
     return replicas;
 }
 
