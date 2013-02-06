@@ -32,7 +32,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
             // If it was already running, ignore the req
             // If not, set it to running and process the check
             if (!pl->availInfo.setCheckRunning(true)) continue;
-            pl->do_Check();
+            pl->do_Check(myidx);
             pl->availInfo.setCheckRunning(false);
 
             continue;

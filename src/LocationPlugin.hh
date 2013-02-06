@@ -208,7 +208,7 @@ protected:
     /// Invokes a full round of CheckReplica towards other slave plugins
     virtual void req_checkreplica(UgrFileInfo *fi, std::string &repl);
 
-    virtual void do_Check() {
+    virtual void do_Check(int myidx) {
     };
 
 

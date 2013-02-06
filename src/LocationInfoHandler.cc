@@ -214,15 +214,15 @@ void LocationInfoHandler::purgeExpired() {
 
                 if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
                     // The item is old...
-                    Info(SimpleDebug::kLOW, fname, "purging expired item " << fi->name);
+                    Info(SimpleDebug::kMEDIUM, fname, "purging expired item " << fi->name);
 
                     if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
-                        Error(fname, "Found inconsistent pending expired entry. Cannot purge " << fi->name);
+                        Error(fname, "Found pending expired entry. Cannot purge " << fi->name);
                         continue;
                     }
 
                     if (fi->ispinned()) {
-                        Error(fname, "Found entry pinned from a long time. Cannot purge " << fi->name);
+                        Error(fname, "Found pinned expired entry. Cannot purge " << fi->name);
                         continue;
                     }
 

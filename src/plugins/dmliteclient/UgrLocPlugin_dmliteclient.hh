@@ -29,6 +29,7 @@ protected:
 
     std::map<int, dmlite::StackInstance *> simap;
     
+    virtual void do_Check(int myidx);
 public:
 
     UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);

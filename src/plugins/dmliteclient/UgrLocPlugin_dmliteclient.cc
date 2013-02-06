@@ -5,9 +5,10 @@
  */
 #include "UgrLocPlugin_dmliteclient.hh"
 #include "../../PluginLoader.hh"
+#include "../../ExtCacheHandler.hh"
 #include <time.h>
 #include <dmlite/cpp/catalog.h>
-
+#include "libs/time_utils.h"
 
 using namespace boost;
 using namespace std;
@@ -35,8 +36,10 @@ LocationPlugin(dbginstance, cfginstance, parms) {
 
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite plugin manager loaded. cfg: " << parms[3]);
 
+    } else {
+        Error("UgrLocPlugin_dav", "Not enough parameters in the plugin line.");
+        throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
-
 
 };
 
@@ -274,7 +277,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 try {
                     UgrFileItem it;
                     while ((dent = catalog->readDirx(d))) {
-
+                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "readDirx -> " << dent->name);
                         {
                             // Lock the file instance
                             unique_lock<mutex> l(*(op->fi));
@@ -374,6 +377,131 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 }
+
+void UgrLocPlugin_dmlite::do_Check(int myidx) {
+    const char *fname = "UgrLocPlugin_dmliteclient::do_Check";
+
+    // If it was already running, exit
+    // If not, set it to running and continue
+    if (availInfo.setCheckRunning(true)) return;
+
+    struct timespec t1, t2;
+    bool skip = false;
+    bool test_ok = true;
+    dmlite::StackInstance *si = 0;
+    dmlite::Catalog *catalog = 0;
+    dmlite::ExtendedStat st;
+    PluginEndpointStatus status;
+
+
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << xlatepfx_to << " with timeout " << availInfo.time_interval_ms);
+
+    // Measure the time needed
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    // Do the check
+
+    // Get a handle, if there are none then the check is fine
+    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
+    {
+
+        boost::unique_lock< boost::mutex > l(dmlitemutex);
+
+        // create stackinstance (this will instantiate the catalog)
+        // invoke si->setsecuritycontext
+        si = simap[myidx];
+
+        if (!si) {
+
+            LocPluginLogErr(fname, "All the instances of StackInstance are busy. The check is passed.");
+            skip = true;
+
+
+        }
+    }
+
+    try {
+        if (!skip) {
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xlatepfx_to << ")");
+            st = catalog->extendedStat(xlatepfx_to, false);
+        }
+    } catch (dmlite::DmException e) {
+        LocPluginLogErr(fname, "name: " << xlatepfx_to << " Catched exception: " << e.code() << " what: " << e.what());
+        test_ok = false;
+
+        // Prepare the text status message to display
+
+        std::ostringstream ss;
+        ss << "Check failed on " << xlatepfx_to << " " << e.what();
+        status.explanation = ss.str();
+        status.errcode = -1;
+
+    }
+
+
+
+
+    // Finish measuring the time needed
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+
+
+    // Calculate the latency
+    struct timespec diff_time;
+    timespec_sub(&t2, &t1, &diff_time);
+    status.latency_ms = (diff_time.tv_sec)*1000 + (diff_time.tv_nsec) / 1000000L;
+
+
+    // For HTTP we CANNOT check that the prefix directory is known
+    if (test_ok) {
+        if (status.latency_ms > availInfo.max_latency_ms) {
+            std::ostringstream ss;
+            ss << "Latency of the endpoint " << status.latency_ms << "ms is superior to the limit " << availInfo.max_latency_ms << "ms";
+            status.explanation = ss.str();
+
+            status.state = PLUGIN_ENDPOINT_OFFLINE;
+
+        } else {
+            status.explanation = "";
+            status.state = PLUGIN_ENDPOINT_ONLINE;
+        }
+
+    } else {
+        if (status.explanation.empty()) {
+            std::ostringstream ss;
+            ss << "Server error reported : " << status.errcode;
+            status.explanation = ss.str();
+        }
+        status.state = PLUGIN_ENDPOINT_OFFLINE;
+
+    }
+
+    status.lastcheck = time(0);
+    availInfo.setStatus(status, true, (char *) name.c_str());
+
+
+    // Propagate this fresh result to the extcache
+    if (extCache)
+        extCache->putEndpointStatus(&status, name);
+
+
+    // If the test failed, destroy the catalog instance, it's useless. Other threads will try to create a new one.
+    if (!test_ok) {
+        delete si;
+        {
+        boost::unique_lock< boost::mutex > l(dmlitemutex);
+        simap[myidx] = 0;
+        }
+    }
+    else {
+        boost::unique_lock< boost::mutex > l(dmlitemutex);
+        simap[myidx] = si;
+    }
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << xlatepfx_to);
+
+}
+
+
+
 
 
 

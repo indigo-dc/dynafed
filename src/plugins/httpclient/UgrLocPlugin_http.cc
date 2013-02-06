@@ -49,6 +49,7 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
         UgrFileInfo::trimpath(base_url);
 
     } else {
+        Error("UgrLocPlugin_http", "Not enough parameters in the plugin line.");
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
     load_configuration(CONFIG_PREFIX + name);

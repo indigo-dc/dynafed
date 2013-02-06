@@ -25,7 +25,7 @@ if(DMLITE_FOUND)
 set_target_properties(ugrlocplugin_dmliteclient PROPERTIES LINK_FLAGS "-rdynamic"
                                                 LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
-  target_link_libraries(ugrlocplugin_dmliteclient "dl ${DMLITE_LIBRARIES}" ugrconnector)
+  target_link_libraries(ugrlocplugin_dmliteclient dl ${DMLITE_LIBRARIES} ugrconnector rt)
 
 
   # How to install. This is a set of plugins that belong to a specific component
