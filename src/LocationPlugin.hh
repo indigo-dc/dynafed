@@ -21,9 +21,9 @@
 class LocationInfoHandler;
 class UgrConnector;
 
-#define LocPluginLogInfo(l, n, c) Info(l, fname, "LocPlugin: " << this->name << " " << c);
-#define LocPluginLogInfoThr(l, n, c) Info(l, fname, "LocPlugin: " << this->name << myidx << " " << c);
-#define LocPluginLogErr(n, c) Error(fname, "LocPlugin: " << this->name << myidx << " " << c);
+#define LocPluginLogInfo(l, n, c) Info(l, n, "LocPlugin: " << this->name << " " << c);
+#define LocPluginLogInfoThr(l, n, c) Info(l, n, "LocPlugin: " << this->name << myidx << " " << c);
+#define LocPluginLogErr(n, c) Error(n, "LocPlugin: " << this->name << myidx << " " << c);
 
 enum PluginEndpointState {
     PLUGIN_ENDPOINT_UNKNOWN = 0,

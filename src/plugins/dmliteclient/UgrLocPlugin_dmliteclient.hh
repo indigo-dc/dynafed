@@ -12,6 +12,8 @@
 #include <dmlite/cpp/dmlite.h>
 #include <dmlite/cpp/inode.h>
 
+#include <queue>
+
 /** LocationPlugin_dmlite
  * Plugin that talks to a dmlite catalog
  *
@@ -27,7 +29,10 @@ protected:
     /// Mutex for protecting dmlite
     boost::mutex dmlitemutex;
 
-    std::map<int, dmlite::StackInstance *> simap;
+    std::queue<dmlite::StackInstance *> siqueue;
+    
+    dmlite::StackInstance *GetStackInstance(int myidx, bool cancreate = true);
+    void ReleaseStackInstance(dmlite::StackInstance *inst);
     
     virtual void do_Check(int myidx);
 public:

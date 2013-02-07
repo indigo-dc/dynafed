@@ -95,26 +95,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     // Catalog
     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
-    {
-
-        boost::unique_lock< boost::mutex > l(dmlitemutex);
-
-        // create stackinstance (this will instantiate the catalog)
-        // invoke si->setsecuritycontext
-        si = simap[myidx];
-
-        if (!si) {
-
-            try {
-                si = new dmlite::StackInstance(pluginManager);
-            } catch (dmlite::DmException e) {
-                LocPluginLogErr(fname, "Cannot create StackInstance. op: " << op->wop << " name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
-                exc = true;
-            }
-
-        }
-    }
-
+    si = this->GetStackInstance(myidx);
+    if (!si) exc = true;
 
     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Got the catalogue instance.");
 
@@ -124,6 +106,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         si->setSecurityContext(secCtx);
         catalog = si->getCatalog();
     }
+
     if (!catalog) {
         LocPluginLogErr(fname, "Cannot find catalog.");
         exc = true;
@@ -174,7 +157,8 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     }
 
 
-
+    ReleaseStackInstance(si);
+    si = 0;
     //
     // Now put the results
     //
@@ -370,12 +354,49 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
 
 
+}
+
+dmlite::StackInstance *UgrLocPlugin_dmlite::GetStackInstance(int myidx, bool cancreate) {
+    const char *fname = "UgrLocPlugin_dmliteclient::GetStackInstance";
+    
+    
+    
+    dmlite::StackInstance *si = 0;
+
     {
+
         boost::unique_lock< boost::mutex > l(dmlitemutex);
-        simap[myidx] = si;
+        if (siqueue.size() > 0) {
+            si = siqueue.front();
+            siqueue.pop();
+        }
+
     }
 
 
+    if (!si && cancreate) {
+
+        try {
+            LocPluginLogInfoThr(SimpleDebug::kLOW, fname, "Creating new StackInstance.");
+            si = new dmlite::StackInstance(pluginManager);
+        } catch (dmlite::DmException e) {
+            LocPluginLogErr(fname, "Cannot create StackInstance. Catched exception: " << e.code() << " what: " << e.what());
+
+        }
+
+    }
+
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Got stack instance " << si);
+    return si;
+
+}
+
+void UgrLocPlugin_dmlite::ReleaseStackInstance(dmlite::StackInstance *inst) {
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, "fUgrLocPlugin_dmlite::ReleaseStackInstance", "Releasing stack instance " << inst);
+    if (inst) {
+        boost::unique_lock< boost::mutex > l(dmlitemutex);
+        siqueue.push(inst);
+    }
 }
 
 void UgrLocPlugin_dmlite::do_Check(int myidx) {
@@ -386,12 +407,13 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
     if (availInfo.setCheckRunning(true)) return;
 
     struct timespec t1, t2;
-    bool skip = false;
+
     bool test_ok = true;
     dmlite::StackInstance *si = 0;
     dmlite::Catalog *catalog = 0;
     dmlite::ExtendedStat st;
     PluginEndpointStatus status;
+    dmlite::SecurityContext secCtx;
 
 
     LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << xlatepfx_to << " with timeout " << availInfo.time_interval_ms);
@@ -403,28 +425,29 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
 
     // Get a handle, if there are none then the check is fine
     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
-    {
 
-        boost::unique_lock< boost::mutex > l(dmlitemutex);
+    si = this->GetStackInstance(myidx, false);
+    if (!si) {
+        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "All the instances of StackInstance are busy. The check is passed.");
+        return;
+    }
 
-        // create stackinstance (this will instantiate the catalog)
-        // invoke si->setsecuritycontext
-        si = simap[myidx];
+    if (si) {
+        // I suppose that secCtx must be filled with the agent's information
+        si->setSecurityContext(secCtx);
+        catalog = si->getCatalog();
+    }
 
-        if (!si) {
-
-            LocPluginLogErr(fname, "All the instances of StackInstance are busy. The check is passed.");
-            skip = true;
-
-
-        }
+    if (!catalog) {
+        LocPluginLogErr(fname, "Cannot find catalog.");
+        return;
     }
 
     try {
-        if (!skip) {
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xlatepfx_to << ")");
-            st = catalog->extendedStat(xlatepfx_to, false);
-        }
+
+        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xlatepfx_to << ")");
+        st = catalog->extendedStat(xlatepfx_to, false);
+
     } catch (dmlite::DmException e) {
         LocPluginLogErr(fname, "name: " << xlatepfx_to << " Catched exception: " << e.code() << " what: " << e.what());
         test_ok = false;
@@ -439,7 +462,7 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
     }
 
 
-
+    
 
     // Finish measuring the time needed
     clock_gettime(CLOCK_MONOTONIC, &t2);
@@ -487,14 +510,9 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
     // If the test failed, destroy the catalog instance, it's useless. Other threads will try to create a new one.
     if (!test_ok) {
         delete si;
-        {
-        boost::unique_lock< boost::mutex > l(dmlitemutex);
-        simap[myidx] = 0;
-        }
-    }
-    else {
-        boost::unique_lock< boost::mutex > l(dmlitemutex);
-        simap[myidx] = si;
+    } else {
+        this->ReleaseStackInstance(si);
+
     }
     LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << xlatepfx_to);
 
