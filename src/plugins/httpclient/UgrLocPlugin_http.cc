@@ -305,12 +305,8 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
 }
 
-void UgrLocPlugin_http::do_Check() {
+void UgrLocPlugin_http::do_Check(int myidx) {
     const char *fname = "UgrLocPlugin_http::do_Check";
-
-    // If it was already running, exit
-    // If not, set it to running and continue
-    if (availInfo.setCheckRunning(true)) return;
 
     struct timespec t1, t2;
     Davix::DavixError* tmp_err = NULL;

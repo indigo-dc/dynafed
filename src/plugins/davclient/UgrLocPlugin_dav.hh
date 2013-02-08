@@ -31,7 +31,7 @@
 class UgrLocPlugin_dav : public LocationPlugin {
 protected:
 
-    virtual void do_Check();
+    virtual void do_Check(int myidx);
 public:
 
     /**

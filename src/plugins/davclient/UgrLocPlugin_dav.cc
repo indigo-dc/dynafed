@@ -393,7 +393,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
 }
 
-void UgrLocPlugin_dav::do_Check() {
+void UgrLocPlugin_dav::do_Check(int myidx) {
     const char *fname = "UgrLocPlugin_dav::do_Check";
 
     struct timespec t1, t2;

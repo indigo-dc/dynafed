@@ -402,10 +402,6 @@ void UgrLocPlugin_dmlite::ReleaseStackInstance(dmlite::StackInstance *inst) {
 void UgrLocPlugin_dmlite::do_Check(int myidx) {
     const char *fname = "UgrLocPlugin_dmliteclient::do_Check";
 
-    // If it was already running, exit
-    // If not, set it to running and continue
-    if (availInfo.setCheckRunning(true)) return;
-
     struct timespec t1, t2;
 
     bool test_ok = true;
