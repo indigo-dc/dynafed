@@ -53,7 +53,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.1beta}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.3}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -74,17 +74,6 @@ Fabrizio \textsc{Furano} \\ % Your name\\
 
 %\includegraphics{Logo}\\[1cm] % Include a department/university logo - this will require the graphicx package
 
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
 
 
 \vfill % Fill the rest of the page with whitespace
@@ -425,7 +414,7 @@ Default value: 10000
 
 
 
-\subsection{Global name translation}
+\subsection{\label{globalxlation}Global name translation}
 
 UGR can process the file paths it is requested, in order to normalize them by means of prefix substitutions. The typical case is to internally remove the prefix that is instead present in the requests.
 
@@ -452,6 +441,86 @@ Syntax:\\
 \verb"glb.n2n_pfx: <string_prefix>"
 
 Default value: none
+
+
+
+
+\subsection{Slave plugins and replica translators}
+
+A replica translator plugin is a plugin that contacts an endpoint as an external service in order to:
+
+\begin{itemize}
+ \item get file listing information to be merged into the UGR internal namespace
+ \item given a logical file name, get a list of replicas that are known to this service, and ask other plugins for a realtime validation.
+\end{itemize}
+
+The typical usage of this behavior is to use an external service like the LFC (or any other similar service) as a replica name lookup.\\
+
+What characterizes a plugin that is marked as a replica translator plugin is the fact that every replica that the service finds is proposed for validation to the plugins that are marked as slave. Replica translator plugins do not insert replicas into the internal name space, they delegate this action to the plugins that are marked as slave. These slave plugins have the responsibility of checking the entries and eventually insert them into the UGR name space. The most basic check that such a slave plugin may perform is to make sure that the endpoint is considered as online and working. More advanced checks may include actually verifying the presence of that file in that endpoint.\\
+
+To mark a plugin as a replica translator the syntax is:
+
+\verb"locplugin.<ID>.replicaxlator: true" (default: false)\\
+
+To mark a plugin as a slave the syntax is:\\
+
+\verb"locplugin.<ID>.slave: true" (default: false)\\
+
+
+
+
+\subsection{Plugin-level filename prefix translation}
+
+Every plugin can apply a private rule to translate filename prefixes from the endpoint's name space to the UGR name space. As an additional feature, this prefix translating rule may specify more than one prefix that can be recognized and translated to the internal UGR namespace.\\
+A typical example for which this feature is used is to translate \verb"srm://" TURLS coming from external services like an LFC or a replica database. For the plugin being configured we want to specify that both backward-compatible srm syntaxes must be correctly recognised and translated.\\
+
+Let's suppose that the UGR is asked for the file:\\
+
+\verb"/myfed/atlas/data/file1.dat" \\
+
+The global name translation of the UGR (described and configured like in \ref{globalxlation}) translates this file into the internal structure of the UGR namespace:\\
+
+\verb"/atlas/data/file1.dat"\\
+
+An HTTP location plugin is used as a master translation plugin. This queries an external service and returns a replica that may follow one of the two possible syntaxes fro SRM TURLs.
+
+\verb"srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat"\\
+\verb"srm://host2.site.org:8446/srm/managerv2?SFN=/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat"\\
+
+We want to map these two TURLs to the new HTTP-based service setup by the site. This service resides in the machine \verb"host3.site.org" that is different from the hosts that give the SRM service. In this service, we are told by the sysadmin that the path for the aforesaid replica is:\\
+
+\verb"https://host3.site.org/bigstorage/atlas/datadisk/xyzw/file1_replica1.dat"\\
+
+
+
+
+To do this, we have to:
+
+\begin{itemize}
+ \item configure a slave plugin named \verb"HOST3" that manages the endpoint \verb"host3.site.org", in order to check for the replicas indicated by the master translator plugin.
+ \item configure the plugin-level filename prefix translation of this plugin, described in the following directive.
+\end{itemize}
+
+\subsubsection{locplugin.$<$ID$>$.xlatepfx}
+Sets up the path/name translation that the plugin identified by \verb"<ID>" can apply, in order to match the namespace of the endpoint it manages to the federation's namespace. A typical example of this is to convert an SRM TURL got by some other service
+
+Syntax:\\
+\verb"locplugin.<ID>.xlatepfx: <internal_workspace_prefix_1> [... <internal_workspace_prefix_N>] <prefix_to_substitute>"\\
+
+Where: \\
+
+\verb"<internal_workspace_prefix_1> [... <internal_workspace_prefix_N>]" is a set of prefixes that may identify that SRM endpoint. These prefixes, if found, will be internally stripped and substituted.\\
+
+\verb"<prefix_to_substitute>" is the prefix that has to be put to match the namespace of the final DAV endpoint.\\
+
+Example:\\
+
+\verb"locplugin.HOST3.xlatepfx: srm://host2.site.org:8446/srm/managerv2?SFN=/dpm/site.org/atlas/  srm://host2.site.org/dpm/site.org/atlas/ /"\\
+
+This example serves to federate a DPM endpoint as a slave replica checker.\\
+A file named in DPM \verb"srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat" would be known as \\
+\verb"/datadisk/xyzw/file1_replica1.dat" in the internal UGR workspaces and caches.
+
 
 
 
@@ -492,7 +561,7 @@ Default value: 10
 
 \subsubsection{infohandler.useextcache}
 If true, instantiate a 2nd level cache that uses \textit{memcached}. This cache will be shared among all the processes that are spawned.\\
-This cache will also be used to store other information, like the status of the endpoints.
+This cache will also be used to store other information, like the status of the endpoints, whose determination can be shared among multiple processes running Ugr.
 Syntax:\\
 \verb"infohandler.useextcache: <true|false>"\\
 Default value: true
@@ -525,21 +594,21 @@ Default value: true\\
 The DAV plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 
 Syntax:\\
-\verb"locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"\\
+\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"\\
 or
-\verb"locplugin[]: /usr/lib64/ugr/libugrlocplugin_http.so <ID> <concurrency> <URL prefix>"
+\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_http.so <ID> <concurrency> <URL prefix>"
 
 
-The parameters \verb"<ID> <concurrency>" have already been described in the section \ref{glb.locplugin}
+The parameters \verb"<ID>" and \verb"<concurrency>" have already been described in the section \ref{glb.locplugin}
 
-The parameter \verb"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \verb"http://" and \verb"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it can be added to this \verb"URL prefix". \\
+The parameter \verb"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \verb"http://" and \verb"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it can be added to this \verb"URL prefix". This is a basic way of implementing a simple algorithmic, prefix-based name translation that is similar to the concept of \textit{chroot jail} with respect to the \verb"sshd" configuration.\\
 
 A typical example of this is the following:\\
-\verb"dav_plugin_dcache_desy 30 http://sligo.desy.de:2880/pnfs/desy.de/data"\\ \\
+\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so dav_plugin_dcache_desy 30 http://sligo.desy.de:2880/pnfs/desy.de/data"\\ \\
 
 where the prefix \verb"/pnfs/desy.de/data" has to be stripped in order to consider the files as belonging to a uniform name space.\\
 
-In other words, a file named:\\
+In other words, a file whose name inthe storage element is:\\
 \verb"/pnfs/desy.de/data/atlas/fabrizio/testfile.txt"\\
 
 will be known to UGR as\\
@@ -599,23 +668,9 @@ Syntax:\\
 
 The parameters \verb"<ID> <concurrency>" have already been described in the section \ref{glb.locplugin}
 
-The parameter \verb"<config>" is the full path to a DMLite configuration file. To configure DMLite, we refer to the DMLite documentation.
+The parameter \verb"<config>" is the full path to a DMLite configuration file. To configure DMLite, we refer the reader to the DMLite documentation.
 
-\subsubsection{locplugin.$<$ID$>$.xlatepfx}
-Sets up the path/name translation that the DMLite plugin can apply, in order to match the namespace of the endpoint to the federation's namespace.
 
-Syntax:\\
-\verb"locplugin.<ID>.xlatepfx: <internal_workspace_prefix> <prefix_to_strip>"
-
-\verb"<internal_workspace_prefix>" is the prefix that is kept in the internal UGR workspace. It is generally \verb"/".\\
-\verb"<prefix_to_strip>" is the prefix that has to be stripped from the namespace of the endpoint, to make it match with the federation's namespace.\\
-
-Example:\\
-
-\verb"locplugin.mydpmdb.xlatepfx: / /dpm/cern.ch/home"\\
-
-This example serves to federate a DPM database. A file named in DPM \verb"/dpm/cern.ch/home/atlas/fabrizio/testfile.txt" would be known as \\
-\verb"/atlas/fabrizio/testfile.txt" in the internal UGR workspaces.
 
 \section*{Acknowledgment}
 
