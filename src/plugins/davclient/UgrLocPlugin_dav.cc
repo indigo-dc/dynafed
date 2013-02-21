@@ -257,11 +257,14 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
                 // Process it with the Geo plugin, if needed
                 if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-                {
+
+                if (!isReplicaXlator()) {
                     // Lock the file instance
                     unique_lock<mutex> l(*(op->fi));
 
-                    op->fi->replicas.insert(itr);
+                    op->fi->replicas.insert(it);
+                } else {
+                    req_checkreplica(op->fi, i->rfn);
                 }
 
                 break;
