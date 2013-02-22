@@ -5,6 +5,9 @@ project (ugr)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo"
     CACHE STRING "build type")
 
+OPTION(LFC_PLUGIN "Enable LFC client side plugin" FALSE)
+
+
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
