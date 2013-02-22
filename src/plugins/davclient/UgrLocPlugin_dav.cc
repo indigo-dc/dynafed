@@ -262,9 +262,9 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     // Lock the file instance
                     unique_lock<mutex> l(*(op->fi));
 
-                    op->fi->replicas.insert(it);
+                    op->fi->replicas.insert(itr);
                 } else {
-                    req_checkreplica(op->fi, i->rfn);
+                    req_checkreplica(op->fi, itr.name);
                 }
 
                 break;
