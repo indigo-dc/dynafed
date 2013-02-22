@@ -9,6 +9,16 @@
 # LIBMEMCACHED_INCLUDE_DIR - the libmemcached include directory
 # LIBMEMCACHED_LIBRARIES   - The libraries needed to use libmemcached
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBMEMCACHED_PC libmemcached)
+
+IF(LIBMEMCACHED_PC_FOUND)
+    message(STATUS "Libmemcached pkgconfig file - found")
+    SET(LIBMEMCACHED_INCLUDE_DIR ${LIBMEMCACHED_PC_INCLUDE_DIRS})
+    SET(LIBMEMCACHED_LIBRARY ${LIBMEMCACHED_PC_LIBRARIES})
+    SET(LIBMEMCACHED_LIBRARIES ${LIBMEMCACHED_PC_LIBRARIES})
+
+ELSE(LIBMEMCACHED_PC_FOUND)
 # Look for the header file
 FIND_PATH(LIBMEMCACHED_INCLUDE_DIR memcached.h /usr/include /usr/include/libmemcached /usr/local/include /usr/local/include/libmemcached)
 
@@ -37,6 +47,8 @@ IF (NOT LIBMEMCACHED_FOUND)
 		ENDIF (LIBMEMCACHED_FIND_REQUIRED)
 	ENDIF (NOT LIBMEMCACHED_FIND_QUIETLY)
 ENDIF (NOT LIBMEMCACHED_FOUND)
+
+ENDIF(LIBMEMCACHED_PC_FOUND)
 
 MARK_AS_ADVANCED(
 	LIBMEMCACHED_LIBRARY

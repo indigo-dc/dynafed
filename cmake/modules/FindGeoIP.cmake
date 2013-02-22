@@ -1,7 +1,19 @@
 ## Tries to find the required MaxMind GeoIPlibraries. Once done this will
 ## define the variable GEOIP_LIBRARIES.
 
-message(STATUS "Looking for MaxMind GeoIP header files")
+message(STATUS "Searching for GEOIP")
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBGEOIP_PC geoip)
+
+IF(LIBGEOIP_PC_FOUND)
+     message(STATUS "GeoIP pkgconfig file - found")
+    SET(GEOIP_LIB 1)
+    SET(GEOIP_INCLUDE_DIRS ${LIBGEOIP_PC_INCLUDE_DIRS})
+    SET(GEOIP_LIB ${LIBGEOIP_PC_LIBRARIES})
+    SET(GEOIP_LIBRARIES ${LIBGEOIP_PC_LIBRARIES})
+
+ELSE(LIBGEOIP_PC_FOUND)
 
 set(CMAKE_INCLUDE_PATH "${CMAKE_INCLUDE_PATH} ${GEOIP_INCLUDE_DIR}")
 
@@ -20,9 +32,13 @@ find_library(GEOIP_LIB
   NAMES GeoIP geoip
   PATHS ${GEOIP_LIBRARY_DIR}
 )
-if (GEOIP_LIB)
-  message(STATUS "Looking for MaxMind GeoIP libraries - found")
-  set(GEOIP_LIBRARIES ${GEOIP_LIB})
-else(GEOIP_LIB)
+
+set(GEOIP_LIBRARIES ${GEOIP_LIB})
+
+ENDIF(LIBGEOIP_PC_FOUND)
+
+
+IF(NOT GEOIP_LIB)
   message(FATAL_ERROR "Could not find MaxMind GeoIP library")
-endif(GEOIP_LIB)
+ENDIF(NOT GEOIP_LIB)
+
