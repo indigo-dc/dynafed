@@ -25,6 +25,7 @@ BuildRequires:		boost-devel
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel >= 0.0.18
+BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
@@ -55,6 +56,14 @@ Requires:			%{name}%{?_isa} = %{version}-%{release}
 
 %description dav-plugin
 Plugin for the WebDav based storage system for %{name}
+
+%package lfc-plugin
+Summary:			Logical File catalog (LFC) plugin for %{name}
+Group:				Applications/Internet
+Requires:			%{name}%{?_isa} = %{version}-%{release}
+
+%description lfc-plugin
+Plugin for the Logical File catalog system for %{name}
 
 %package dmlite-plugin
 Summary:                        dmlite plugin for %{name}
@@ -112,6 +121,10 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrlocplugin_dav.so
 %{_libdir}/ugr/libugrlocplugin_http.so
 
+
+%files lfc-plugin
+%defattr (-,root,root)
+%{_libdir}/ugr/libugrlocplugin_lfc.so
 
 
 %files dmlite-plugin
