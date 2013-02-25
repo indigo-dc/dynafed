@@ -55,11 +55,7 @@ macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source buil
 add_definitions( -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE)
 
 
-IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set(LIBDESTINATION "lib64" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
-ELSE()
-  set(LIBDESTINATION "lib" CACHE STRING "The path suffix where to install libraries. Set this to lib64 if you have such a weird platform that you have to install the libs here.")
-ENDIF()
+
 
 
 

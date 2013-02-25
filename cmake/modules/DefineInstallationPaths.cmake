@@ -4,16 +4,12 @@ if (UNIX)
     SET(APPLICATION_NAME ${PROJECT_NAME})
   ENDIF (NOT APPLICATION_NAME)
 
-# Suffix for Linux
-	IF (CMAKE_SIZEOF_VOID_P EQUAL 4)
-		SET(LIB_SUFFIX ""
-		CACHE STRING "Suffix of the lib")
-		SET (PKG_ARCH "i386")
-	ELSE (CMAKE_SIZEOF_VOID_P EQUAL 4)
-		SET(LIB_SUFFIX "64"
-		CACHE STRING "Suffix of the lib")
-		SET (PKG_ARCH "x86_64")
-	ENDIF (CMAKE_SIZEOF_VOID_P EQUAL 4)
+    # Suffix for lib path
+    IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+      set(LIB_SUFFIX "64" CACHE STRING "library directory suffix, ex : 64 for /lib64")
+    ELSE()
+      set(LIB_SUFFIX "" CACHE STRING "library directory suffix, ex : 64 for /lib64")
+    ENDIF()
 
   SET(EXEC_INSTALL_PREFIX
     "${CMAKE_INSTALL_PREFIX}"
