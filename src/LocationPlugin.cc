@@ -471,8 +471,14 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
     const char *fname = "LocationPlugin::doNameXlation";
     int r = 1;
     unsigned int i;
+    const int xtlate_size = xlatepfx_from.size();
 
-    for (i = 0; i < xlatepfx_from.size(); i++) {
+    if(xtlate_size == 0){ // no translation required
+        to = from;
+        return 0;
+    }
+
+    for (i = 0; i < xtlate_size; i++) {
         if ((xlatepfx_from[i].size() > 0) &&
                 ((from.size() == 0) || (from.compare(0, xlatepfx_from[i].length(), xlatepfx_from[i]) == 0))) {
 
@@ -488,6 +494,7 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
     }
 
     if (r) to = from;
+
 
     LocPluginLogInfo(SimpleDebug::kHIGH, fname, from << "->" << to);
 
