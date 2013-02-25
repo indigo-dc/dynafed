@@ -144,18 +144,18 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking gfal2_stat(" << canonical_name << ")");
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking LFC Stat(" << canonical_name << ")");
             gfal2_stat(context, canonical_name.c_str(), &st, &tmp_err);
             break;
 
         case LocationPlugin::wop_Locate:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking LFC Locate(" << canonical_name << ")");
             getReplicasFromLFC(canonical_name.c_str(), myidx,
                                boost::function< void(UgrFileItem_replica &) >(boost::bind(&UgrLocPlugin_lfc::insertReplicas, ref(*this), _1, op)),&tmp_err);
             break;
 
         case LocationPlugin::wop_List:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking LFC openDir(" << canonical_name << ")");
             d= gfal2_opendir(context, canonical_name.c_str(), &tmp_err);
             op->fi->unixflags |= S_IFDIR;
             break;
@@ -181,7 +181,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
         }
 
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
+        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrLFC plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
     }
 
 
