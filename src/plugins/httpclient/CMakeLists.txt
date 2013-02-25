@@ -18,7 +18,7 @@ add_library(ugrlocplugin_http SHARED ${src_http_plugin})
 set_target_properties(ugrlocplugin_http PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
-target_link_libraries(ugrlocplugin_http ugrconnector ${DAVIX_PKG_LIBRARIES} ${GLIBMM_PKG_LIBRARIES})
+target_link_libraries(ugrlocplugin_http ugrconnector ${DAVIX_PKG_LIBRARIES} ${GLIBMM_PKG_LIBRARIES} rt)
 
 
 # How to install. This is a set of plugins that belong to a specific component
