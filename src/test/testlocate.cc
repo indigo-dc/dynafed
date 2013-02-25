@@ -36,13 +36,13 @@ int main(int argc, char **argv) {
         for (std::set<UgrFileItem_replica, UgrFileItemComp>::iterator it = file_infos->replicas.begin();
                 it != file_infos->replicas.end();
                 ++it)
-            std::cout << "Replicas :  " << it->name << " " << it->location << std::endl;
+            std::cout << "Raw Replicas :  " << it->name << " " << it->location << std::endl;
 
         std::set<UgrFileItem_replica, UgrFileItemGeoComp> repls = ugr.getGeoSortedReplicas(argv[4], file_infos);
         for (std::set<UgrFileItem_replica, UgrFileItemGeoComp>::iterator it = repls.begin();
                 it != repls.end();
                 ++it)
-            std::cout << "Replicas :  " << it->name << " " << it->location << std::endl;
+            std::cout << "Sorted Replicas :  " << it->name << " " << it->location << std::endl;
         
     } else if (file_infos->getLocationStatus() == UgrFileInfo::NotFound) {
         std::cerr << "file : " << fn << " " << strerror(ENOENT) << std::endl;
