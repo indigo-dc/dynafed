@@ -5,7 +5,7 @@ project (ugr)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo"
     CACHE STRING "build type")
 
-OPTION(LFC_PLUGIN "Enable LFC client side plugin" FALSE)
+OPTION(LFC_PLUGIN "Enable LFC client side plugin" TRUE)
 
 
 # The version number
@@ -50,12 +50,6 @@ include(CMakeGeneratePkgConfig REQUIRED)
 # Force the build dorectory to be different from the source directory
 include(MacroOutOfSourceBuild)
 macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source build.")
-
-# The build type... debug, distribution
-#set(CMAKE_BUILD_TYPE Debug)
-
-# fetch from DefineInstallationPaths, std path for packaging
-#set(LIBDESTINATION "${LIB_INSTALL_DIR}" CACHE STRING " lib path")
 
 # enable 64 bits off_t on 32 bits plateforms
 add_definitions( -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE)
