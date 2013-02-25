@@ -1,4 +1,4 @@
-/** 
+/**
  * @file   UgrLocPlugin_lfc.cc
  * @brief  Plugin that talks to any Webdav compatible endpoint
  * @author Devresse Adrien
@@ -71,12 +71,22 @@ void UgrLocPlugin_lfc::insertReplicas(UgrFileItem_replica & itr, struct worktoke
     op->fi->dirtyitems = true;
 
     // Process it with the Geo plugin, if needed
-    if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+
     {
         // Lock the file instance
         unique_lock<mutex> l(*(op->fi));
 
         op->fi->replicas.insert(itr);
+    }
+
+    if (!isReplicaXlator()) {
+        if (geoPlugin) geoPlugin->setReplicaLocation(itr);
+        // Lock the file instance
+        unique_lock<mutex> l(*(op->fi));
+
+        op->fi->replicas.insert(itr);
+    } else {
+        req_checkreplica(op->fi, itr.name);
     }
 }
 
@@ -194,7 +204,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                 long cnt = 0;
                 struct stat st2;
                 while ((dent = gfal2_readdir(context, d, &tmp_err)) != NULL
-                       && gfal2_stat(context, canonical_name.c_str(), &st2, &tmp_err) == 0) {
+                      /* && gfal2_stat(context, canonical_name.c_str(), &st2, &tmp_err) == 0*/) {
                     UgrFileItem it;
                     {
                         unique_lock<mutex> l(*(op->fi));
@@ -202,7 +212,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                         // We have modified the data, hence set the dirty flag
                         op->fi->dirtyitems = true;
 
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
                             LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subdirs.clear();
@@ -224,7 +234,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                         child = child + "/";
                     child = child + it.name;
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
+ /*                   LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
                     UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
@@ -233,7 +243,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                     // This avoids a massive, potentially useless burst of writes to the 2nd level cache 
                     if (fi && (fi->status_statinfo != UgrFileInfo::Ok)) {
                         fi->takeStat(st2);
-                    }
+                    }*/
                 }
                 gfal2_closedir(context, d, NULL);
             }
