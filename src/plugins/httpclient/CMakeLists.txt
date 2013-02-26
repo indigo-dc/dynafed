@@ -3,6 +3,8 @@ cmake_minimum_required (VERSION 2.6)
 # Fabrizio Furano
 # Taken by the dav one (Adrien Devresse)
 
+IF(HTTP_PLUGIN)
+
 # The source modules
 FILE(GLOB src_http_plugin "*.cc")
 
@@ -26,3 +28,7 @@ install(TARGETS ugrlocplugin_http
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
   COMPONENT plugins-http)
+
+
+
+ENDIF(HTTP_PLUGIN)

@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 2.6)
 # Build file for Webdav plugin
 # Devresse Adrien
 
+
+IF(DAV_PLUGIN)
+
+
 # The source modules
 FILE(GLOB src_dav_plugin "*.cc")
 
@@ -25,3 +29,6 @@ install(TARGETS ugrlocplugin_dav
   PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
   COMPONENT plugins-webdav)
+
+
+ENDIF(DAV_PLUGIN)
