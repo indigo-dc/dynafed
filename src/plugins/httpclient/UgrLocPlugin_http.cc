@@ -234,12 +234,8 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 // Process it with the Geo plugin, if needed
                 if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-                {
-                    // Lock the file instance
-                    unique_lock<mutex> l(*(op->fi));
 
-                    op->fi->replicas.insert(itr);
-                }
+                op->fi->addReplica(itr);
 
                 break;
             }
@@ -257,12 +253,8 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 // Process it with the Geo plugin, if needed
                 if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-                {
-                    // Lock the file instance
-                    unique_lock<mutex> l(*(op->fi));
 
-                    op->fi->replicas.insert(itr);
-                }
+                op->fi->addReplica(itr);
 
                 break;
             }

@@ -209,10 +209,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     op->fi->dirtyitems = true;
 
                     if (!isReplicaXlator()) {
-                        // Lock the file instance
-                        unique_lock<mutex> l(*(op->fi));
-
-                        op->fi->replicas.insert(it);
+                        op->fi->addReplica(it);
                     } else {
                         req_checkreplica(op->fi, i->rfn);
                     }

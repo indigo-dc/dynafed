@@ -95,21 +95,9 @@ void UgrLocPlugin_lfc::insertReplicas(UgrFileItem_replica & itr, struct worktoke
     // We have modified the data, hence set the dirty flag
     op->fi->dirtyitems = true;
 
-    // Process it with the Geo plugin, if needed
-
-    {
-        // Lock the file instance
-        unique_lock<mutex> l(*(op->fi));
-
-        op->fi->replicas.insert(itr);
-    }
-
     if (!isReplicaXlator()) {
         if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-        // Lock the file instance
-        unique_lock<mutex> l(*(op->fi));
-
-        op->fi->replicas.insert(itr);
+        op->fi->addReplica(itr);
     } else {
         req_checkreplica(op->fi, itr.name);
     }
