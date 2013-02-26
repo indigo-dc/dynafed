@@ -412,6 +412,10 @@ public:
     /// Fill the fields from a stat struct
     /// @param st the stat struct to copy fields from
     void takeStat(struct stat &st);
+
+    /// Add a replica to the replicas list
+    /// @params replica struct to add
+    void addReplica( const UgrFileItem_replica & replica);
 };
 
 

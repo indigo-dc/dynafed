@@ -330,7 +330,7 @@ void UgrFileInfo::setPluginID(const short pluginID) {
 }
 
 void UgrFileInfo::takeStat(struct stat &st) {
-    const char *fname = "UgrLocPlugin_dmlite::takeStat";
+    const char *fname = "UgrFileInfo::takeStat";
     Info(SimpleDebug::kHIGHEST, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
     
     unique_lock<mutex> l2(*this);
@@ -352,5 +352,13 @@ void UgrFileInfo::takeStat(struct stat &st) {
     
 
     dirty = true;
+
+}
+
+void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
+    const char *fname = "UgrFileInfo::addReplica";
+    Info(SimpleDebug::kHIGHEST, fname, "UgrFileInfo:" << this->name << " add replicas: " << replica.name);
+    unique_lock<mutex> l2(*this);
+    this->replicas.insert(replica);
 
 }
