@@ -9,7 +9,7 @@ FILE(GLOB src_lfc_plugin "*.cc")
 
 message(STATUS "Building the LFC plugin")
 
-pkg_check_modules(GFAL2_PKG REQUIRED gfal2>=2.1)
+pkg_check_modules(GFAL2_PKG REQUIRED gfal2>=2.1.7)
 
 include_directories(${GFAL2_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide

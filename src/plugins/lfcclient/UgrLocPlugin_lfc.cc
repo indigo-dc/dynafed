@@ -84,6 +84,10 @@ void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
         g_setenv("X509_USER_KEY",privatekey_path.c_str(), TRUE);
     }
 
+    const bool debug = c->GetBool(pref_dot + std::string("debug"), false);
+    if(debug){
+        gfal_set_verbose(GFAL_VERBOSE_TRACE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_TRACE_PLUGIN);
+    }
 
 }
 
@@ -224,8 +228,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                 dirent * dent;
                 long cnt = 0;
                 struct stat st2;
-                while ((dent = gfal2_readdir(context, d, &tmp_err)) != NULL
-                      /* && gfal2_stat(context, canonical_name.c_str(), &st2, &tmp_err) == 0*/) {
+                while ((dent = gfal2_readdirpp(context, d, &st2, &tmp_err)) != NULL ) {
                     UgrFileItem it;
                     {
                         unique_lock<mutex> l(*(op->fi));
@@ -255,7 +258,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                         child = child + "/";
                     child = child + it.name;
 
- /*                   LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
                     UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
@@ -264,7 +267,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                     // This avoids a massive, potentially useless burst of writes to the 2nd level cache 
                     if (fi && (fi->status_statinfo != UgrFileInfo::Ok)) {
                         fi->takeStat(st2);
-                    }*/
+                    }
                 }
                 gfal2_closedir(context, d, NULL);
             }
