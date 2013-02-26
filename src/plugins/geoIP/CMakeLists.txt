@@ -3,7 +3,7 @@ cmake_minimum_required (VERSION 2.6)
 #
 # if geoip is available then we build also a plugin that uses it
 #
-if(GEOIP_LIB)
+if(GEOIP_PLUGIN AND GEOIP_LIB)
 
   # The source modules
   set(UgrGeoPlugin_GeoIP_SOURCES UgrGeoPlugin_GeoIP.cc)
@@ -25,4 +25,4 @@ set_target_properties(ugrgeoplugin_geoip        PROPERTIES LINK_FLAGS "-rdynamic
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
     LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR} COMPONENT plugins-geoip)
 
-ENDIF()
+ENDIF(GEOIP_PLUGIN AND GEOIP_LIB)
