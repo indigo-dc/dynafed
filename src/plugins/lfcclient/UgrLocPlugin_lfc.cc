@@ -84,6 +84,14 @@ void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
         g_setenv("X509_USER_KEY",privatekey_path.c_str(), TRUE);
     }
 
+    const std::string csec_mech = c->GetString(pref_dot + std::string("csec_mech"), "");
+    if(csec_mech.empty() == false){
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " Csec mechanism:  " + csec_mech);
+        g_setenv("CSEC_MECH",csec_mech.c_str(), TRUE);
+    }else{
+         Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " default Csec Mechanism");
+    }
+
     const bool debug = c->GetBool(pref_dot + std::string("debug"), false);
     if(debug){
         gfal_set_verbose(GFAL_VERBOSE_TRACE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_TRACE_PLUGIN);
