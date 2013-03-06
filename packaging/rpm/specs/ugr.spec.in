@@ -61,6 +61,7 @@ Plugin for the WebDav based storage system for %{name}
 Summary:			Logical File catalog (LFC) plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
+Requires:			gfal2-plugin-lfc%{?_isa}
 
 %description lfc-plugin
 Plugin for the Logical File catalog system for %{name}

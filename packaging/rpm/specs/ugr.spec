@@ -1,4 +1,4 @@
-%global checkout_tag 260213082424
+%global checkout_tag 060313110819
 
 %if 0%{?el5}
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
@@ -61,6 +61,7 @@ Plugin for the WebDav based storage system for %{name}
 Summary:			Logical File catalog (LFC) plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
+Requires:			gfal2-plugin-lfc%{?_isa}
 
 %description lfc-plugin
 Plugin for the Logical File catalog system for %{name}
