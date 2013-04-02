@@ -65,7 +65,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     Davix::DavixError* tmp_err = NULL;
     Davix::X509Credential cred;
 
-    params.setProtocol(DAVIX_PROTOCOL_HTTP);
+    params.setProtocol(Davix::RequestProtocol::Http);
 
     // get ssl check
     ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);

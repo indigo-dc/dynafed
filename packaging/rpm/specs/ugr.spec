@@ -1,4 +1,4 @@
-%global checkout_tag 060313115854
+%global checkout_tag 020413151901
 
 %if 0%{?el5}
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
@@ -24,7 +24,7 @@ BuildRequires:		boost-devel
 %endif
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel
-BuildRequires:		davix-devel >= 0.0.18
+BuildRequires:		davix-devel >= 0.0.31
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
