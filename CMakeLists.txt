@@ -15,7 +15,7 @@ OPTION(HTTP_PLUGIN "Enable Webdav client side plugin" TRUE)
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
-set (UGR_VERSION_PATCH 4)
+set (UGR_VERSION_PATCH 5)
 
 execute_process( COMMAND date +%d%m%y%H%M%S
   OUTPUT_VARIABLE UGR_VERSION_CHECKOUTTAG
