@@ -29,7 +29,6 @@ BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
-BuildRequires:		lfc-devel
 BuildRequires:		protobuf-devel
 
 

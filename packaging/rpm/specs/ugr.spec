@@ -1,4 +1,4 @@
-%global checkout_tag 020413173451
+%global checkout_tag 220413152416
 
 %if 0%{?el5}
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
@@ -29,7 +29,6 @@ BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
-BuildRequires:		lfc-devel
 BuildRequires:		protobuf-devel
 
 
