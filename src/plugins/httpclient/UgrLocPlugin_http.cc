@@ -70,6 +70,11 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     // get ssl check
     ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
     Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
+    const std::string ca_path = c->GetString(pref_dot + std::string("ca_path"), "");
+    if( ca_path.size() > 0){
+        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "CA Path added :  " << ca_path);
+        params.addCertificateAuthorityPath(ca_path);
+    }
     // get credential
     const std::string pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
     // get credential password
