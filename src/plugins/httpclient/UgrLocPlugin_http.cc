@@ -1,4 +1,4 @@
-/** 
+/**
  * @file   UgrLocPlugin_http.cc
  * @brief  Plugin that talks to any Webdav compatible endpoint
  * @author Devresse Adrien
@@ -11,6 +11,7 @@
 #include "../../ExtCacheHandler.hh"
 #include <time.h>
 #include "libs/time_utils.h"
+#include "../utils/HttpPluginUtils.hh"
 
 const std::string CONFIG_PREFIX("locplugin.");
 const std::string config_timeout_conn_key("conn_timeout");
@@ -53,62 +54,24 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
     load_configuration(CONFIG_PREFIX + name);
-
-    params.setSSLCAcheck(ssl_check);
-    checker_params.setSSLCAcheck(ssl_check);
-
 }
 
 void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
-    Config * c = Config::GetInstance();
-    std::string pref_dot = prefix + std::string(".");
-    Davix::DavixError* tmp_err = NULL;
-    Davix::X509Credential cred;
-
     params.setProtocol(Davix::RequestProtocol::Http);
 
-    // get ssl check
-    ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
-    const std::string ca_path = c->GetString(pref_dot + std::string("ca_path"), "");
-    if( ca_path.size() > 0){
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "CA Path added :  " << ca_path);
-        params.addCertificateAuthorityPath(ca_path);
-    }
-    // get credential
-    const std::string pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
-    // get credential password
-    const std::string pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
-    if (pkcs12_credential_path.size() > 0) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);
-        if (pkcs12_credential_password.size() > 0)
-            Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT passwrd defined  ");
-        if (cred.loadFromFileP12(pkcs12_credential_path, pkcs12_credential_password, &tmp_err) < 0) {
-            Info(SimpleDebug::kHIGH, "UgrLocPlugin_dav", "Error: impossible to load credential "
-                    + pkcs12_credential_path + " :" + tmp_err->getErrMsg());
-            Davix::DavixError::clearError(&tmp_err);
-        } else {
-            params.setClientCertX509(cred);
-        }
-    }
-    // auth login
-    const std::string login = c->GetString(pref_dot + std::string("auth_login"), "");
-    // auth password
-    const std::string password = c->GetString(pref_dot + std::string("auth_passwd"), "");
-    if (password.size() > 0 && login.size() > 0) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "login and password setup for authentication");
-        params.setClientLoginPassword(login, password);
-    }
+    HttpUtils::configureSSLParams(name, prefix, params);
+    HttpUtils::configureHttpAuth(name, prefix, params);
+
 
     // timeout management
     long timeout;
     struct timespec spec_timeout;
-    if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 120)) != 0) {
+    if ((timeout = pluginGetParam<long>(prefix, config_timeout_conn_key, 120)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
         params.setConnectionTimeout(&spec_timeout);
     }
-    if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 120)) != 0) {
+    if ((timeout = pluginGetParam<long>(prefix, config_timeout_ops_key, 120)) != 0) {
         spec_timeout.tv_sec = timeout;
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " Operation timeout is set to : " << timeout);
