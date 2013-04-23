@@ -621,6 +621,11 @@ Enable or disable the SSL validity check of the remote host.\\
 Syntax:\\
 \verb"locplugin.<ID>.ssl_check: <true|false>"\\
 Default value: true\\
+\subsubsection{locplugin.$<$ID$>$.ca\_path}
+Add a X509 certificate authorities directory, each CA file contained inside the directory will be considered as a valid CA for the plugin requests.\\
+Syntax:\\
+\verb"locplugin.<ID>.ca_path: <path/ca_dir>"\\
+Default value: true\\
 \subsubsection{locplugin.$<$ID$>$.cli\_certificate}
 Path to a local file containing the client side credentials to use when contacting this endpoint. Only the p12 format is supported.\\
 Syntax:\\
