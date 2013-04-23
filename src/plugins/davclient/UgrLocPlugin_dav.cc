@@ -9,6 +9,7 @@
 #include "UgrLocPlugin_dav.hh"
 #include "../../PluginLoader.hh"
 #include "../../ExtCacheHandler.hh"
+#include "../utils/PluginUtils.hh"
 #include <time.h>
 #include "libs/time_utils.h"
 
@@ -60,24 +61,22 @@ LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()),
 }
 
 void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
-    Config * c = Config::GetInstance();
-    std::string pref_dot = prefix + std::string(".");
     Davix::DavixError * tmp_err = NULL;
     Davix::X509Credential cred;
 
     // get ssl check
-    ssl_check = c->GetBool(pref_dot + std::string("ssl_check"), true);
+    ssl_check = pluginGetParam<bool>(prefix, "ssl_check", true);
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
     // ca check
-    const std::string ca_path = c->GetString(pref_dot + std::string("ca_path"), "");
+    const std::string ca_path = pluginGetParam<std::string>(prefix, "ca_path");
     if( ca_path.size() > 0){
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "CA Path added :  " << ca_path);
         params.addCertificateAuthorityPath(ca_path);
     }
     // get credential
-    const std::string pkcs12_credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
+    const std::string pkcs12_credential_path = pluginGetParam<std::string>(prefix,"cli_certificate");
     // get credential password
-    const std::string pkcs12_credential_password = c->GetString(pref_dot + std::string("cli_password"), "");
+    const std::string pkcs12_credential_password = pluginGetParam<std::string>(prefix, "cli_password");
     if (pkcs12_credential_path.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " CLI CERT path is set to  " + pkcs12_credential_path);
         if (pkcs12_credential_password.size() > 0)
@@ -91,9 +90,9 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
         }
     }
     // auth login
-    const std::string login = c->GetString(pref_dot + std::string("auth_login"), "");
+    const std::string login = pluginGetParam<std::string>(prefix,"auth_login");
     // auth password
-    const std::string password = c->GetString(pref_dot + std::string("auth_passwd"), "");
+    const std::string password = pluginGetParam<std::string>(prefix,"auth_passwd");
     if (password.size() > 0 && login.size() > 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", "login and password setup for authentication");
         params.setClientLoginPassword(login, password);
@@ -104,12 +103,12 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     // timeout management
     long timeout;
     struct timespec spec_timeout;
-    if ((timeout = c->GetLong(pref_dot + config_timeout_conn_key, 120)) != 0) {
+    if ((timeout =pluginGetParam<long>(prefix, config_timeout_conn_key, 120)) != 0) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
         params.setConnectionTimeout(&spec_timeout);
     }
-    if ((timeout = c->GetLong(pref_dot + config_timeout_ops_key, 120)) != 0) {
+    if ((timeout = pluginGetParam<long>(prefix, config_timeout_ops_key, 120)) != 0) {
         spec_timeout.tv_sec = timeout;
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, "UgrLocPlugin_dav", " Operation timeout is set to : " << timeout);
