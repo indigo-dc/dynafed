@@ -61,24 +61,10 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
 
     HttpUtils::configureSSLParams(name, prefix, params);
     HttpUtils::configureHttpAuth(name, prefix, params);
-
-
-    // timeout management
-    long timeout;
-    struct timespec spec_timeout;
-    if ((timeout = pluginGetParam<long>(prefix, config_timeout_conn_key, 120)) != 0) {
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " Connection timeout is set to : " << timeout);
-        spec_timeout.tv_sec = timeout;
-        params.setConnectionTimeout(&spec_timeout);
-    }
-    if ((timeout = pluginGetParam<long>(prefix, config_timeout_ops_key, 120)) != 0) {
-        spec_timeout.tv_sec = timeout;
-        params.setOperationTimeout(&spec_timeout);
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_http", " Operation timeout is set to : " << timeout);
-    }
-
+    HttpUtils::configureHttpTimeout(name, prefix, params);
 
     checker_params = params;
+    struct timespec spec_timeout;
     spec_timeout.tv_sec = this->availInfo.time_interval_ms / 1000;
     spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
     checker_params.setOperationTimeout(&spec_timeout);

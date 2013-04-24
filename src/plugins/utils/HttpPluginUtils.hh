@@ -55,8 +55,25 @@ inline void configureHttpAuth(const std::string & plugin_name,
         Info(SimpleDebug::kLOW, plugin_name, "login and password setup for authentication");
         params.setClientLoginPassword(login, password);
     }
+}
 
 
+inline void configureHttpTimeout(const std::string & plugin_name,
+                                 const std::string & prefix,
+                                 Davix::RequestParams & params){
+    // timeout management
+    long timeout;
+    struct timespec spec_timeout;
+    if ((timeout =pluginGetParam<long>(prefix, "conn_timeout", 120)) != 0) {
+        Info(SimpleDebug::kLOW, plugin_name, " Connection timeout is set to : " << timeout);
+        spec_timeout.tv_sec = timeout;
+        params.setConnectionTimeout(&spec_timeout);
+    }
+    if ((timeout = pluginGetParam<long>(prefix, "ops_timeout", 120)) != 0) {
+        spec_timeout.tv_sec = timeout;
+        params.setOperationTimeout(&spec_timeout);
+        Info(SimpleDebug::kLOW, plugin_name, " Operation timeout is set to : " << timeout);
+    }
 }
 
 }
