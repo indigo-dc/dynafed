@@ -17,12 +17,8 @@
 
 /**
  *  Dav plugin config parameters
- *  ssl_check : TRUE | FALSE   - enable or disable the CA check for the server certificate
- *  cli_certificate : path     - path to the credential to use for this endpoint
- *  cli_password : password    - password to use for this credential
- *  auth_login : login		   - login to use for basic HTTP authentification
- *  auth_passwd : password	   - password to use for the basic HTTP authentification
- * */
+ *
+ */
 
 /** 
  * Location Plugin for Ugr, inherit from the LocationPlugin
