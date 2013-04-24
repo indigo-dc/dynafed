@@ -626,8 +626,18 @@ Add a X509 certificate authorities directory, each CA file contained inside the 
 Syntax:\\
 \verb"locplugin.<ID>.ca_path: <path/ca_dir>"\\
 Default value: true\\
+\subsubsection{locplugin.$<$ID$>$.cli\_type}
+Type of the client side credential to use. The format type PEM, PROXY (VOMS) and PKCS12 are supported.
+Syntax:\\
+\verb"locplugin.<ID>.cli_type: (PEM|PKCS12|PROXY)"\\
+Default value: PKCS12\\
+\subsubsection{locplugin.$<$ID$>$.cli\_private\_key}
+Path to a local file containing the client private key to use when contacting this endpoint. Only the PEM and proxy format are supported.\\
+Syntax:\\
+\verb"locplugin.<ID>.cli_private_key: <path/file>"\\
+Default value: none\\
 \subsubsection{locplugin.$<$ID$>$.cli\_certificate}
-Path to a local file containing the client side credentials to use when contacting this endpoint. Only the p12 format is supported.\\
+Path to a local file containing the client side credentials to use when contacting this endpoint. Only the PEM, proxy and PKCS12 format are supported.\\
 Syntax:\\
 \verb"locplugin.<ID>.cli_certificate: <path/file>"\\
 Default value: none\\
