@@ -1,4 +1,4 @@
-%global checkout_tag 240413152323
+%global checkout_tag 020513145142
 
 %if 0%{?el5}
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
@@ -14,7 +14,7 @@ Group:				Applications/Internet
 License:			ASL 2.0
 URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 # svn export http://svn.cern.ch/guest/lcgdm/ugr/trunk ugr
-Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}-%{checkout_tag}.tar.gz 
+Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz 
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %if 0%{?el5}
