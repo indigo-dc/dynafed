@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.5
-Release:			0.2%{?dist}
+Release:			1%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
