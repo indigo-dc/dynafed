@@ -17,7 +17,7 @@ OPTION(RSYSLOG_SUPPORT "Enable rsyslog Support inside UGR" FALSE)
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
-set (UGR_VERSION_PATCH 5)
+set (UGR_VERSION_PATCH 6)
 
 execute_process( COMMAND date +%d%m%y%H%M%S
   OUTPUT_VARIABLE UGR_VERSION_CHECKOUTTAG
