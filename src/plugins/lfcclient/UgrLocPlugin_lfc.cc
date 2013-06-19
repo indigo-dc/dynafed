@@ -155,6 +155,9 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
     }
 
 
+    if( doParentQueryCheck(op->fi->name, op, myidx)){
+        return;
+    }
     // Do the default name translation for this plugin (prefix xlation)
     doNameXlation(op->fi->name, xname);
     // Then prepend the URL prefix

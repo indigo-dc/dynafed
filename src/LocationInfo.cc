@@ -329,7 +329,7 @@ void UgrFileInfo::setPluginID(const short pluginID) {
         ownerpluginIDs.insert(pluginID);
 }
 
-void UgrFileInfo::takeStat(struct stat &st) {
+void UgrFileInfo::takeStat(const struct stat &st) {
     const char *fname = "UgrFileInfo::takeStat";
     Info(SimpleDebug::kHIGHEST, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
     
@@ -362,3 +362,6 @@ void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
     this->replicas.insert(replica);
 
 }
+
+
+

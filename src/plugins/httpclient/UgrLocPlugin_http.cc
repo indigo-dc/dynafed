@@ -88,6 +88,9 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     }
 
 
+    if( doParentQueryCheck(op->fi->name, op, myidx)){
+        return;
+    }
 
     if (op->wop == wop_CheckReplica) {
 

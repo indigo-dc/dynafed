@@ -205,6 +205,9 @@ protected:
     /// Applies the plugin-specific name translation
     virtual int doNameXlation(std::string &from, std::string &to);
 
+    /// Add parent directory if needed
+    bool doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx);
+
     /// Invokes a full round of CheckReplica towards other slave plugins
     virtual void req_checkreplica(UgrFileInfo *fi, std::string &repl);
 

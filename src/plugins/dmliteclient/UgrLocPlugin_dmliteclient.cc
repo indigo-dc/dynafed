@@ -59,7 +59,11 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     if (!pluginManager) return;
     if (!catalogfactory) return;
 
-    if (op->wop == wop_CheckReplica) {
+    if( doParentQueryCheck(op->fi->name, op, myidx)){
+        return;
+    }
+
+    if (op->wop == wop_CheckReplica){
 
         // Do the default name translation for this plugin (prefix xlation)
         if (doNameXlation(op->repl, xname)) {

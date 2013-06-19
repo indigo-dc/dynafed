@@ -86,6 +86,10 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         return;
     }
 
+    if( doParentQueryCheck(op->fi->name, op, myidx)){
+        return;
+    }
+
 
     if (op->wop == wop_CheckReplica) {
 
@@ -147,7 +151,8 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
             d = pos.opendirpp(&params, canonical_name, &tmp_err);
             // if reach here -> valid opendir -> specify file as well
-            op->fi->unixflags |= S_IFDIR;
+            if(d)
+                op->fi->unixflags |= S_IFDIR;
             break;
 
         default:

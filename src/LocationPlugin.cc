@@ -456,6 +456,53 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
     return 0;
 }
 
+bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx){
+    const char* fname = "LocationPlugin::doParentQueryCheck";
+    std::cout << " debug test " << from << "from " << std::endl;
+    for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
+        if( it->size() > from.size()
+           && it->compare(0, from.size(), from) == 0
+           && ( it->at(from.size()) == '/' || from.size() == 1)){ // if query on parent translated dir
+            UgrFileItem item;
+            const size_t pos = it->find(it->size(), '/');
+            item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
+
+            switch(wtk->wop){
+                case LocationPlugin::wop_List :{
+                    wtk->fi->setPluginID(myID);
+
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting prefix item  " << item.name);
+                    wtk->fi->subdirs.insert(item);
+
+                    wtk->fi->status_items = UgrFileInfo::Ok;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
+                    wtk->fi->notifyItemsNotPending();
+                    return true;
+                }
+                case LocationPlugin::wop_Stat:{
+                    wtk->fi->setPluginID(myID);
+                    struct stat st = {};
+                    st.st_nlink = 1;
+                    st.st_mode |= S_IFDIR;
+                    wtk->fi->takeStat(st);
+
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Stat");
+                    wtk->fi->notifyStatNotPending();
+                    return true;
+                }
+                default:
+                    // no ops
+                    break;
+
+
+            }
+
+        }
+
+    }
+    return false;
+}
+
 // Waits max a number of seconds for a list process to be complete
 
 int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
