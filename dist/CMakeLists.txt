@@ -1,7 +1,11 @@
 cmake_minimum_required (VERSION 2.6)
 
 
-set(rsyslog_dir "${SYSCONF_INSTALL_DIR}/rsyslog.d/")
+set(rsyslog_dir "${SYSCONF_INSTALL_DIR}/rsyslog.d/"
+
+
+file(MAKE_DIRECTORY ${directory})
+)
 
 IF(RSYSLOG_SUPPORT)
 message(STATUS "rsyslog support enabled")

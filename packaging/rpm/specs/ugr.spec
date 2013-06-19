@@ -109,7 +109,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
-%dir %{_var}/log/ugr/
+%dir %{_var}/log/ugr
 %doc RELEASE-NOTES
 
 %files devel
