@@ -5,12 +5,14 @@ project (ugr)
 set(CMAKE_BUILD_TYPE "RelWithDebInfo"
     CACHE STRING "build type")
 
+## plugin options
 OPTION(LFC_PLUGIN "Enable LFC client side plugin" TRUE)
 OPTION(GEOIP_PLUGIN "Enable GeoIP plugin for geography based redirection" TRUE)
 OPTION(DAV_PLUGIN "Enable Webdav client side plugin" TRUE)
 OPTION(HTTP_PLUGIN "Enable Webdav client side plugin" TRUE)
 
-
+## support option
+OPTION(RSYSLOG_SUPPORT "Enable rsyslog Support inside UGR" FALSE)
 
 # The version number
 set (UGR_VERSION_MAJOR 1)

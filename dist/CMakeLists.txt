@@ -3,12 +3,14 @@ cmake_minimum_required (VERSION 2.6)
 
 set(rsyslog_dir "${SYSCONF_INSTALL_DIR}/rsyslog.d/")
 
-IF(EXISTS "${rsyslog_dir}" AND IS_DIRECTORY "${rsyslog_dir}")
+IF(RSYSLOG_SUPPORT)
+message(STATUS "rsyslog support enabled")
 
-# install usual scripts
-
+# install syslog scripts
 install(FILES "conf/20-log-ugr.conf"
               DESTINATION "${rsyslog_dir}")
 
+ELSE(RSYSLOG_SUPPORT)
+message(STATUS "rsyslog support disabled")
 
-ENDIF(EXISTS "${rsyslog_dir}" AND IS_DIRECTORY "${rsyslog_dir}")
+ENDIF(RSYSLOG_SUPPORT)

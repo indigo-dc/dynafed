@@ -29,6 +29,8 @@ BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		protobuf-devel
 
+Requires:               rsyslog
+
 
 %description
 Ugr provides a powerfull, fast and scalable dynamic storage federation 
@@ -84,6 +86,7 @@ make clean
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
 -DAPACHE_SITES_INSTALL_DIR=%{_sysconfdir}/httpd/conf.d \
 -DOUT_OF_SOURCE_CHECK=FALSE \
+-DRSYSLOG_SUPPORT=TRUE \
 %{boost_cmake_flags} \
 .
 make
@@ -105,6 +108,8 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/libugrconnector.so.*
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
+%config(noreplace) %{_sysconfdir}/rsyslog.d/*
+%dir %{_var}/log/ugr/
 %doc RELEASE-NOTES
 
 %files devel
