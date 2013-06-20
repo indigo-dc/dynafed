@@ -94,6 +94,8 @@ make
 %install
 rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
+# create log directory
+mkdir -p %{buildroot}/%{_var}/log/ugr
 
 %post
 /sbin/ldconfig
