@@ -209,9 +209,9 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             case LocationPlugin::wop_Locate:
             {
                 UgrFileItem_replica itr;
-                itr.name = canonical_name;
+                itr.name = HttpUtils::protocolHttpNormalize(canonical_name);
                 itr.pluginID = myID;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << canonical_name);
+                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
