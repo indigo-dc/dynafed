@@ -458,7 +458,6 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
 
 bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx){
     const char* fname = "LocationPlugin::doParentQueryCheck";
-    std::cout << " debug test " << from << "from " << std::endl;
     for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
         if( it->size() > from.size()
            && it->compare(0, from.size(), from) == 0
