@@ -67,6 +67,7 @@ void UgrLocPlugin_dav::load_configuration(const std::string & prefix) {
     spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
     checker_params.setOperationTimeout(&spec_timeout);
     checker_params.setConnectionTimeout(&spec_timeout);
+    params.setProtocol(Davix::RequestProtocol::Webdav);
 }
 
 void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
