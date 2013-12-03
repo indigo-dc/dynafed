@@ -99,6 +99,7 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 
 %post
 /sbin/ldconfig
+service rsyslog restart || 0
 
 
 %postun
