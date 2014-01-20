@@ -219,13 +219,16 @@ public:
         // In the case of a pending op that tries to find all the locations, we need to
         // get the response from all the plugins
         // Hence, this info is inprogress if there are still plugins that are active on it
-        if (pending_locations > 0) return InProgress;
+        //
+        // As an addition, we also add the possibility of waiting for less plugins, in order to
+        // be a bit fuzzy
+      if (pending_locations > CFG->GetLong("glb.waitlesslocations", 0)) return InProgress;
 
         if (status_locations == Ok) return Ok;
         return status_locations;
     }
 
-    /// Tells if the locate information is ready
+    /// Tells if the list information is ready
     InfoStatus getItemsStatus() {
         if (pending_items > 0) return InProgress;
 
