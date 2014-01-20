@@ -167,8 +167,8 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 
     // Return
     if (replicas.size() == 0) {
-        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "There are no available replicas. " << path);
-        throw DmException(DMLITE_NO_REPLICAS, "There are no available replicas. " + path);
+        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
+        throw DmException(DMLITE_NO_REPLICAS, "No endpoints have replicas of this file. " + path);
     }
     
     return replicas;
