@@ -13,7 +13,7 @@ T pluginGetParam(const std::string & prefix, const std::string & key, const T & 
 
 // string params
 template<>
-bool pluginGetParam<bool>(const std::string & prefix, const std::string & key, const bool & default_value){
+inline bool pluginGetParam<bool>(const std::string & prefix, const std::string & key, const bool & default_value){
     std::ostringstream ss;
     ss << prefix << "." << key;
     return Config::GetInstance()->GetBool( ss.str(), default_value);
@@ -21,7 +21,7 @@ bool pluginGetParam<bool>(const std::string & prefix, const std::string & key, c
 
 // boolean
 template<>
-std::string pluginGetParam<std::string>(const std::string & prefix, const std::string & key, const std::string &  default_value){
+inline std::string pluginGetParam<std::string>(const std::string & prefix, const std::string & key, const std::string &  default_value){
     std::ostringstream ss;
     ss << prefix << "." << key;
     return Config::GetInstance()->GetString( ss.str(), default_value);
@@ -29,7 +29,7 @@ std::string pluginGetParam<std::string>(const std::string & prefix, const std::s
 
 // Long param
 template<>
-long pluginGetParam<long>(const std::string & prefix, const std::string & key, const long &  default_value){
+inline long pluginGetParam<long>(const std::string & prefix, const std::string & key, const long &  default_value){
     std::ostringstream ss;
     ss << prefix << "." << key;
     return Config::GetInstance()->GetLong( ss.str(), default_value);
