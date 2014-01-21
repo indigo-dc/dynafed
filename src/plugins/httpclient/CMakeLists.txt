@@ -3,10 +3,12 @@ cmake_minimum_required (VERSION 2.6)
 # Fabrizio Furano
 # Taken by the dav one (Adrien Devresse)
 
-IF(HTTP_PLUGIN)
+IF(HTTP_PLUGIN OR DAV_PLUGIN)
 
 # The source modules
-FILE(GLOB src_http_plugin "*.cc")
+FILE(GLOB src_http_plugin "*http.cc")
+SET(src_http_plugin ${src_http_plugin} PARENT_SCOPE)
+FILE(GLOB src_http_plugin_entry "*entry.cc")
 
 message(STATUS "Building the HTTP plugin")
 
@@ -16,7 +18,7 @@ pkg_search_module(GLIBMM_PKG REQUIRED glibmm glibmm-2.6 glibmm-2.4)
 
 include_directories(${DAVIX_PKG_INCLUDE_DIRS} ${GLIBMM_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
-add_library(ugrlocplugin_http SHARED ${src_http_plugin})
+add_library(ugrlocplugin_http SHARED ${src_http_plugin} ${src_http_plugin_entry})
 set_target_properties(ugrlocplugin_http PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 
@@ -31,4 +33,4 @@ install(TARGETS ugrlocplugin_http
 
 
 
-ENDIF(HTTP_PLUGIN)
+ENDIF(HTTP_PLUGIN OR DAV_PLUGIN)

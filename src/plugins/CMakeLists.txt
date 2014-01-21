@@ -5,8 +5,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_subdirectory(dmlite)
 add_subdirectory(dmliteclient)
-add_subdirectory(davclient)
 add_subdirectory(httpclient)
+add_subdirectory(davclient)
 add_subdirectory(lfcclient)
 add_subdirectory(geoIP)
 

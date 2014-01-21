@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
             else ugr.locate(fn, &fi);
     }
 
-    cout << "Invoking stat" << cnt-1 << " times." << endl;
+    cout << "Invoking stat " << cnt-1 << " times." << endl;
     for (long long i = 0; i < cnt-1; i++) {
         //char buf[16];
         //sprintf(buf, "%d", i);

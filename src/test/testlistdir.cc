@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
 	UgrFileInfo* file_infos=NULL;
     ugr.list(fn, &file_infos);
 
+    std::cout << "testlistdir: Start listing: " << std::endl;
     if (file_infos->getItemsStatus() == UgrFileInfo::Ok) {
            for(std::set<UgrFileItem, UgrFileItemComp>::iterator it = file_infos->subdirs.begin();
 				it != file_infos->subdirs.end();
@@ -42,10 +43,19 @@ int main(int argc, char **argv) {
 		std::cerr << "file : " << fn << " " << strerror(ENOENT) << std::endl;
 		return -1;
 	}else{
+        if(file_infos->getStatStatus() == UgrFileInfo::Error){
+            std::cerr << "testlistdir: Error" << std::endl;
+        }
+        if(file_infos->getStatStatus() == UgrFileInfo::InProgress){
+           std::cerr << "testlistdir: Bug, still in progress" << std::endl;
+        }
+        if(file_infos->getStatStatus() == UgrFileInfo::NoInfo){
+           std::cerr << "testlistdir: Bug, No Information" << std::endl;
+        }
 		std::cerr << " Unknow FATAL Error ! " << std::endl;
 		return -2;
 	}
 	
-    cout << "End listdir " << endl;	
+    cout << "testlistdir : End listdir " << endl;
     return 0;
 }

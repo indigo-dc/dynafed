@@ -195,6 +195,9 @@ protected:
     /// This has to be overridden in the true plugins
     virtual void runsearch(struct worktoken *wtk, int myidx);
 
+    /// Implement the Checker at the plugin level
+    ///
+    virtual void run_Check(int myidx);
 
 
 
@@ -210,10 +213,6 @@ protected:
 
     /// Invokes a full round of CheckReplica towards other slave plugins
     virtual void req_checkreplica(UgrFileInfo *fi, std::string &repl);
-
-    virtual void do_Check(int myidx) {
-    };
-
 
 public:
 
@@ -309,6 +308,10 @@ public:
     /// @param rep the replica to check
     /// @param handler the location info handler to write into
     virtual int do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler);
+
+
+    /// Asynchronously check the plugin Status
+    void do_Check(int myidx);
 
 };
 

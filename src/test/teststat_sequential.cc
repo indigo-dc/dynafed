@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
 
 
 
-    cout << "Invoking stat" << cnt-1 << " times." << endl;
+    cout << "Invoking stat " << cnt-1 << " times." << endl;
     for (long long i = 0; i < cnt; i++) {
         ugr.stat(fn, &fi);
 

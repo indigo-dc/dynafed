@@ -14,6 +14,7 @@
 #include <string>
 #include <glibmm.h>
 #include "../../LocationPlugin.hh"
+#include "../httpclient/UgrLocPlugin_http.hh"
 
 /**
  *  Dav plugin config parameters
@@ -24,46 +25,32 @@
  * Location Plugin for Ugr, inherit from the LocationPlugin
  *  allow to do basic query to a webdav endpoint
  **/
-class UgrLocPlugin_dav : public LocationPlugin {
+class UgrLocPlugin_dav : public UgrLocPlugin_http {
 protected:
 
     virtual void do_Check(int myidx);
 public:
 
-    /**
-     * Follow the standard LocationPlugin construction
-     * 
-     * */
+    ///
+    /// Follow the standard LocationPlugin construction
+    ///
+    ///
     UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    virtual ~UgrLocPlugin_dav(){}
 
-
-    /**
-     *  main executor for the plugin    
-     **/
+    ///
+    /// main executor for the plugin
+    ///
     virtual void runsearch(struct worktoken *op, int myidx);
 
+
+    virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
+
 protected:
-    std::string base_url;
 
-    bool ssl_check;
-
-    boost::scoped_ptr<Davix::Context> dav_core;
-    Davix::DavPosix pos;
-    Davix::RequestParams params;
-    Davix::RequestParams checker_params;
-
-    void load_configuration(const std::string & prefix);
 };
 
 
-
-// ------------------------------------------------------------------------------------
-// Plugin-related stuff
-// ------------------------------------------------------------------------------------
-
-// The plugin functionality. This function invokes the plugin loader, looking for the
-// plugin where to call the hook function
-LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs);
 
 
 

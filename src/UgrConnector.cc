@@ -330,7 +330,7 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
-    Info(SimpleDebug::kMEDIUM, fname, "Stat-ed " << lfn << "sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
+    Info(SimpleDebug::kMEDIUM, fname, "Stat-ed " << lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }

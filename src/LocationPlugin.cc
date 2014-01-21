@@ -32,6 +32,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
             // If it was already running, ignore the req
             // If not, set it to running and process the check
             if (!pl->availInfo.setCheckRunning(true)) continue;
+
             pl->do_Check(myidx);
             pl->availInfo.setCheckRunning(false);
 
@@ -338,16 +339,9 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
 
 
 
+void LocationPlugin::run_Check(int myidx){
 
-
-
-
-
-
-
-
-
-
+}
 
 
 
@@ -580,6 +574,11 @@ int LocationPlugin::Tick(time_t timenow) {
     }
 
     return 0;
+}
+
+void LocationPlugin::do_Check(int myidx){
+    if(availInfo.state_checking)
+        run_Check(myidx);
 }
 
 PluginAvailabilityInfo::PluginAvailabilityInfo(int interval_ms, int latency_ms) {

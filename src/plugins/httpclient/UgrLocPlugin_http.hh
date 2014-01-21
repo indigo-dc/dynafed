@@ -32,9 +32,6 @@ class HttpAvailabilityChecker;
  *  allow to do basic query to a webdav endpoint
  **/
 class UgrLocPlugin_http : public LocationPlugin {
-protected:
-
-    virtual void do_Check(int myidx);
 public:
 
     /**
@@ -42,6 +39,7 @@ public:
      * 
      * */
     UgrLocPlugin_http(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    virtual ~UgrLocPlugin_http(){}
 
 
     /**
@@ -55,31 +53,25 @@ public:
         return 0;
     }
 protected:
-    std::string base_url;
-    std::string pkcs12_credential_path;
-    std::string pkcs12_credential_password;
     bool ssl_check;
-    std::string login;
-    std::string password;
+    std::string base_url;
 
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;
     Davix::RequestParams params;
     Davix::RequestParams checker_params;
 
+    virtual void run_Check(int myidx);
+
     void load_configuration(const std::string & prefix);
+    void do_CheckInternal(int myidx, const char* fname);
+
 
 };
 
 
 
-// ------------------------------------------------------------------------------------
-// Plugin-related stuff
-// ------------------------------------------------------------------------------------
 
-// The plugin functionality. This function invokes the plugin loader, looking for the
-// plugin where to call the hook function
-LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs);
 
 
 
