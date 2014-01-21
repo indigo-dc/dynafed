@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.6
-Release:			4%{?dist}
+Release:			3%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -23,7 +23,7 @@ BuildRequires:		boost-devel
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel
 BuildRequires:		davix-devel >= 0.0.31
-BuildRequires:		gfal2-devel
+BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
@@ -99,7 +99,6 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 
 %post
 /sbin/ldconfig
-service rsyslog restart || 0
 
 
 %postun
