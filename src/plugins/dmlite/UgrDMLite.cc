@@ -206,7 +206,7 @@ dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool foll
     dmlite::ExtendedStat st;
     UgrFileInfo *nfo = 0;
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    if (!getUgrConnector()->stat((std::string&)abspath, &nfo) && nfo && (nfo->getInfoStatus() != nfo->NotFound)) {
+    if (!getUgrConnector()->stat((std::string&)abspath, &nfo) && nfo && (nfo->getStatStatus() != nfo->NotFound)) {
         st.csumtype[0] = '\0';
         st.csumvalue[0] = '\0';
         st.guid[0] = '\0';
