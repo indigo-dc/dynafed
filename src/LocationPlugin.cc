@@ -51,15 +51,15 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
 }
 
-LocationPlugin::LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
-    SimpleDebug::Instance()->Set(dbginstance);
-    CFG->Set(cfginstance);
+LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms) :
+    PluginInterface(c, parms)
+{
+    SimpleDebug::Instance()->Set(&(c.getLogger()));
+    CFG->Set(&c.getConfig());
 
     const char *fname = "LocationPlugin::LocationPlugin";
     nthreads = 0;
     extCache = 0;
-
-    myUgr = 0;
 
     if (parms.size() > 1)
         name = strdup(parms[1].c_str());
@@ -231,8 +231,8 @@ void LocationPlugin::pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handle
 /// Invokes a full round of CheckReplica towards other slave plugins
 
 void LocationPlugin::req_checkreplica(UgrFileInfo *fi, std::string &repl) {
-    if (myUgr)
-        myUgr->do_checkreplica(fi, repl);
+
+    getConn().do_checkreplica(fi, repl);
 }
 
 
@@ -732,10 +732,10 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
     // Get the Object now
     Info(SimpleDebug::kMEDIUM, fname, "Getting class instance for plugin " << pluginPath);
-    LocationPlugin *c = ep(dbginstance, cfginstance, parms);
-    if (!c)
+    LocationPlugin *p = ep(c, parms);
+    if (!p)
         Info(SimpleDebug::kLOW, fname, "Could not get class instance for plugin " << pluginPath);
-    return c;
+    return p;
 
 }
 
@@ -746,5 +746,5 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 /// for the plugin to be loaded
 
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new LocationPlugin(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new LocationPlugin(c, parms);
 }

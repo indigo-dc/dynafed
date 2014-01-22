@@ -37,7 +37,7 @@ protected:
     virtual void do_Check(int myidx);
 public:
 
-    UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    UgrLocPlugin_dmlite(UgrConnector & c, std::vector<std::string> & parms);
 
     // Start the async stat process
     //virtual int do_Stat(UgrFileInfo *fi);

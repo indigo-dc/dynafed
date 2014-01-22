@@ -11,6 +11,7 @@
 #include "Config.hh"
 #include "SimpleDebug.hh"
 #include "LocationInfoHandler.hh"
+#include "plugin_interface.hh"
 
 #include <string>
 #include <vector>
@@ -119,15 +120,11 @@ private:
  * as responses. Very useful for testing.
  * 
  */
-class LocationPlugin {
+class LocationPlugin : public PluginInterface {
 private:
     int nthreads;
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
-
-
-    /// Reference to the ugrconnector we belong to. Useful for callbacks like req_checkreplica
-    UgrConnector *myUgr;
 
 public:
 
@@ -216,7 +213,7 @@ protected:
 
 public:
 
-    LocationPlugin(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    LocationPlugin(UgrConnector & c, std::vector<std::string> &parms);
     virtual ~LocationPlugin();
 
     virtual void stop();
@@ -226,9 +223,6 @@ public:
         geoPlugin = gp;
     };
 
-    virtual void setUgrCallback(UgrConnector *u) {
-        myUgr = u;
-    };
 
     void setID(short pluginID) {
         myID = pluginID;
@@ -322,7 +316,7 @@ public:
 // ------------------------------------------------------------------------------------
 
 /// The set of args that have to be passed to the plugin hook function
-#define GetLocationPluginArgs SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms
+#define GetLocationPluginArgs UgrConnector & c, std::vector<std::string> &parms
 
 /// The plugin functionality. This function invokes the plugin loader, looking for the
 /// plugin where to call the hook function

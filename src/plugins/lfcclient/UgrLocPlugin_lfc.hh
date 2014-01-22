@@ -36,7 +36,7 @@ public:
      * Follow the standard LocationPlugin construction
      * 
      * */
-    UgrLocPlugin_lfc(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    UgrLocPlugin_lfc(UgrConnector & c, std::vector<std::string> & parms);
 
 
     /**

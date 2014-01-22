@@ -32,12 +32,12 @@ using namespace std;
  * Hook for the dav plugin Location plugin
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new UgrLocPlugin_lfc(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new UgrLocPlugin_lfc(c, parms);
 }
 
 
-UgrLocPlugin_lfc::UgrLocPlugin_lfc(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-LocationPlugin(dbginstance, cfginstance, parms) {
+UgrLocPlugin_lfc::UgrLocPlugin_lfc(UgrConnector & c, std::vector<std::string> & parms) :
+LocationPlugin(c, parms) {
     GError* tmp_err=NULL;
     Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", "Creating instance named " << name);
     // try to get config

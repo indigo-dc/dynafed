@@ -38,7 +38,7 @@ public:
      * Follow the standard LocationPlugin construction
      * 
      * */
-    UgrLocPlugin_http(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrLocPlugin_http(){}
 
 

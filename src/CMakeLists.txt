@@ -23,7 +23,7 @@ ADD_CUSTOM_COMMAND(
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc GeoPlugin.cc UgrConnector.cc /
-  PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc)
+  PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc plugin_interface.cc)
 
 
 set(Ugr_default_plugin_dir ${PLUGIN_INSTALL_DIR})

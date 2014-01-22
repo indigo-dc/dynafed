@@ -144,8 +144,8 @@ static void configureHttpTimeout(const std::string & plugin_name,
 
 
 
-UgrLocPlugin_http::UgrLocPlugin_http(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-LocationPlugin(dbginstance, cfginstance, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
+UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms) :
+LocationPlugin(c, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();

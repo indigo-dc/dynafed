@@ -22,8 +22,11 @@
 
 #include <string>
 
+class LocationPlugin;
+class ExtCacheHandler;
+
 /// The main class that allows to interact with the system
-class UgrConnector {
+class UgrConnector{
 private:
     /// ugr plugin directory path
     boost::filesystem::path plugin_dir;
@@ -104,6 +107,10 @@ public:
 
     virtual ~UgrConnector();
 
+    Config & getConfig() const;
+
+    SimpleDebug & getLogger() const;
+
     /// To be called after the ctor to initialize the object.
     /// @param cfgfile Path to the config file to be loaded
     int init(char *cfgfile = 0);
@@ -149,6 +156,11 @@ public:
     
     /// Return the replica set sorted by increasing distance to the client IP given
     std::set<UgrFileItem_replica, UgrFileItemGeoComp> getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo);
+
+protected:
+    // non copyable
+    UgrConnector(const UgrConnector & u);
+    UgrConnector & operator=(const UgrConnector & u);
 };
 
 

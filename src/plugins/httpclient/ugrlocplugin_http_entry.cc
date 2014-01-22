@@ -9,7 +9,7 @@
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     davix_set_log_level(DAVIX_LOG_WARNING);
-    return (LocationPlugin *)new UgrLocPlugin_http(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new UgrLocPlugin_http(c, parms);
 }
 
 

@@ -92,6 +92,14 @@ UgrConnector::~UgrConnector() {
 
 }
 
+Config & UgrConnector::getConfig() const{
+    return *Config::GetInstance();
+}
+
+ SimpleDebug & UgrConnector::getLogger() const{
+    return *SimpleDebug::Instance();
+}
+
 int UgrConnector::init(char *cfgfile) {
     const char *fname = "UgrConnector::init";
     {
@@ -185,11 +193,9 @@ int UgrConnector::init(char *cfgfile) {
                 }
                 Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << plugin_path.string());
                 LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) plugin_path.string().c_str(),
-                        SimpleDebug::Instance(),
-                        Config::GetInstance(),
+                        *this,
                         parms);
                 if (prod) {
-                    prod->setUgrCallback(this);
                     prod->setGeoPlugin(geoPlugin);
                     prod->setID(locPlugins.size());
                     locPlugins.push_back(prod);
@@ -209,7 +215,7 @@ int UgrConnector::init(char *cfgfile) {
             parms.push_back("1");
 
             Info(SimpleDebug::kLOW, fname, "No location plugins available. Using the default one.");
-            LocationPlugin *prod = new LocationPlugin(SimpleDebug::Instance(), CFG, parms);
+            LocationPlugin *prod = new LocationPlugin(*this, parms);
             if (prod) locPlugins.push_back(prod);
         }
 

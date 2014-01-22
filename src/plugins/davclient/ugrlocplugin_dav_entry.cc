@@ -9,5 +9,5 @@
  * */
 extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
     davix_set_log_level(DAVIX_LOG_WARNING);
-    return (LocationPlugin *)new UgrLocPlugin_dav(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new UgrLocPlugin_dav(c, parms);
 }

@@ -27,8 +27,8 @@ using namespace std;
 
 
 
-UgrLocPlugin_dav::UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-    UgrLocPlugin_http(dbginstance, cfginstance, parms) {
+UgrLocPlugin_dav::UgrLocPlugin_dav(UgrConnector & c, std::vector<std::string> & parms) :
+    UgrLocPlugin_http(c, parms) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "UgrLocPlugin_[http/dav]: WebDav ENABLED");
     params.setProtocol(Davix::RequestProtocol::Webdav);
 }

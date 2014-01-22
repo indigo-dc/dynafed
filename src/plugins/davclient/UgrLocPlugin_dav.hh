@@ -35,7 +35,7 @@ public:
     /// Follow the standard LocationPlugin construction
     ///
     ///
-    UgrLocPlugin_dav(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    UgrLocPlugin_dav(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrLocPlugin_dav(){}
 
     ///

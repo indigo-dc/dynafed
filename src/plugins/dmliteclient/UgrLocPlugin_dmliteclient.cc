@@ -13,8 +13,8 @@
 using namespace boost;
 using namespace std;
 
-UgrLocPlugin_dmlite::UgrLocPlugin_dmlite(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) :
-LocationPlugin(dbginstance, cfginstance, parms) {
+UgrLocPlugin_dmlite::UgrLocPlugin_dmlite(UgrConnector & c, std::vector<std::string> & parms) :
+LocationPlugin(c, parms) {
 
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Creating instance named " << name);
 
@@ -529,5 +529,5 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
 // for the plugin to be loaded
 
 extern "C" LocationPlugin * GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new UgrLocPlugin_dmlite(dbginstance, cfginstance, parms);
+    return (LocationPlugin *)new UgrLocPlugin_dmlite(c, parms);
 }
