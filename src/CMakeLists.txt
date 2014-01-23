@@ -22,7 +22,7 @@ ADD_CUSTOM_COMMAND(
          DEPENDS UgrMemcached.proto
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc GeoPlugin.cc UgrConnector.cc /
+set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc UgrConnector.cc /
   PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc plugin_interface.cc)
 
 

@@ -11,19 +11,55 @@
 
 using namespace std;
 
-UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms) {
-    SimpleDebug::Instance()->Set(dbginstance);
-    CFG->Set(cfginstance);
+/// Instances of UgrFileItem may be kept in a quasi-sorted way.
+/// This is the compare functor that sorts them by distance from a point
+class UgrFileItemGeoComp {
+private:
+    float ltt, lng;
+public:
+
+    UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {
+        //std::cout << "geocomp" << std::endl;
+    };
+    virtual ~UgrFileItemGeoComp(){};
+
+    virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
+        float x, y, d1, d2;
+
+        //std::cout << "client" << ltt << " " << lng << std::endl;
+
+        // Distance client->repl1
+        x = (s1.longitude-lng) * cos( (ltt+s1.latitude)/2 );
+        y = (s1.latitude-ltt);
+        d1 = x*x + y*y;
+
+        //std::cout << "d1 " << d1 << std::endl;
+
+        // Distance client->repl2
+        x = (s2.longitude-lng) * cos( (ltt+s2.latitude)/2 );
+        y = (s2.latitude-ltt);
+        d2 = x*x + y*y;
+
+        //std::cout << "d2 " << d2 << std::endl;
+        return (d1 < d2);
+    }
+};
+
+
+UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
+    SimpleDebug::Instance()->Set(&c.getLogger());
+    CFG->Set(&c.getConfig());
 
     const char *fname = "UgrGeoPlugin::UgrGeoPlugin_GeoIP";
     Info(SimpleDebug::kLOW, fname, "Creating instance.");
 
     gi = 0;
-};
+    init(parms);
+}
 
-UgrGeoPlugin_GeoIP::~UgrGeoPlugin_GeoIP() {
+UgrGeoPlugin_GeoIP::~UgrGeoPlugin_GeoIP(){
 
-}; 
+}
 
 // Init the geoIP stuff, try to get the best info that is available
 // The format for parms is
@@ -44,7 +80,23 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
 
 
     return 0;
-};
+}
+
+int UgrGeoPlugin_GeoIP::filterReplicaList(std::deque<UgrFileItem_replica> &replica, const UgrClientInfo &cli_info){
+    float cli_lattitude=0, cli_longittude=0;
+
+    if(gi == NULL)
+        return 0;
+    getAddrLocation(cli_info.ip, cli_lattitude, cli_longittude);
+    UgrFileItemGeoComp comp_geo(cli_lattitude, cli_longittude);
+
+    for(std::deque<UgrFileItem_replica>::iterator it = replica.begin(); it != replica.end(); ++it){
+        setReplicaLocation(*it);
+    }
+    std::sort(replica.begin(), replica.end(), comp_geo);
+
+    return 0;
+}
 
 /// Sets, wherever needed the geo information in the replica
 void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
@@ -90,11 +142,11 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
 
     GeoIPRecord_delete(gir);
     return;
-};
+}
 
 
 
-void UgrGeoPlugin_GeoIP::getAddrLocation(std::string &clientip, float &ltt, float &lng) {
+void UgrGeoPlugin_GeoIP::getAddrLocation(const std::string &clientip, float &ltt, float &lng) {
     const char *fname = "UgrGeoPlugin::getAddrLocation";
 
     if (clientip.empty()) return;
@@ -124,9 +176,8 @@ void UgrGeoPlugin_GeoIP::getAddrLocation(std::string &clientip, float &ltt, floa
 
 
 
-/// The plugin hook function. GetLocationPluginClass must be given the name of this function
+/// The plugin hook function. GetPluginInterfaceClass must be given the name of this function
 /// for the plugin to be loaded
-extern "C" GeoPlugin *GetGeoPlugin(GetGeoPluginArgs) {
-    return (GeoPlugin *)new UgrGeoPlugin_GeoIP(dbginstance, cfginstance, parms);
+extern "C" PluginInterface * GetPluginInterface(GetPluginInterfaceArgs) {
+    return (PluginInterface *)new UgrGeoPlugin_GeoIP(c, parms);
 }
-

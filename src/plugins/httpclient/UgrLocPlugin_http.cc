@@ -293,9 +293,6 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
 
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-
                 op->fi->addReplica(itr);
 
                 break;
@@ -311,9 +308,6 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
-
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
 
                 op->fi->addReplica(itr);
 

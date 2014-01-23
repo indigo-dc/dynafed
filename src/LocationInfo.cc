@@ -348,9 +348,6 @@ void UgrFileInfo::takeStat(const struct stat &st) {
         subdirs.clear();
         status_items = UgrFileInfo::Error;
     }
-
-    
-
     dirty = true;
 
 }
@@ -361,6 +358,11 @@ void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
     unique_lock<mutex> l2(*this);
     this->replicas.insert(replica);
 
+}
+
+void UgrFileInfo::getReplicaList(std::deque<UgrFileItem_replica> & reps){
+    unique_lock<mutex> l2(*this);
+    reps.assign(replicas.begin(), replicas.end());
 }
 
 

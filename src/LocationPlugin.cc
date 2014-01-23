@@ -132,8 +132,6 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
     Info(SimpleDebug::kLOW, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
-    geoPlugin = 0;
-
     exiting = false;
 
 
@@ -510,8 +508,8 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
     const char *fname = "LocationPlugin::doNameXlation";
     int r = 1;
-    unsigned int i;
-    const int xtlate_size = xlatepfx_from.size();
+    size_t i;
+    const size_t xtlate_size = xlatepfx_from.size();
 
     if(xtlate_size == 0){ // no translation required
         to = from;
@@ -699,10 +697,10 @@ int PluginEndpointStatus::decode(void *data, int sz) {
 // The plugin functionality. This function invokes the plugin loader, looking for the
 // plugin where to call the hook function
 
-LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) {
-    const char *fname = "GetLocationPluginClass_local";
+PluginInterface *GetPluginInterfaceClass(char *pluginPath, GetPluginInterfaceArgs) {
+    const char *fname = "GetPluginInterfaceClass_local";
     PluginLoader *myLib = 0;
-    LocationPlugin * (*ep)(GetLocationPluginArgs);
+    PluginInterface * (*ep)(GetPluginInterfaceArgs);
 
     // If we have no plugin path then return NULL
     if (!pluginPath || !strlen(pluginPath)) {
@@ -724,7 +722,7 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
     // Now get the entry point of the object creator
     Info(SimpleDebug::kMEDIUM, fname, "Getting entry point for plugin " << pluginPath);
-    ep = (LocationPlugin * (*)(GetLocationPluginArgs))(myLib->getPlugin("GetLocationPlugin"));
+    ep = (PluginInterface * (*)(GetPluginInterfaceArgs))(myLib->getPlugin("GetPluginInterface"));
     if (!ep) {
         Info(SimpleDebug::kLOW, fname, "Could not get entry point for plugin " << pluginPath);
         return NULL;
@@ -732,7 +730,7 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
     // Get the Object now
     Info(SimpleDebug::kMEDIUM, fname, "Getting class instance for plugin " << pluginPath);
-    LocationPlugin *p = ep(c, parms);
+    PluginInterface *p = ep(c, parms);
     if (!p)
         Info(SimpleDebug::kLOW, fname, "Could not get class instance for plugin " << pluginPath);
     return p;
@@ -742,9 +740,9 @@ LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs) 
 
 
 
-/// The plugin hook function. GetLocationPluginClass must be given the name of this function
+/// The plugin hook function. GetPluginInterfaceClass must be given the name of this function
 /// for the plugin to be loaded
 
-extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new LocationPlugin(c, parms);
+extern "C" PluginInterface *GetPluginInterface(GetPluginInterfaceArgs) {
+    return (PluginInterface *)new LocationPlugin(c, parms);
 }

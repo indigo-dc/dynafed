@@ -206,9 +206,6 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     it.pluginID = myID;
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
-                    // Process it with the Geo plugin, if needed
-                    if (geoPlugin) geoPlugin->setReplicaLocation(it);
-
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
 
@@ -235,9 +232,6 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
-
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
                 {
                     // Lock the file instance
                     unique_lock<mutex> l(*(op->fi));
@@ -525,9 +519,9 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
 // ------------------------------------------------------------------------------------
 
 
-// The hook function. GetLocationPluginClass must be given the name of this function
+// The hook function. GetPluginInterfaceClass must be given the name of this function
 // for the plugin to be loaded
 
-extern "C" LocationPlugin * GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new UgrLocPlugin_dmlite(c, parms);
+extern "C" PluginInterface * GetPluginInterface(GetPluginInterfaceArgs) {
+    return (PluginInterface *)new UgrLocPlugin_dmlite(c, parms);
 }

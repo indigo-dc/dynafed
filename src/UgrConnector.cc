@@ -6,6 +6,7 @@
 
 
 #include <iostream>
+#include <typeinfo>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -37,6 +38,57 @@ using namespace boost::system;
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
+
+template<class T>
+void ugr_load_plugin(UgrConnector & c,
+                       const std::string & fname,
+                       const boost::filesystem::path & plugin_dir,
+                       const std::string & key_list_config,
+                       std::vector<T*> & v_plugin){
+    char buf[1024];
+    int i = 0;
+    v_plugin.clear();
+    do {
+        CFG->ArrayGetString(key_list_config.c_str(), buf, i);
+        if (buf[0]) {
+            T* filter = NULL;
+            vector<string> parms = tokenize(buf, " ");
+           path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
+           // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
+           // An empty string does not load any plugin, just keeps the default behavior
+
+           if (!plugin_path.has_root_directory()) {
+               plugin_path = plugin_dir;
+               plugin_path /= parms[0];
+           }
+            try{
+
+                Info(SimpleDebug::kLOW, fname, "Attempting to load plugin "<< typeid(T).name() << plugin_path.string());
+                PluginInterface *prod = static_cast<PluginInterface*>(GetPluginInterfaceClass((char *) plugin_path.string().c_str(),
+                        c,
+                        parms));
+                filter = dynamic_cast<T*>(prod);
+            }catch(...){
+                // silent exception
+                filter = NULL;
+            }
+            if (filter) {
+                v_plugin.push_back(filter);
+            }else{
+                Error(fname, "Impossible to load plugin " << plugin_path << " of type " << typeid(T).name() << endl;);
+            }
+        }
+        i++;
+    } while (buf[0]);
+}
+
+
+template<class T>
+void ugr_unload_plugin(std::vector<T*> & v_plugin){
+    for(typename std::vector<T*>::iterator it = v_plugin.begin(); it != v_plugin.end(); ++it){
+        delete *it;
+    }
+}
 
 
 // Invoked by a thread, gives life to the object
@@ -85,8 +137,8 @@ UgrConnector::~UgrConnector() {
     for (int i = 0; i < cnt; i++)
         locPlugins[i]->stop();
 
-    for (int i = 0; i < cnt; i++)
-        delete locPlugins[i];
+    ugr_unload_plugin<LocationPlugin>(locPlugins);
+    ugr_unload_plugin<FilterPlugin>(filterPlugins);
 
     Info(SimpleDebug::kLOW, fname, "Exiting.");
 
@@ -141,69 +193,13 @@ int UgrConnector::init(char *cfgfile) {
         // Get the tick pace from the config
         ticktime = CFG->GetLong("glb.tick", 10);
 
-        // Load a GeoPlugin, if specified
-        string s = CFG->GetString("glb.geoplugin", (char *) "");
-        geoPlugin = 0;
-        if (s != "") {
-            vector<string> parms = tokenize(s, " ");
-
-            path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
-            if (!plugin_path.has_root_directory()) {
-                plugin_path = plugin_dir;
-                plugin_path /= parms[0];
-            }
-
-            Info(SimpleDebug::kLOW, fname, "Attempting to load the global Geo plugin " << plugin_path.string());
-            geoPlugin = (GeoPlugin *) GetGeoPluginClass((char *) plugin_path.string().c_str(),
-                    SimpleDebug::Instance(),
-                    Config::GetInstance(),
-                    parms);
-
-            if (!geoPlugin) {
-                Error(fname, "Error loading Geo plugin " << s << endl;);
-                return 1;
-            }
-
-
-        }
-
-
-
         // Init the extcache, as now we have the cfg parameters
         extCache.Init();
         this->locHandler.Init(&extCache);
 
 
-
-
-        // Cycle through the location plugins that have to be loaded
-        char buf[1024];
-        int i = 0;
-        locPlugins.clear();
-        do {
-            CFG->ArrayGetString("glb.locplugin", buf, i);
-            if (buf[0]) {
-                vector<string> parms = tokenize(buf, " ");
-                // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
-                // An empty string does not load any plugin, just keeps the default behavior
-                path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
-                if (!plugin_path.has_root_directory()) {
-                    plugin_path = plugin_dir;
-                    plugin_path /= parms[0];
-                }
-                Info(SimpleDebug::kLOW, fname, "Attempting to load location plugin " << plugin_path.string());
-                LocationPlugin *prod = (LocationPlugin *) GetLocationPluginClass((char *) plugin_path.string().c_str(),
-                        *this,
-                        parms);
-                if (prod) {
-                    prod->setGeoPlugin(geoPlugin);
-                    prod->setID(locPlugins.size());
-                    locPlugins.push_back(prod);
-
-                }
-            }
-            i++;
-        } while (buf[0]);
+        ugr_load_plugin<LocationPlugin>(*this, fname, plugin_dir,
+                                               "glb.locplugin", locPlugins);
 
         Info(SimpleDebug::kLOW, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
 
@@ -221,6 +217,10 @@ int UgrConnector::init(char *cfgfile) {
 
         if (!locPlugins.size())
             Info(SimpleDebug::kLOW, fname, "Still no location plugins available. A disaster.");
+
+        // load Filter plugins
+        ugr_load_plugin<FilterPlugin>(*this, fname, plugin_dir,
+                                               "glb.filterplugin", filterPlugins);
 
 
         n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
@@ -338,6 +338,37 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
 
     Info(SimpleDebug::kMEDIUM, fname, "Stat-ed " << lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
+    return 0;
+}
+
+static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
+    if (!c->isEndpointOK(r.pluginID)) {
+        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "Skipping " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
+        return false;
+    }
+    return true;
+}
+
+///
+/// Apply configured filters on the replica list
+int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
+    // applys all filters
+    for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
+        (*it)->filterReplicaList(replicas);
+    }
+
+    // remove from the list the dead endpoints
+    // Filter out the replicas that belong to dead endpoints
+    std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1));
+
+    return 0;
+}
+
+int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas, const UgrClientInfo & cli_info){
+    // applys all filters
+    for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
+        (*it)->filterReplicaList(replicas, cli_info);
+    }
     return 0;
 }
 
@@ -465,7 +496,7 @@ int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << "repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
+    Info(SimpleDebug::kLOW, "UgrConnector::locate", "Located " << lfn << " repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
             " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
 
     return 0;
@@ -550,6 +581,7 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
     return 0;
 };
 
+/*
 std::set<UgrFileItem_replica, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
 
 
@@ -570,3 +602,4 @@ std::set<UgrFileItem_replica, UgrFileItemGeoComp> UgrConnector::getGeoSortedRepl
 
 
 }
+*/

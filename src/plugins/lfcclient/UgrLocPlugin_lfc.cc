@@ -25,14 +25,14 @@ using namespace std;
 
 
 
-// The hook function. GetLocationPluginClass must be given the name of this function
+// The hook function. GetPluginInterfaceClass must be given the name of this function
 // for the plugin to be loaded
 
 /**
  * Hook for the dav plugin Location plugin
  * */
-extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
-    return (LocationPlugin *)new UgrLocPlugin_lfc(c, parms);
+extern "C" PluginInterface *GetPluginInterface(GetPluginInterfaceArgs) {
+    return (PluginInterface *)new UgrLocPlugin_lfc(c, parms);
 }
 
 
@@ -104,7 +104,6 @@ void UgrLocPlugin_lfc::insertReplicas(UgrFileItem_replica & itr, struct worktoke
     op->fi->dirtyitems = true;
 
     if (!isReplicaXlator()) {
-        if (geoPlugin) geoPlugin->setReplicaLocation(itr);
         op->fi->addReplica(itr);
     } else {
         req_checkreplica(op->fi, itr.name);

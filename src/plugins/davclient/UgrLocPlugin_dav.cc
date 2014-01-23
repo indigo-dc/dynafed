@@ -180,9 +180,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
 
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
-
                 if (!isReplicaXlator()) {
                     op->fi->addReplica(itr);
                 } else {
@@ -196,15 +193,12 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 UgrFileItem_replica itr;
                 itr.name = canonical_name;
 
-
                 itr.pluginID = myID;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
 
-                // Process it with the Geo plugin, if needed
-                if (geoPlugin) geoPlugin->setReplicaLocation(itr);
                 op->fi->addReplica(itr);
 
                 break;

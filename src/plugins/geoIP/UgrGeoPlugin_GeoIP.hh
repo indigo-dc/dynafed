@@ -6,8 +6,8 @@
 #ifndef GEOIPPLUGIN_HH
 #define GEOIPPLUGIN_HH
 
-
-#include "../../GeoPlugin.hh"
+#include <UgrConnector.hh>
+#include "../plugin_interface.hh"
 #include "GeoIP.h"
 
 /** GeoPlugin_GeoIP
@@ -15,22 +15,25 @@
  * Any implementation is supposed to be thread-safe, possibly without serializations.
  *
  */
-class UgrGeoPlugin_GeoIP {
+class UgrGeoPlugin_GeoIP : public FilterPlugin{
 protected:
     GeoIP *gi;
 public:
 
-    UgrGeoPlugin_GeoIP(SimpleDebug *dbginstance, Config *cfginstance, std::vector<std::string> &parms);
+    UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrGeoPlugin_GeoIP();
 
+    virtual int filterReplicaList(std::deque<UgrFileItem_replica> & replica, const UgrClientInfo & cli_info);
+
+protected:
     /// Perform initialization
-    virtual int init(std::vector<std::string> &parms);
+    int init(std::vector<std::string> &parms);
 
     /// Sets, wherever needed the geo information in the replica
-    virtual void setReplicaLocation(UgrFileItem_replica &it);
+    void setReplicaLocation(UgrFileItem_replica &it);
 
     /// Gets latitude and longitude of a client
-    virtual void getAddrLocation(std::string &clientip, float &ltt, float &lng);
+    void getAddrLocation(const std::string &clientip, float &ltt, float &lng);
 };
 
 

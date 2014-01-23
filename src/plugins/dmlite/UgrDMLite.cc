@@ -98,31 +98,23 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
-        
-        // Request UgrConnector to sort a replica set according to proximity to the client
-        std::set<UgrFileItem_replica, UgrFileItemGeoComp> repls = getUgrConnector()->getGeoSortedReplicas(secCredentials.remoteAddress, nfo);
 
+        UgrClientInfo info(secCredentials.remoteAddress);
+        std::deque<UgrFileItem_replica> reps;
+        nfo->getReplicaList(reps);
+        getUgrConnector()->filter(reps);
+        getUgrConnector()->filter(reps, info);
 
-        for (std::set<UgrFileItem_replica>::iterator i = repls.begin(); i != repls.end(); ++i) {
+        for (std::deque<UgrFileItem_replica>::iterator i = reps.begin(); i != reps.end(); ++i) {
             // Populate the vector
             Replica r;
 
-            // Filter out the replicas that belong to dead endpoints
-            if (!getUgrConnector()->isEndpointOK(i->pluginID)) {
-                Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "Skipping " << i->name << " " << i->location << " " << i->latitude << " " << i->longitude);
-                continue;
-            }
-
-            
             r.fileid = 0;
             r.replicaid = 0;
             r.status = Replica::kAvailable;
 
-
-
             // We need to get the server from the full url that we have
             r.rfn = i->name;
-
 
             // Look for ://, then for the subsequent / or :
             size_t p1;

@@ -48,12 +48,12 @@ Requires:			pkgconfig
 %description devel
 development files for %{name}
 
-%package dav-plugin
+%package http-plugin
 Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 
-%description dav-plugin
+%description http-plugin
 Plugin for the WebDav based storage system for %{name}
 
 %package lfc-plugin
@@ -121,7 +121,7 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 %{_includedir}/ugr/*
 %{_libdir}/pkgconfig/*
 
-%files dav-plugin
+%files http-plugin
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dav.so
 %{_libdir}/ugr/libugrlocplugin_http.so

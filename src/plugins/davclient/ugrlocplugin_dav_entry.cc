@@ -1,13 +1,13 @@
 #include "ugrlocplugin_dav_entry.hh"
 
 
-// The hook function. GetLocationPluginClass must be given the name of this function
+// The hook function. GetPluginInterfaceClass must be given the name of this function
 // for the plugin to be loaded
 
 /**
  * Hook for the dav plugin Location plugin
  * */
-extern "C" LocationPlugin *GetLocationPlugin(GetLocationPluginArgs) {
+extern "C" PluginInterface *GetPluginInterface(GetPluginInterfaceArgs) {
     davix_set_log_level(DAVIX_LOG_WARNING);
-    return (LocationPlugin *)new UgrLocPlugin_dav(c, parms);
+    return (PluginInterface*)new UgrLocPlugin_dav(c, parms);
 }

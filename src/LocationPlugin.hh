@@ -17,7 +17,6 @@
 #include <vector>
 #include <map>
 #include <boost/thread.hpp>
-#include "GeoPlugin.hh"
 
 class LocationInfoHandler;
 class UgrConnector;
@@ -156,10 +155,6 @@ protected:
     /// pure non blocking behaviour
     std::vector< boost::thread * > workers;
 
-    /// This is a pointer to the currently loaded instance of a GeoPlugin, i.e. an object
-    /// that gives GPS coordinates to file replicas
-    GeoPlugin *geoPlugin;
-
     /// Online/offline, etc
     PluginAvailabilityInfo availInfo;
 
@@ -218,11 +213,6 @@ public:
 
     virtual void stop();
     virtual int start(ExtCacheHandler *c);
-
-    virtual void setGeoPlugin(GeoPlugin *gp) {
-        geoPlugin = gp;
-    };
-
 
     void setID(short pluginID) {
         myID = pluginID;
@@ -316,11 +306,11 @@ public:
 // ------------------------------------------------------------------------------------
 
 /// The set of args that have to be passed to the plugin hook function
-#define GetLocationPluginArgs UgrConnector & c, std::vector<std::string> &parms
+#define GetPluginInterfaceArgs UgrConnector & c, std::vector<std::string> &parms
 
 /// The plugin functionality. This function invokes the plugin loader, looking for the
 /// plugin where to call the hook function
-LocationPlugin *GetLocationPluginClass(char *pluginPath, GetLocationPluginArgs);
+PluginInterface *GetPluginInterfaceClass(char *pluginPath, GetPluginInterfaceArgs);
 
 
 
