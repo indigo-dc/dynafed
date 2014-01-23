@@ -579,27 +579,4 @@ int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
-};
-
-/*
-std::set<UgrFileItem_replica, UgrFileItemGeoComp> UgrConnector::getGeoSortedReplicas(std::string clientip, UgrFileInfo *nfo) {
-
-
-    float ltt = 0.0, lng = 0.0;
-
-    if (geoPlugin) geoPlugin->getAddrLocation(clientip, ltt, lng);
-
-    UgrFileItemGeoComp cmp(ltt, lng);
-    Info(SimpleDebug::kLOW, "UgrConnector::getGeoSortedReplicas", nfo->name << " " << clientip << " " << ltt << " " << lng);
-    std::set<UgrFileItem_replica, UgrFileItemGeoComp> newset(cmp);
-
-    if (nfo) {
-        for (std::set<UgrFileItem_replica>::iterator i = nfo->replicas.begin(); i != nfo->replicas.end(); ++i)
-            newset.insert(*i);
-    }
-
-    return newset;
-
-
 }
-*/
