@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			@UGR_VERSION_MAJOR@.@UGR_VERSION_MINOR@.@UGR_VERSION_PATCH@
-Release:			6%{?dist}
+Release:			7%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -52,6 +52,7 @@ development files for %{name}
 Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
+Provides:                       %{name}-dav-plugin = %{version}-%{release}
 
 %description http-plugin
 Plugin for the WebDav based storage system for %{name}
