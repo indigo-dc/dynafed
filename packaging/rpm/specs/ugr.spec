@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.6
-Release:			7%{?dist}
+Release:			8%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -110,6 +110,7 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
+%{_libdir}/ugr/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %dir %{_var}/log/ugr
