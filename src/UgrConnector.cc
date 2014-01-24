@@ -323,9 +323,12 @@ int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
     // If the status is noinfo, we can mark it as not found
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
-        if (fi->getStatStatus() == UgrFileInfo::NoInfo)
+        if ((fi->getStatStatus() == UgrFileInfo::NoInfo) ||
+          (fi->getStatStatus() == UgrFileInfo::InProgress))
             fi->status_statinfo = UgrFileInfo::NotFound;
-        else fi->status_statinfo = UgrFileInfo::Ok;
+
+        // We don't set it to ok if it was in progress after a timeout
+        //else fi->status_statinfo = UgrFileInfo::Ok;
     }
 
     *nfo = fi;
