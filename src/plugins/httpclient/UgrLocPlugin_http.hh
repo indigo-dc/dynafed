@@ -12,7 +12,6 @@
 
 #include <davix.hpp>
 #include <string>
-#include <glibmm.h>
 #include "../../LocationPlugin.hh"
 
 
