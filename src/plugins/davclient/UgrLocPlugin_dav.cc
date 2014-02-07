@@ -90,10 +90,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         }
     }
 
-    // Then prepend the URL prefix
-    if( *(--canonical_name.end()) == '/' && xname.at(0) == '/'){
-        canonical_name.erase(canonical_name.end()--);
-    }
     canonical_name.append(xname);
 
     memset(&st, 0, sizeof (st));
