@@ -151,8 +151,7 @@ LocationPlugin(c, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
     const int params_size = parms.size();
     if (params_size > 3) {
         Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "Try to bind UgrLocPlugin_[http/dav] with " << parms[3]);
-        base_url = parms[3];
-        UgrFileInfo::trimpath(base_url);
+        base_url_endpoint = Davix::Uri(parms[3]);
 
     } else {
         Error("UgrLocPlugin_[http/dav]", "Not enough parameters in the plugin line.");
@@ -179,7 +178,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     struct stat st;
     Davix::DavixError * tmp_err = NULL;
     static const char * fname = "UgrLocPlugin_http::runsearch";
-    std::string canonical_name = base_url;
+    std::string canonical_name = base_url_endpoint.getString();
     std::string xname;
     bool bad_answer = true;
 
@@ -204,7 +203,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             op->fi->notifyLocationNotPending();
             return;
         }// Then prepend the URL prefix
-        else canonical_name = base_url + xname;
+        else canonical_name.append(xname);
     } else {
 
         // Do the default name translation for this plugin (prefix xlation)
@@ -230,7 +229,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
         }
 
         // Then prepend the URL prefix
-        canonical_name = base_url + xname;
+        canonical_name.append(xname);
     }
 
 
@@ -287,6 +286,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             {
                 UgrFileItem_replica itr;
                 itr.name = HttpUtils::protocolHttpNormalize(canonical_name);
+                HttpUtils::pathHttpNomalize(itr.name);
                 itr.pluginID = myID;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
@@ -364,14 +364,14 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
     PluginEndpointStatus st;
     st.errcode = 404;
 
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << base_url << " with time " << availInfo.time_interval_ms);
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << base_url_endpoint << " with time " << availInfo.time_interval_ms);
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
-    Davix::HeadRequest req(*dav_core, base_url, &tmp_err);
+    Davix::HeadRequest req(*dav_core, base_url_endpoint, &tmp_err);
 
     if( tmp_err != NULL){
-        Error(fname, "Status Checker: Impossible to initiate Query to" << base_url << ", Error: "<< tmp_err->getErrMsg());
+        Error(fname, "Status Checker: Impossible to initiate Query to" << base_url_endpoint << ", Error: "<< tmp_err->getErrMsg());
         return;
     }
 
@@ -384,7 +384,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
     // Prepare the text status message to display
     if (tmp_err) {
         std::ostringstream ss;
-        ss << "HTTP status error on " << base_url << " " << tmp_err->getErrMsg();
+        ss << "HTTP status error on " << base_url_endpoint << " " << tmp_err->getErrMsg();
         st.explanation = ss.str();
         st.errcode = -1;
     }
@@ -432,7 +432,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
         extCache->putEndpointStatus(&st, name);
 
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << base_url);
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << base_url_endpoint);
 
 }
 

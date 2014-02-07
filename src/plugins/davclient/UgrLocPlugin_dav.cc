@@ -38,7 +38,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     struct stat st;
     Davix::DavixError * tmp_err = NULL;
     static const char * fname = "UgrLocPlugin_dav::runsearch";
-    std::string canonical_name;
+    std::string canonical_name(base_url_endpoint.getString());
     std::string xname;
     bool bad_answer = true;
     DAVIX_DIR* d = NULL;
@@ -64,7 +64,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             op->fi->notifyLocationNotPending();
             return;
         }// Then prepend the URL prefix
-        else canonical_name = base_url + xname;
+
     } else {
 
         // Do the default name translation for this plugin (prefix xlation)
@@ -88,10 +88,13 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             }
             return;
         }
-
-        // Then prepend the URL prefix
-        canonical_name = base_url + xname;
     }
+
+    // Then prepend the URL prefix
+    if( *(--canonical_name.end()) == '/' && xname.at(0) == '/'){
+        canonical_name.erase(canonical_name.end()--);
+    }
+    canonical_name.append(xname);
 
     memset(&st, 0, sizeof (st));
 
@@ -174,6 +177,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             {
                 UgrFileItem_replica itr;
                 itr.name = HttpUtils::protocolHttpNormalize(canonical_name);
+                HttpUtils::pathHttpNomalize(itr.name);
                 itr.pluginID = myID;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 

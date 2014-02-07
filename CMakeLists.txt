@@ -58,7 +58,7 @@ include(MacroOutOfSourceBuild)
 macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source build.")
 
 # enable 64 bits off_t on 32 bits plateforms
-add_definitions( -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE)
+add_definitions( -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE )
 
 
 

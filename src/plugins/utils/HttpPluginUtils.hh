@@ -4,6 +4,8 @@
 #include <cstring>
 #include "PluginUtils.hh"
 #include <davix.hpp>
+#include <algorithm>
+#include <boost/bind.hpp>
 
 
 namespace HttpUtils{
@@ -22,6 +24,26 @@ inline std::string protocolHttpNormalize(const std::string & url){
     else
         res.replace(res.begin(), it, "http");
     return res;
+}
+
+
+
+inline bool compare_prec_char(char* prec, char b){
+       if(b == *prec)
+           return true;
+       *prec = b;
+       return false;
+}
+
+// remove all duplicate // in url
+inline void pathHttpNomalize(std::string & url){
+    std::string::iterator it;
+    if( ( it = std::find(url.begin(), url.end(), ':') ) != url.end()){
+        it+=3;
+        char c;
+        std::remove_if(it, url.end(), boost::bind(compare_prec_char, &c, _1));
+    }
+
 }
 
 

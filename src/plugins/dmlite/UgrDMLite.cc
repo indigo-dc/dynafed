@@ -21,7 +21,7 @@ UgrFactory::UgrFactory() throw (DmException) {
     UgrCatalog::getUgrConnector();
 }
 
-UgrFactory::~UgrFactory() throw (DmException) {
+UgrFactory::~UgrFactory()  {
     // Nothing
 }
 
@@ -81,7 +81,7 @@ UgrCatalog::UgrCatalog() throw (DmException) : DummyCatalog(NULL) {
 
 }
 
-UgrCatalog::~UgrCatalog() throw (DmException) {
+UgrCatalog::~UgrCatalog()  {
     // Nothing
 }
 

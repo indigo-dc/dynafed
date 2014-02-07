@@ -53,7 +53,7 @@ public:
     }
 protected:
     bool ssl_check;
-    std::string base_url;
+    Davix::Uri base_url_endpoint;
 
     boost::scoped_ptr<Davix::Context> dav_core;
     Davix::DavPosix pos;

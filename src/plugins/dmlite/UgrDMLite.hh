@@ -28,7 +28,7 @@ namespace dmlite {
         UgrCatalog() throw (DmException);
 
         /// Destructor
-        ~UgrCatalog() throw (DmException);
+        ~UgrCatalog() ;
 
         // Overloading
         virtual std::string getImplId() const throw ();
@@ -175,7 +175,7 @@ namespace dmlite {
         /// Constructor
         UgrFactory() throw (DmException);
         /// Destructor
-        ~UgrFactory() throw (DmException);
+        ~UgrFactory() ;
 
         virtual void configure(const std::string& key, const std::string& value) throw (DmException);
         Catalog* createCatalog(CatalogFactory* factory,
