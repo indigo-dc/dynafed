@@ -113,6 +113,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
+%config(noreplace) %{_sysconfdir}/logrotate.d/*
 %doc RELEASE-NOTES
 
 %files devel
