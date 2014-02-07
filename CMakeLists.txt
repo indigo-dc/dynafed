@@ -13,6 +13,7 @@ OPTION(HTTP_PLUGIN "Enable Webdav client side plugin" TRUE)
 
 ## support option
 OPTION(RSYSLOG_SUPPORT "Enable rsyslog Support inside UGR" FALSE)
+OPTION(LOGROTATE_SUPPORT "Enable logrotate Support for UGR" FALSE)
 
 # The version number
 set (UGR_VERSION_MAJOR 1)

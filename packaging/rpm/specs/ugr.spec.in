@@ -88,6 +88,7 @@ make clean
 -DAPACHE_SITES_INSTALL_DIR=%{_sysconfdir}/httpd/conf.d \
 -DOUT_OF_SOURCE_CHECK=FALSE \
 -DRSYSLOG_SUPPORT=TRUE \
+-DLOGROTATE_SUPPORT=TRUE \
 %{boost_cmake_flags} \
 .
 make
@@ -95,11 +96,10 @@ make
 %install
 rm -rf %{buildroot}
 make DESTDIR=%{buildroot} install
-# create log directory
-mkdir -p %{buildroot}/%{_var}/log/ugr
 
 %post
 /sbin/ldconfig
+/sbin/service rsyslog condrestart || true
 
 
 %postun
@@ -113,7 +113,6 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 %{_libdir}/ugr/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
-%dir %{_var}/log/ugr
 %doc RELEASE-NOTES
 
 %files devel
@@ -142,6 +141,7 @@ mkdir -p %{buildroot}/%{_var}/log/ugr
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
+
 
 %changelog
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
