@@ -255,8 +255,6 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
 
         if (!workcondvar.timed_wait(l, timeout))
             break; // timeout
-
-
     }
 
     if (mytk) {
@@ -284,7 +282,6 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
         // This fake plugin happens to gather more information than it's requested
         // ...this may happen, in this case the plugin writes all the info that it has
         // BUT the notification has to be only for the operation that was requested
-
 
         // Create a fake stat information
         if (op->fi->status_statinfo != UgrFileInfo::Ok) {
@@ -327,8 +324,6 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
             default:
                 break;
         }
-
-
 
     }
 
@@ -484,8 +479,6 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                 default:
                     // no ops
                     break;
-
-
             }
 
         }
