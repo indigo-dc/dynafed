@@ -70,9 +70,21 @@ Plugin for the Logical File catalog system for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
+# transition dependency
+Requires:                       %{name}-dmlite-frontend
 
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
+
+%package dmlite-frontend
+Summary:                        dmlite plugin for %{name}
+Group:                          Applications/Internet
+Requires:                       %{name}%{?_isa} = %{version}-%{release}
+Requires:                       lcgdm-dav-server
+
+%description dmlite-frontend
+Webdav frontend for %{name} using dmlite and lcgdm-dav
+
 
 
 %clean
@@ -137,11 +149,14 @@ make DESTDIR=%{buildroot} install
 %files dmlite-plugin
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dmliteclient.so
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
+%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
+
+
+%files dmlite-frontend
 %{_libdir}/ugr/libugrdmlite.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
-%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
-%config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
 
 %changelog
