@@ -39,6 +39,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     Davix::DavixError * tmp_err = NULL;
     static const char * fname = "UgrLocPlugin_dav::runsearch";
     std::string canonical_name(base_url_endpoint.getString());
+    std::vector<Davix::File> replica_vec;
     std::string xname;
     bool bad_answer = true;
     DAVIX_DIR* d = NULL;
@@ -105,7 +106,20 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
         case LocationPlugin::wop_Locate:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
-            pos.stat(&params, canonical_name, &st, &tmp_err);
+            if(flags & UGR_HTTP_FLAG_METALINK){
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
+                Davix::File f(*dav_core, canonical_name);
+                replica_vec = f.getReplicas(&params, &tmp_err);
+                if(tmp_err){
+                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
+                }
+            }
+
+            if( (flags & UGR_HTTP_FLAG_METALINK) == false || tmp_err != NULL){
+                Davix::DavixError::clearError(&tmp_err);
+                if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0)
+                    replica_vec.push_back(Davix::File(*dav_core, canonical_name));
+            }
             break;
         case LocationPlugin::wop_CheckReplica:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
@@ -171,21 +185,22 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_Locate:
             {
-                UgrFileItem_replica itr;
-                itr.name = HttpUtils::protocolHttpNormalize(canonical_name);
-                HttpUtils::pathHttpNomalize(itr.name);
-                itr.pluginID = myID;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                for(std::vector<Davix::File>::iterator it = replica_vec.begin(); it != replica_vec.end(); ++it){
+                    UgrFileItem_replica itr;
+                    itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
+                    HttpUtils::pathHttpNomalize(itr.name);
+                    itr.pluginID = myID;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
-                // We have modified the data, hence set the dirty flag
-                op->fi->dirtyitems = true;
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
 
-                if (!isReplicaXlator()) {
-                    op->fi->addReplica(itr);
-                } else {
-                    req_checkreplica(op->fi, itr.name);
+                    if (!isReplicaXlator()) {
+                        op->fi->addReplica(itr);
+                    } else {
+                        req_checkreplica(op->fi, itr.name);
+                    }
                 }
-
                 break;
             }
             case LocationPlugin::wop_CheckReplica:

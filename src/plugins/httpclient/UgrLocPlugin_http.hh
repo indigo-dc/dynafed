@@ -15,6 +15,9 @@
 #include "../../LocationPlugin.hh"
 
 
+#define UGR_HTTP_FLAG_METALINK (0x01)
+
+
 class HttpAvailabilityChecker;
 
 /**
@@ -52,7 +55,7 @@ public:
         return 0;
     }
 protected:
-    bool ssl_check;
+    int flags;
     Davix::Uri base_url_endpoint;
 
     boost::scoped_ptr<Davix::Context> dav_core;

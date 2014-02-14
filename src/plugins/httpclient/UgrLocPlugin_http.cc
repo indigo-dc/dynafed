@@ -143,9 +143,18 @@ static void configureHttpTimeout(const std::string & plugin_name,
 }
 
 
+static void configureFlags(const std::string & plugin_name,
+                           const std::string & prefix,
+                           int & flags){
+    const bool metalink_support = pluginGetParam<bool>(prefix, "metalink_support", false);
+    flags = ((metalink_support)?( flags | UGR_HTTP_FLAG_METALINK):( flags & ~(UGR_HTTP_FLAG_METALINK)));
+    Info(SimpleDebug::kLOW, plugin_name, " Metalink support " << metalink_support);
+}
+
+
 
 UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms) :
-LocationPlugin(c, parms), dav_core(new Davix::Context()), pos(dav_core.get()) {
+    LocationPlugin(c, parms), flags(0), dav_core(new Davix::Context()), pos(dav_core.get()) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
@@ -165,6 +174,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     configureSSLParams(name, prefix, params);
     configureHttpAuth(name, prefix, params);
     configureHttpTimeout(name, prefix, params);
+    configureFlags(name, prefix, flags);
 
     checker_params = params;
     struct timespec spec_timeout;
@@ -180,6 +190,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     static const char * fname = "UgrLocPlugin_http::runsearch";
     std::string canonical_name = base_url_endpoint.getString();
     std::string xname;
+    std::vector<Davix::File> replica_vec;
     bool bad_answer = true;
 
 
@@ -250,7 +261,20 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
         case LocationPlugin::wop_Locate:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
-            pos.stat(&params, canonical_name, &st, &tmp_err);
+            if(flags & UGR_HTTP_FLAG_METALINK){
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
+                Davix::File f(*dav_core, canonical_name);
+                replica_vec = f.getReplicas(&params, &tmp_err);
+                if(tmp_err){
+                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
+                }
+            }
+
+            if( (flags & UGR_HTTP_FLAG_METALINK) == false || tmp_err != NULL){
+                Davix::DavixError::clearError(&tmp_err);
+                if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0)
+                    replica_vec.push_back(Davix::File(*dav_core, canonical_name));
+            }
             break;
 
         case LocationPlugin::wop_CheckReplica:
@@ -284,17 +308,18 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
             case LocationPlugin::wop_Locate:
             {
-                UgrFileItem_replica itr;
-                itr.name = HttpUtils::protocolHttpNormalize(canonical_name);
-                HttpUtils::pathHttpNomalize(itr.name);
-                itr.pluginID = myID;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                for(std::vector<Davix::File>::iterator it = replica_vec.begin(); it != replica_vec.end(); ++it){
+                    UgrFileItem_replica itr;
+                    itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
+                    HttpUtils::pathHttpNomalize(itr.name);
+                    itr.pluginID = myID;
+                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
-                // We have modified the data, hence set the dirty flag
-                op->fi->dirtyitems = true;
+                    // We have modified the data, hence set the dirty flag
+                    op->fi->dirtyitems = true;
 
-                op->fi->addReplica(itr);
-
+                    op->fi->addReplica(itr);
+                }
                 break;
             }
 
