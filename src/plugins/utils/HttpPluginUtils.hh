@@ -29,7 +29,7 @@ inline std::string protocolHttpNormalize(const std::string & url){
 
 
 inline bool compare_prec_char(char* prec, char b){
-       if(b == *prec)
+    if(b == *prec && b == '/')
            return true;
        *prec = b;
        return false;
