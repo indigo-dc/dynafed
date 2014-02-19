@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.6
-Release:			9%{?dist}
+Release:			10%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -80,7 +80,7 @@ Plugin for using dmlite for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
-Requires:                       lcgdm-dav-server
+Requires:                       mod_lcgdm_dav
 
 %description dmlite-frontend
 Webdav frontend for %{name} using dmlite and lcgdm-dav
