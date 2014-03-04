@@ -9,6 +9,7 @@
 #include "UgrLocPlugin_http.hh"
 #include "../../PluginLoader.hh"
 #include "../../ExtCacheHandler.hh"
+#include "../../Config.hh"
 #include <time.h>
 #include "libs/time_utils.h"
 #include "../utils/HttpPluginUtils.hh"
@@ -151,6 +152,26 @@ static void configureFlags(const std::string & plugin_name,
     Info(SimpleDebug::kLOW, plugin_name, " Metalink support " << metalink_support);
 }
 
+static void configureHeader(const std::string & plugin_name,
+                            const std::string & prefix,
+                            Davix::RequestParams & params) {
+
+    char *s = 0;
+    int p = 0;
+    while(1) {
+        std::ostringstream ss;
+        ss << prefix << "." << "custom_header";
+        CFG->ArrayGetString(ss.str().c_str(), s, p++);
+        if (s) {
+            Info(SimpleDebug::kLOW, plugin_name, " Configuring additional headers #" << p << ":" << s);
+            vector<string> vs = tokenize(s, ":");
+            if (vs.size() > 1) params.addHeader(vs[0], vs[1]);
+        }
+        else break;
+
+    }
+}
+
 
 
 UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms) :
@@ -175,6 +196,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     configureHttpAuth(name, prefix, params);
     configureHttpTimeout(name, prefix, params);
     configureFlags(name, prefix, flags);
+    configureHeader(name, prefix, params);
 
     checker_params = params;
     struct timespec spec_timeout;
