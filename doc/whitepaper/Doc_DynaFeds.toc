@@ -41,9 +41,10 @@
 \contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{29}
 \contentsline {subsubsection}{\numberline {6.7.5}locplugin.$<$ID$>$.cli\_certificate}{30}
 \contentsline {subsubsection}{\numberline {6.7.6}locplugin.$<$ID$>$.conn\_timeout}{30}
-\contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.ops\_timeout}{30}
-\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.status\_checking}{30}
-\contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checker\_frequency}{31}
-\contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.auth\_login}{31}
-\contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_passwd}{31}
-\contentsline {subsection}{\numberline {6.8}DMLite client plugin}{31}
+\contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.custom\_header[]}{30}
+\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{30}
+\contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checking}{31}
+\contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{31}
+\contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{31}
+\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{31}
+\contentsline {subsection}{\numberline {6.8}DMLite client plugin}{32}

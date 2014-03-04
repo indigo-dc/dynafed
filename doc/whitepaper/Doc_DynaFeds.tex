@@ -646,6 +646,12 @@ TCP connection timeout (in seconds) to use when establishing a connection to thi
 Syntax:\\
 \verb"locplugin.<ID>.conn_timeout: <timeout>"\\
 Default value: 5\\
+\subsubsection{locplugin.$<$ID$>$.custom\_header[]}
+Additional header fields to populate the requests with.
+Syntax:\\
+\verb"locplugin.<ID>.custom_header[]: <header line>"\\
+Default value: none\\
+Example: \verb"locplugin.<ID>.custom_header[]: X-Rucio-Auth-Token: blah123"\\
 \subsubsection{locplugin.$<$ID$>$.ops\_timeout}
 TCP communication timeout (in seconds) to use when sending/receiving data from this endpoint.\\
 Syntax:\\
