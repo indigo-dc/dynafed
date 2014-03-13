@@ -80,7 +80,7 @@ Plugin for using dmlite for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
-Requires:                       /etc/httpd/modules/mod_lcgdm_dav.so
+Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
 
 
 %description dmlite-frontend
