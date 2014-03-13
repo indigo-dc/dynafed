@@ -158,9 +158,43 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
         return;
     }
     // Do the default name translation for this plugin (prefix xlation)
-    doNameXlation(op->fi->name, xname);
-    // Then prepend the URL prefix
-    canonical_name += xname;
+    if (op->wop == wop_CheckReplica) {
+
+        // Do the default name translation for this plugin (prefix xlation)
+        if (doNameXlation(op->repl, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            op->fi->notifyLocationNotPending();
+            return;
+        }// Then prepend the URL prefix
+        else canonical_name.append(xname);
+    } else {
+
+        // Do the default name translation for this plugin (prefix xlation)
+        if (doNameXlation(op->fi->name, xname)) {
+            unique_lock<mutex> l(*(op->fi));
+            switch (op->wop) {
+                case LocationPlugin::wop_Stat:
+                    op->fi->notifyStatNotPending();
+                    break;
+
+                case LocationPlugin::wop_Locate:
+                    op->fi->notifyLocationNotPending();
+                    break;
+
+                case LocationPlugin::wop_List:
+                    op->fi->notifyItemsNotPending();
+                    break;
+
+                default:
+                    break;
+            }
+            return;
+        }
+
+        // Then prepend the URL prefix
+        canonical_name.append(xname);
+    }
+
 
     memset(&st, 0, sizeof (st));
 
