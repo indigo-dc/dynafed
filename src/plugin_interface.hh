@@ -49,6 +49,9 @@ public:
 
     // sort a list of replica
     // return -1 if error,  0 if ok
+    //
+    // Note: All these functions, in sequence are invoked for each request
+    //
     virtual int filterReplicaList(std::deque<UgrFileItem_replica> & list_raw);
 
     virtual int filterReplicaList(std::deque<UgrFileItem_replica> & replica, const UgrClientInfo & cli_info);
