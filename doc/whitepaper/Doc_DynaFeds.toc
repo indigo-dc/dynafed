@@ -19,6 +19,7 @@
 \contentsline {subsubsection}{\numberline {6.1.2}glb.locplugin}{21}
 \contentsline {subsubsection}{\numberline {6.1.3}glb.waittimeout}{21}
 \contentsline {subsubsection}{\numberline {6.1.4}glb.maxlistitems}{22}
+\contentsline {subsubsection}{\numberline {6.1.5}glb.filterplugin}{22}
 \contentsline {subsection}{\numberline {6.2}Global name translation}{22}
 \contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{22}
 \contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{23}
@@ -29,22 +30,22 @@
 \contentsline {subsubsection}{\numberline {6.5.1}infohandler.maxitems}{26}
 \contentsline {subsubsection}{\numberline {6.5.2}infohandler.itemttl}{26}
 \contentsline {subsubsection}{\numberline {6.5.3}infohandler.itemmaxttl}{26}
-\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{26}
+\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{27}
 \contentsline {subsubsection}{\numberline {6.5.5}infohandler.useextcache}{27}
 \contentsline {subsection}{\numberline {6.6}extcache.memcached.server[]}{27}
-\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{27}
+\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{28}
 \contentsline {subsubsection}{\numberline {6.6.2}extcache.memcached.useBinaryProtocol}{28}
 \contentsline {subsection}{\numberline {6.7}DAV and HTTP plugin}{28}
 \contentsline {subsubsection}{\numberline {6.7.1}locplugin.$<$ID$>$.ssl\_check}{29}
 \contentsline {subsubsection}{\numberline {6.7.2}locplugin.$<$ID$>$.ca\_path}{29}
 \contentsline {subsubsection}{\numberline {6.7.3}locplugin.$<$ID$>$.cli\_type}{29}
-\contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{29}
+\contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{30}
 \contentsline {subsubsection}{\numberline {6.7.5}locplugin.$<$ID$>$.cli\_certificate}{30}
 \contentsline {subsubsection}{\numberline {6.7.6}locplugin.$<$ID$>$.conn\_timeout}{30}
 \contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.custom\_header[]}{30}
-\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{30}
+\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{31}
 \contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checking}{31}
 \contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{31}
 \contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{31}
-\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{31}
+\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{32}
 \contentsline {subsection}{\numberline {6.8}DMLite client plugin}{32}

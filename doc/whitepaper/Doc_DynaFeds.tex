@@ -203,7 +203,7 @@ So far, work is foreseen to verify the usability, in the described context, of t
 
 \subsection{Allow the system to apply geography-aware redirection choices}
 
-A feature that we implemented in our system internally associates geographical coordinates and information to each replica that is known to the federation, by invoking a loadable "Geo" plugin. The same plugin can associate this information to each client request for locating a replica. As a consequence, the system can select the replica that is geographically closer to the client that requested it.\\
+A feature that we implemented in the system internally associates geographical coordinates and information to each replica that is known to the federation, by invoking a loadable "Geo" plugin. The same plugin can associate this information to each client request for locating a replica. As a consequence, the system can select the replica that is geographically closer to the client that requested it.\\
 An easy implementation of the Geo plugin consisted in wrapping the GeoIP API \cite{geoip}, that seems to provide a more than adequate level of performance (on the order of one million queries per second, as output by its internal tests). The result is that the Dynamic Federation system is able to redirect a client to the replica that is the closest to it, in a very efficient way.
 
 
@@ -412,6 +412,16 @@ Syntax:\\
 
 Default value: 10000
 
+\subsubsection{glb.filterplugin}
+A filter plugin is a generic way of filtering a list of replicas before it is given to the requesting client.
+The typical usage example is to sort a list of replicas to be given to a client in ascending geographical distance from it.
+\\
+Syntax:\\
+\verb"glb.filterplugin[]: <plugin path> <plugin parameters>"
+\\
+Example:\\
+Sort all the replicas in ascending geographical distance from the client.
+\verb"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"
 
 
 \subsection{\label{globalxlation}Global name translation}
