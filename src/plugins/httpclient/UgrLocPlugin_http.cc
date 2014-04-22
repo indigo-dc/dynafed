@@ -131,12 +131,12 @@ static void configureHttpTimeout(const std::string & plugin_name,
     // timeout management
     long timeout;
     struct timespec spec_timeout;
-    if ((timeout =pluginGetParam<long>(prefix, "conn_timeout", 120)) != 0) {
+    if ((timeout =pluginGetParam<long>(prefix, "conn_timeout", 15)) != 0) {
         Info(SimpleDebug::kLOW, plugin_name, "Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
         params.setConnectionTimeout(&spec_timeout);
     }
-    if ((timeout = pluginGetParam<long>(prefix, "ops_timeout", 120)) != 0) {
+    if ((timeout = pluginGetParam<long>(prefix, "ops_timeout", 15)) != 0) {
         spec_timeout.tv_sec = timeout;
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, plugin_name, "Operation timeout is set to : " << timeout);
