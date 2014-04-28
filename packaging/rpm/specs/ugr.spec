@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.6
-Release:			12%{?dist}
+Release:			14%{?dist}
 Summary:			Ugr dynamic storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -114,10 +114,12 @@ make DESTDIR=%{buildroot} install
 /sbin/ldconfig
 /sbin/service rsyslog condrestart || true
 
-
 %postun
 /sbin/ldconfig
 
+%post -p dmlite-frontend
+/sbin/ldconfig
+/sbin/service rsyslog condrestart || true
 
 %files
 %defattr (-,root,root)
