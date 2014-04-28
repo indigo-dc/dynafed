@@ -117,7 +117,7 @@ make DESTDIR=%{buildroot} install
 %postun
 /sbin/ldconfig
 
-%post -p dmlite-frontend
+%post dmlite-frontend
 /sbin/ldconfig
 /sbin/service rsyslog condrestart || true
 
