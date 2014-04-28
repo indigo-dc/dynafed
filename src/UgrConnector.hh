@@ -12,6 +12,7 @@
 
 #include "SimpleDebug.hh"
 #include "Config.hh"
+#include "UgrConfig.h"
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
 #include "HostsInfoHandler.hh"
@@ -102,7 +103,7 @@ public:
 
     UgrConnector() : ticker(0), ticktime(10), initdone(false) {
         const char *fname = "UgrConnector::ctor";
-        Info(SimpleDebug::kLOW, fname, "Ctor");
+        Info(SimpleDebug::kLOW, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
     };
 
     virtual ~UgrConnector();

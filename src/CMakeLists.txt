@@ -33,6 +33,7 @@ add_definitions( -DUGR_PLUGIN_DIR_DEFAULT="${Ugr_default_plugin_dir}")
 # Add the binary tree to the search path for include files
 # so that we can find our Config header file
 include_directories(${PROJECT_BINARY_DIR})
+include_directories(${PROJECT_BINARY_DIR}/src)
 
 # Set up the includes to be used for boost 
 include_directories(${Boost_INCLUDE_DIRS})
