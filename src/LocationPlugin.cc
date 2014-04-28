@@ -54,7 +54,6 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms) :
     PluginInterface(c, parms)
 {
-    SimpleDebug::Instance()->Set(&(c.getLogger()));
     CFG->Set(&c.getConfig());
 
     const char *fname = "LocationPlugin::LocationPlugin";

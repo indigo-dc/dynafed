@@ -15,7 +15,6 @@ using namespace std;
 
 UgrLocPlugin_dmlite::UgrLocPlugin_dmlite(UgrConnector & c, std::vector<std::string> & parms) :
 LocationPlugin(c, parms) {
-
     Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Creating instance named " << name);
 
     pluginManager = 0;

@@ -47,7 +47,6 @@ public:
 
 
 UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
-    SimpleDebug::Instance()->Set(&c.getLogger());
     CFG->Set(&c.getConfig());
 
     const char *fname = "UgrGeoPlugin::UgrGeoPlugin_GeoIP";

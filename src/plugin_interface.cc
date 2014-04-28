@@ -1,10 +1,11 @@
 #include "plugin_interface.hh"
+#include "UgrConnector.hh"
 
 PluginInterface::PluginInterface(UgrConnector & c, std::vector<std::string> & parms) :
     _c(c),
     _parms(parms)
 {
-
+    SimpleDebug::Set(&(getConn().getLogger()));
 }
 
 
