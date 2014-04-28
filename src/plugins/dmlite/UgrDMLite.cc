@@ -100,6 +100,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
 
         UgrClientInfo info(secCredentials.remoteAddress);
+        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
         std::deque<UgrFileItem_replica> reps;
         nfo->getReplicaList(reps);
         getUgrConnector()->filter(reps);
