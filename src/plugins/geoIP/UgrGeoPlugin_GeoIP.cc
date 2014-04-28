@@ -33,14 +33,15 @@ public:
         y = (s1.latitude-ltt);
         d1 = x*x + y*y;
 
-        //std::cout << "d1 " << d1 << std::endl;
-
         // Distance client->repl2
         x = (s2.longitude-lng) * cos( (ltt+s2.latitude)/2 );
         y = (s2.latitude-ltt);
         d2 = x*x + y*y;
 
-        //std::cout << "d2 " << d2 << std::endl;
+        Info(SimpleDebug::kHIGHEST, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
+                                                         << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
+                                                         << "client=("<< ltt << "," << lng <<") " );
+
         return (d1 < d2);
     }
 };
