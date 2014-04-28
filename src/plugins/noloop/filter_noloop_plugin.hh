@@ -1,7 +1,7 @@
 #ifndef FILTERNOLOOPPLUGIN_HH
 #define FILTERNOLOOPPLUGIN_HH
 
-#include "plugin_interface.hh"
+#include "PluginInterface.hh"
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 

@@ -1,4 +1,4 @@
-#include "plugin_interface.hh"
+#include "PluginInterface.hh"
 #include "UgrConnector.hh"
 
 PluginInterface::PluginInterface(UgrConnector & c, std::vector<std::string> & parms) :

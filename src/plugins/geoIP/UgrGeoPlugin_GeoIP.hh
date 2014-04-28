@@ -7,7 +7,7 @@
 #define GEOIPPLUGIN_HH
 
 #include <UgrConnector.hh>
-#include "../plugin_interface.hh"
+#include "../PluginInterface.hh"
 #include "GeoIP.h"
 
 /** GeoPlugin_GeoIP

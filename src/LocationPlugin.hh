@@ -11,7 +11,7 @@
 #include "Config.hh"
 #include "SimpleDebug.hh"
 #include "LocationInfoHandler.hh"
-#include "plugin_interface.hh"
+#include "PluginInterface.hh"
 
 #include <string>
 #include <vector>
