@@ -17,6 +17,8 @@ message(STATUS "Looking for dmlite... /usr/${LIBDESTINATION}/")
 find_library(DMLITE_LIBRARY
     NAMES dmlite
     HINTS "/usr/${LIBDESTINATION}/"
+    HINTS "/usr/lib64/"
+    HINTS "/usr/local/lib64/"
 )
 message(STATUS "Found dmlite: ${DMLITE_LIBRARY}")
 
