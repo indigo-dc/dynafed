@@ -348,7 +348,7 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentia
     Info(SimpleDebug::kHIGHEST, "UgrAuthn::createSecurityContext", c.remoteAddress);
 
 
-    return new dmlite::SecurityContext(cred, userinfo, groupinfo);
+    return new dmlite::SecurityContext(c, userinfo, groupinfo);
 
 }
 
