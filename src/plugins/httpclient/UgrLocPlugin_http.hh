@@ -58,7 +58,7 @@ protected:
     int flags;
     Davix::Uri base_url_endpoint;
 
-    boost::scoped_ptr<Davix::Context> dav_core;
+    Davix::Context dav_core;
     Davix::DavPosix pos;
     Davix::RequestParams params;
     Davix::RequestParams checker_params;

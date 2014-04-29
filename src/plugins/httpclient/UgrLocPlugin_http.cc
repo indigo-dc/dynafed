@@ -175,7 +175,7 @@ static void configureHeader(const std::string & plugin_name,
 
 
 UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms) :
-    LocationPlugin(c, parms), flags(0), dav_core(new Davix::Context()), pos(dav_core.get()) {
+    LocationPlugin(c, parms), flags(0), dav_core(), pos(&dav_core) {
     Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
@@ -285,7 +285,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
             if(flags & UGR_HTTP_FLAG_METALINK){
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
-                Davix::File f(*dav_core, canonical_name);
+                Davix::File f(dav_core, canonical_name);
                 replica_vec = f.getReplicas(&params, &tmp_err);
                 if(tmp_err){
                     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
@@ -295,7 +295,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             if( (flags & UGR_HTTP_FLAG_METALINK) == false || tmp_err != NULL){
                 Davix::DavixError::clearError(&tmp_err);
                 if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0)
-                    replica_vec.push_back(Davix::File(*dav_core, canonical_name));
+                    replica_vec.push_back(Davix::File(dav_core, canonical_name));
             }
             break;
 
@@ -415,7 +415,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
-    Davix::HeadRequest req(*dav_core, base_url_endpoint, &tmp_err);
+    Davix::HeadRequest req(dav_core, base_url_endpoint, &tmp_err);
 
     if( tmp_err != NULL){
         Error(fname, "Status Checker: Impossible to initiate Query to" << base_url_endpoint << ", Error: "<< tmp_err->getErrMsg());

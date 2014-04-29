@@ -108,7 +108,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
             if(flags & UGR_HTTP_FLAG_METALINK){
                 LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
-                Davix::File f(*dav_core, canonical_name);
+                Davix::File f(dav_core, canonical_name);
                 replica_vec = f.getReplicas(&params, &tmp_err);
                 if(tmp_err){
                     LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
@@ -118,7 +118,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             if( (flags & UGR_HTTP_FLAG_METALINK) == false || tmp_err != NULL){
                 Davix::DavixError::clearError(&tmp_err);
                 if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0)
-                    replica_vec.push_back(Davix::File(*dav_core, canonical_name));
+                    replica_vec.push_back(Davix::File(dav_core, canonical_name));
             }
             break;
         case LocationPlugin::wop_CheckReplica:
