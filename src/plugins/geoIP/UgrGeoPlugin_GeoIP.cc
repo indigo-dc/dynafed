@@ -131,7 +131,7 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
         return;
     }
 
-    Info(SimpleDebug::kLOW, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
+    Info(SimpleDebug::kHIGH, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
     it.latitude = gir->latitude;
     it.longitude = gir->longitude;
 
