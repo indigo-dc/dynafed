@@ -48,4 +48,5 @@
 \contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{31}
 \contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{31}
 \contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{32}
+\contentsline {subsubsection}{\numberline {6.7.13}locplugin.$<$ID$>$.metalink\_support}{32}
 \contentsline {subsection}{\numberline {6.8}DMLite client plugin}{32}

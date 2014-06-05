@@ -655,7 +655,7 @@ Default value: none\\
 TCP connection timeout (in seconds) to use when establishing a connection to this endpoint. \\
 Syntax:\\
 \verb"locplugin.<ID>.conn_timeout: <timeout>"\\
-Default value: 5\\
+Default value: 15\\
 \subsubsection{locplugin.$<$ID$>$.custom\_header[]}
 Additional header fields to populate the requests with.
 Syntax:\\
@@ -687,6 +687,13 @@ Set the password to use in the case of endpoints that support user/password logi
 Syntax:\\
 \verb"locplugin.<ID>.auth_passwd: <password>"\\
 Default value: none\\
+\subsubsection{locplugin.$<$ID$>$.metalink\_support}
+Enable or disable the metalink support for the plugin. \\
+The metalink support give the possibility of the federation to query a list of replica of a given resource. \\
+Metalink support allows for instance the construction of recursive federations.  \\
+Syntax:\\
+\verb"locplugin.<ID>.metalink_support: <true|false>"\\
+Default value: false \\
 
 
 
