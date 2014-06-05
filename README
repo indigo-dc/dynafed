@@ -1,0 +1,18 @@
+
+
+How to Compile UGR
+
+
+A few hints to compile from source:
+
+To make a build from scratch (like a make distclean, which CMake does not
+provide)
+
+>cd build
+>../scratchbuild.sh
+
+The CMake line that I normally use:
+
+cmake ../
+make
+
