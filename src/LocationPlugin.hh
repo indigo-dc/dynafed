@@ -21,6 +21,7 @@
 class LocationInfoHandler;
 class UgrConnector;
 
+
 #define LocPluginLogInfo(l, n, c) Info(l, n, "LocPlugin: " << this->name << " " << c);
 #define LocPluginLogInfoThr(l, n, c) Info(l, n, "LocPlugin: " << this->name << myidx << " " << c);
 #define LocPluginLogErr(n, c) Error(n, "LocPlugin: " << this->name << myidx << " " << c);
@@ -296,6 +297,9 @@ public:
 
     /// Asynchronously check the plugin Status
     void do_Check(int myidx);
+
+public:
+    static const std::string & getConfigPrefix();
 
 };
 

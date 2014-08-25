@@ -14,6 +14,9 @@
 using namespace boost;
 using namespace std;
 
+
+const std::string location_config_prefix = "locplugin.";
+
 void pluginFunc(LocationPlugin *pl, int myidx) {
     const char *fname = "LocationPlugin::pluginFunc";
     Info(SimpleDebug::kHIGHEST, fname, "Worker: started");
@@ -569,6 +572,10 @@ int LocationPlugin::Tick(time_t timenow) {
 void LocationPlugin::do_Check(int myidx){
     if(availInfo.state_checking)
         run_Check(myidx);
+}
+
+const std::string & LocationPlugin::getConfigPrefix(){
+    return location_config_prefix;
 }
 
 PluginAvailabilityInfo::PluginAvailabilityInfo(int interval_ms, int latency_ms) {

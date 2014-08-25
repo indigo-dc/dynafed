@@ -13,10 +13,6 @@
 #include <time.h>
 #include "libs/time_utils.h"
 
-const std::string CONFIG_PREFIX("locplugin.");
-
-
-
 using namespace boost;
 using namespace std;
 

@@ -14,7 +14,6 @@
 #include "libs/time_utils.h"
 #include "../utils/HttpPluginUtils.hh"
 
-const std::string CONFIG_PREFIX("locplugin.");
 const std::string config_timeout_conn_key("conn_timeout");
 const std::string config_timeout_ops_key("ops_timeout");
 
@@ -187,7 +186,7 @@ UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> 
         Error("UgrLocPlugin_[http/dav]", "Not enough parameters in the plugin line.");
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
-    load_configuration(CONFIG_PREFIX + name);
+    load_configuration(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::Http);
 }
 

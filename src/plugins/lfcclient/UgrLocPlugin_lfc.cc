@@ -10,8 +10,6 @@
 #include "../../PluginLoader.hh"
 #include "../../ExtCacheHandler.hh"
 
-
-const std::string CONFIG_PREFIX("locplugin.");
 const std::string config_timeout_conn_key("conn_timeout");
 const std::string config_timeout_ops_key("ops_timeout");
 
@@ -50,7 +48,7 @@ LocationPlugin(c, parms) {
     } else {
         throw std::runtime_error("No correct parameter for this plugin : Unable to load the lfc plugin");
     }
-    load_configuration(CONFIG_PREFIX + name);
+    load_configuration(getConfigPrefix() + name);
 
     if( (context = gfal2_context_new(&tmp_err)) == NULL){
         std::ostringstream ss;
