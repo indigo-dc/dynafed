@@ -25,7 +25,6 @@ BuildRequires:		dmlite-private-devel
 BuildRequires:		davix-devel >= 0.2.11
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
-BuildRequires:		glibmm24-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		protobuf-devel
 
