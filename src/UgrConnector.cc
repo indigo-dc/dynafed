@@ -19,7 +19,6 @@
 
 
 
-using namespace std;
 using namespace boost;
 using namespace boost::filesystem;
 using namespace boost::system;
@@ -52,7 +51,7 @@ void ugr_load_plugin(UgrConnector & c,
         CFG->ArrayGetString(key_list_config.c_str(), buf, i);
         if (buf[0]) {
             T* filter = NULL;
-            vector<string> parms = tokenize(buf, " ");
+            std::vector<std::string> parms = tokenize(buf, " ");
            path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
            // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
            // An empty string does not load any plugin, just keeps the default behavior
@@ -75,7 +74,7 @@ void ugr_load_plugin(UgrConnector & c,
             if (filter) {
                 v_plugin.push_back(filter);
             }else{
-                Error(fname, "Impossible to load plugin " << plugin_path << " of type " << typeid(T).name() << endl;);
+                Error(fname, "Impossible to load plugin " << plugin_path << " of type " << typeid(T).name() << std::endl;);
             }
         }
         i++;
@@ -162,12 +161,12 @@ int UgrConnector::init(char *cfgfile) {
         Info(SimpleDebug::kLOW, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
 
         if (!cfgfile || !strlen(cfgfile)) {
-            Error(fname, "No config file given." << cfgfile << endl);
+            Error(fname, "No config file given." << cfgfile << std::endl);
             return 1;
         }
 
         if (CFG->ProcessFile(cfgfile)) {
-            Error(fname, "Error processing config file." << cfgfile << endl;);
+            Error(fname, "Error processing config file." << cfgfile << std::endl;);
             return 1;
         }
 
@@ -204,7 +203,7 @@ int UgrConnector::init(char *cfgfile) {
         Info(SimpleDebug::kLOW, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
 
         if (!locPlugins.size()) {
-            vector<string> parms;
+            std::vector<std::string> parms;
 
             parms.push_back("static_locplugin");
             parms.push_back("Unnamed");
@@ -300,7 +299,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-int UgrConnector::stat(string &lfn, UgrFileInfo **nfo) {
+int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
     const char *fname = "UgrConnector::stat";
 
     UgrFileInfo::trimpath(lfn);
@@ -462,7 +461,7 @@ int UgrConnector::do_checkreplica(UgrFileInfo *fi, std::string rep) {
 
 
 
-int UgrConnector::locate(string &lfn, UgrFileInfo **nfo) {
+int UgrConnector::locate(std::string &lfn, UgrFileInfo **nfo) {
 
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
@@ -534,7 +533,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-int UgrConnector::list(string &lfn, UgrFileInfo **nfo, int nitemswait) {
+int UgrConnector::list(std::string &lfn, UgrFileInfo **nfo, int nitemswait) {
 
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
