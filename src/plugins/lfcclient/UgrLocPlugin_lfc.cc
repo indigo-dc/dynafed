@@ -15,7 +15,6 @@ const std::string config_timeout_ops_key("ops_timeout");
 
 
 using namespace boost;
-using namespace std;
 
 // ------------------------------------------------------------------------------------
 // Plugin-related stuff
@@ -283,7 +282,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                     }
 
                     // add childrens
-                    string child = op->fi->name;
+                    std::string child = op->fi->name;
                     if (child[child.length() - 1] != '/')
                         child = child + "/";
                     child = child + it.name;
