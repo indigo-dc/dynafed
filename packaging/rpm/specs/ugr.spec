@@ -21,7 +21,7 @@ BuildRequires:		boost141-devel
 BuildRequires:		boost-devel
 %endif
 BuildRequires:		cmake
-BuildRequires:		dmlite-devel
+BuildRequires:		dmlite-private-devel
 BuildRequires:		davix-devel >= 0.2.11
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
