@@ -32,7 +32,8 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
 
 
     } else
-        throw DmException(DMLITE_CFGERR(0), std::string("Unknown option ") + key);
+      Log(Logger::Lvl4, Logger::unregistered, 0, "Unrecognized option. Key: " << key << " Value: " << value);
+//        throw DmException(DMLITE_CFGERR(0), std::string("Unknown option ") + key);
 }
 
 Catalog* UgrFactory::createCatalog(CatalogFactory* factory,
