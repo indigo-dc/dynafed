@@ -239,10 +239,13 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
         return;
     }
 
+    // Doublecheck if we are disabled. If so, quickly close the pending requests
+    bool imdisabled = !availInfo.isOK();
+    
     if (op->wop == wop_CheckReplica) {
 
         // Do the default name translation for this plugin (prefix xlation)
-        if (doNameXlation(op->repl, xname)) {
+        if (imdisabled || doNameXlation(op->repl, xname)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
@@ -251,18 +254,21 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     } else {
 
         // Do the default name translation for this plugin (prefix xlation)
-        if (doNameXlation(op->fi->name, xname)) {
+        if (imdisabled || doNameXlation(op->fi->name, xname)) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Stat() " << canonical_name << ")");
                     op->fi->notifyStatNotPending();
                     break;
 
                 case LocationPlugin::wop_Locate:
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Locate() " << canonical_name << ")");
                     op->fi->notifyLocationNotPending();
                     break;
 
                 case LocationPlugin::wop_List:
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on List() " << canonical_name << ")");
                     op->fi->notifyItemsNotPending();
                     break;
 

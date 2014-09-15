@@ -71,17 +71,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "I'm disabled. Short-circuit on Stat() " << canonical_name << ")");
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Stat() " << canonical_name << ")");
                     op->fi->notifyStatNotPending();
                     break;
 
                 case LocationPlugin::wop_Locate:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "I'm disabled. Short-circuit on Locate() " << canonical_name << ")");
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Locate() " << canonical_name << ")");
                     op->fi->notifyLocationNotPending();
                     break;
 
                 case LocationPlugin::wop_List:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "I'm disabled. Short-circuit on List() " << canonical_name << ")");
+		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on List() " << canonical_name << ")");
                     op->fi->notifyItemsNotPending();
                     break;
 
