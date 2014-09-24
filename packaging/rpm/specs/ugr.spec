@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			1.0.7
-Release:			17%{?dist}
+Release:			19%{?dist}
 Summary:			The Dynamic Federations - Ultra-scalable storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -21,8 +21,8 @@ BuildRequires:		boost141-devel
 BuildRequires:		boost-devel
 %endif
 BuildRequires:		cmake
-BuildRequires:		dmlite-devel >= 0.7
-BuildRequires:		dmlite-private-devel >= 0.7
+BuildRequires:		dmlite-devel >= 0.7.0
+BuildRequires:		dmlite-private-devel  >= 0.7.0
 BuildRequires:		davix-devel >= 0.2.11
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel

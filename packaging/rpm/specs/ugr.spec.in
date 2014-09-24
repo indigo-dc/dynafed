@@ -6,7 +6,7 @@
 
 Name:				ugr
 Version:			@UGR_VERSION_MAJOR@.@UGR_VERSION_MINOR@.@UGR_VERSION_PATCH@
-Release:			18%{?dist}
+Release:			19%{?dist}
 Summary:			The Dynamic Federations - Ultra-scalable storage federation system
 Group:				Applications/Internet
 License:			ASL 2.0

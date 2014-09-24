@@ -145,10 +145,12 @@ static void configureHttpTimeout(const std::string & plugin_name,
     if ((timeout =pluginGetParam<long>(prefix, "conn_timeout", 15)) != 0) {
         Info(SimpleDebug::kLOW, plugin_name, "Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
+        spec_timeout.tv_nsec =0;
         params.setConnectionTimeout(&spec_timeout);
     }
     if ((timeout = pluginGetParam<long>(prefix, "ops_timeout", 15)) != 0) {
         spec_timeout.tv_sec = timeout;
+        spec_timeout.tv_nsec = 0;
         params.setOperationTimeout(&spec_timeout);
         Info(SimpleDebug::kLOW, plugin_name, "Operation timeout is set to : " << timeout);
     }
@@ -157,9 +159,15 @@ static void configureHttpTimeout(const std::string & plugin_name,
 
 static void configureFlags(const std::string & plugin_name,
                            const std::string & prefix,
-                           int & flags){
+                           int & flags,
+                           Davix::RequestParams & params){
     const bool metalink_support = pluginGetParam<bool>(prefix, "metalink_support", false);
-    flags = ((metalink_support)?( flags | UGR_HTTP_FLAG_METALINK):( flags & ~(UGR_HTTP_FLAG_METALINK)));
+    if(metalink_support){
+        flags |= UGR_HTTP_FLAG_METALINK;
+    }else{
+        flags &= ~(UGR_HTTP_FLAG_METALINK);
+        params.setMetalinkMode(Davix::MetalinkMode::Disable);
+    }
     Info(SimpleDebug::kLOW, plugin_name, " Metalink support " << metalink_support);
 }
 
@@ -206,7 +214,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     configureSSLParams(name, prefix, params);
     configureHttpAuth(name, prefix, params);
     configureHttpTimeout(name, prefix, params);
-    configureFlags(name, prefix, flags);
+    configureFlags(name, prefix, flags, params);
     configureHeader(name, prefix, params);
 
     checker_params = params;
