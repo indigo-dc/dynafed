@@ -362,7 +362,7 @@ int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
     // remove from the list the dead endpoints
     // Filter out the replicas that belong to dead endpoints
     replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1)),
-		    str2.end() );
+		    replicas.end() );
 
     return 0;
 }
