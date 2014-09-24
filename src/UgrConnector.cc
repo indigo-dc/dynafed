@@ -345,7 +345,7 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 
 static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (!c->isEndpointOK(r.pluginID)) {
-        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "Skipping " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
+        Info(SimpleDebug::kHIGH, "UgrConnector::filter", "Skipping " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
         return false;
     }
     return true;
@@ -361,7 +361,8 @@ int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
 
     // remove from the list the dead endpoints
     // Filter out the replicas that belong to dead endpoints
-    std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1));
+    replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1)),
+		    str2.end() );
 
     return 0;
 }
