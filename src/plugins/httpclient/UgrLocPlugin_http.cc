@@ -223,6 +223,8 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     spec_timeout.tv_nsec = (this->availInfo.time_interval_ms - spec_timeout.tv_sec) * 1000000;
     checker_params.setOperationTimeout(&spec_timeout);
     checker_params.setConnectionTimeout(&spec_timeout);
+    // disable KeepAlive for checker
+    checker_params.setKeepAlive(false);
 }
 
 void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
