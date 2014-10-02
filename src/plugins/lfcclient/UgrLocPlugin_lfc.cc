@@ -119,7 +119,7 @@ int UgrLocPlugin_lfc::getReplicasFromLFC(const std::string & url, const int myid
     while( p < buffer + ret){
         UgrFileItem_replica itr;
         itr.name = p;
-        itr.pluginID = myID;
+        itr.pluginID = getID();
         LocPluginLogInfoThr(SimpleDebug::kHIGHEST, "UgrLocPlugin_lfc::getReplicasFromLFC", "Worker: Inserting replicas " << p);
         p += strlen(p) +1; // select next replicas
         inserter(itr);
@@ -243,7 +243,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
 
     if (bad_answer == false) {
         LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
-        op->fi->setPluginID(myID);
+        op->fi->setPluginID(getID());
 
         switch (op->wop) {
 

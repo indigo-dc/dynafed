@@ -25,6 +25,15 @@ public:
 
     virtual const std::string & getPluginName() const;
 
+
+    inline int getID() const{
+        return myID;
+    }
+
+    inline void setID(int id){
+        myID = id;
+    }
+
 protected:
     UgrConnector & getConn(){
         return _c;
@@ -35,10 +44,12 @@ protected:
     }
 
 
-
 private:
     UgrConnector &_c;
+    int myID;
     std::vector<std::string> _parms;
+
+
 };
 
 

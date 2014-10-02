@@ -43,7 +43,6 @@ int main(int argc, char **argv) {
 
         std::deque<UgrFileItem_replica> repls;
         file_infos->getReplicaList(repls);
-        ugr.filter(repls);
         ugr.filter(repls, cli_info);
 
         for (std::deque<UgrFileItem_replica>::iterator it = repls.begin(); it < repls.end(); it++)

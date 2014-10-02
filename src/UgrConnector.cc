@@ -72,6 +72,7 @@ void ugr_load_plugin(UgrConnector & c,
                 filter = NULL;
             }
             if (filter) {
+                filter->setID(v_plugin.size());
                 v_plugin.push_back(filter);
             }else{
                 Error(fname, "Impossible to load plugin " << plugin_path << " of type " << typeid(T).name() << std::endl;);
@@ -252,7 +253,12 @@ int UgrConnector::init(char *cfgfile) {
 }
 
 bool UgrConnector::isEndpointOK(int pluginID) {
-    if ((pluginID >= (int) locPlugins.size()) || (pluginID < 0)) return false;
+    const size_t id = static_cast<size_t>(pluginID);
+
+    if ( id >= locPlugins.size()){
+        Info(SimpleDebug::kLOW, "isEndpointOK", "Invalid plugin ID BUG !");
+        return false;
+    }
 
     return locPlugins[pluginID]->isOK();
 }
@@ -344,7 +350,8 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 }
 
 static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
-    if (!c->isEndpointOK(r.pluginID)) {
+    if (c->isEndpointOK(r.pluginID)) {
+        Info(SimpleDebug::kLOW, "UgrConnector::filter", "not a replica offline" << r.name);
         return false;
     }
     
@@ -352,31 +359,42 @@ static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r
     return true;
 }
 
+
+void filter_offline_replica(UgrConnector & c, std::deque<UgrFileItem_replica> & replicas){
+
+    // applys all filters
+    int l1 = replicas.size();
+
+    // remove from the list the dead endpoints
+    // Filter out the replicas that belong to dead endpoints
+    replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, &c, _1)),
+            replicas.end() );
+
+    int l2 = replicas.size();
+
+    if (l1 != l2)
+      Info(SimpleDebug::kLOW, "UgrConnector::filter", "Replicas have been dropped: " << l1 << " -> " << l2);
+}
+
 ///
 /// Apply configured filters on the replica list
 int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
-    // applys all filters
-    int l1 = replicas.size();
+
     
     for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
         (*it)->filterReplicaList(replicas);
     }
 
-    // remove from the list the dead endpoints
-    // Filter out the replicas that belong to dead endpoints
-    replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1)),
-		    replicas.end() );
-
-    int l2 = replicas.size();
-    
-    if (l1 != l2) 
-      Info(SimpleDebug::kLOW, "UgrConnector::filter", "Replicas have been dropped: " << l1 << " -> " << l2);
+    filter_offline_replica(*this, replicas);
     
     return 0;
 }
 
 int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas, const UgrClientInfo & cli_info){
-    // applys all filters
+    // apply generic filters
+    filter(replicas);
+
+    // applys all filters with cli_info
     for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
         (*it)->filterReplicaList(replicas, cli_info);
     }

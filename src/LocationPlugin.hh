@@ -146,8 +146,6 @@ public:
     };
 
 protected:
-    /// ID of this plugin
-    int myID;
 
     /// The name assigned to this plugin from the creation
     std::string name;
@@ -214,11 +212,6 @@ public:
 
     virtual void stop();
     virtual int start(ExtCacheHandler *c);
-
-    void setID(short pluginID) {
-        myID = pluginID;
-    }
-
 
     /// Gives life to the object
     virtual int Tick(time_t timenow);

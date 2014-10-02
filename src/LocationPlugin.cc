@@ -55,7 +55,12 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 }
 
 LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms) :
-    PluginInterface(c, parms)
+    PluginInterface(c, parms),
+    name(),
+    workers(),
+    availInfo(),
+    extCache(NULL),
+    exiting(false)
 {
     CFG->Set(&c.getConfig());
 
@@ -457,7 +462,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 
             switch(wtk->wop){
                 case LocationPlugin::wop_List :{
-                    wtk->fi->setPluginID(myID);
+                    wtk->fi->setPluginID(getID());
 
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting prefix item  " << item.name);
                     wtk->fi->subdirs.insert(item);
@@ -468,7 +473,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                     return true;
                 }
                 case LocationPlugin::wop_Stat:{
-                    wtk->fi->setPluginID(myID);
+                    wtk->fi->setPluginID(getID());
                     struct stat st = {};
                     st.st_nlink = 1;
                     st.st_mode |= S_IFDIR;

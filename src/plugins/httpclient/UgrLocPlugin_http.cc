@@ -346,7 +346,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
     if (bad_answer == false) {
         LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
-        op->fi->setPluginID(myID);
+        op->fi->setPluginID(getID());
 
         switch (op->wop) {
 
@@ -361,7 +361,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                     UgrFileItem_replica itr;
                     itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
                     HttpUtils::pathHttpNomalize(itr.name);
-                    itr.pluginID = myID;
+                    itr.pluginID = getID();
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                     // We have modified the data, hence set the dirty flag
@@ -377,7 +377,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                 UgrFileItem_replica itr;
                 itr.name = canonical_name;
 
-                itr.pluginID = myID;
+                itr.pluginID = getID();
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag

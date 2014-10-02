@@ -3,6 +3,7 @@
 
 PluginInterface::PluginInterface(UgrConnector & c, std::vector<std::string> & parms) :
     _c(c),
+    myID(std::numeric_limits<int>::max()),
     _parms(parms)
 {
     SimpleDebug::Set(&(getConn().getLogger()));

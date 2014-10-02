@@ -104,7 +104,6 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
         Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
         std::deque<UgrFileItem_replica> reps;
         nfo->getReplicaList(reps);
-        getUgrConnector()->filter(reps);
         getUgrConnector()->filter(reps, info);
 
         for (std::deque<UgrFileItem_replica>::iterator i = reps.begin(); i != reps.end(); ++i) {

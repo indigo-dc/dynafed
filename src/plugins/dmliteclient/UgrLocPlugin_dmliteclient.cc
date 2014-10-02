@@ -181,7 +181,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 //op->fi->status_statinfo = UgrFileInfo::NotFound;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
             } else {
-                op->fi->setPluginID(myID);
+                op->fi->setPluginID(getID());
                 op->fi->takeStat(st.stat);
             }
 
@@ -194,7 +194,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
             } else {
 
-                op->fi->setPluginID(myID);
+                op->fi->setPluginID(getID());
 
                 for (vector<dmlite::Replica>::iterator i = repvec.begin();
                         i != repvec.end();
@@ -202,7 +202,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
                     UgrFileItem_replica it;
                     it.name = i->rfn;
-                    it.pluginID = myID;
+                    it.pluginID = getID();
                     LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
 
                     // We have modified the data, hence set the dirty flag
@@ -226,7 +226,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 UgrFileItem_replica itr;
                 doNameXlation(op->repl, itr.name);
 
-                itr.pluginID = myID;
+                itr.pluginID = getID();
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
 
                 // We have modified the data, hence set the dirty flag
@@ -250,7 +250,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 dmlite::ExtendedStat *dent;
                 long cnt = 0;
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
-                op->fi->setPluginID(myID);
+                op->fi->setPluginID(getID());
 
                 try {
                     UgrFileItem it;

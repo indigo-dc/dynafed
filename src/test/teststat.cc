@@ -24,6 +24,7 @@ int main(int argc, char **argv) {
     }
 
     UgrConnector ugr;
+    UgrClientInfo cli_info("localhost");
     UgrFileInfo *fi = 0;
 
     long long cnt = atoll(argv[1]);
@@ -39,7 +40,20 @@ int main(int argc, char **argv) {
 
     if (fi->getStatStatus() == UgrFileInfo::Ok) {
             if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
-            else ugr.locate(fn, &fi);
+            else{
+                ugr.locate(fn, &fi);
+                std::deque<UgrFileItem_replica> repls;
+                fi->getReplicaList(repls);
+                ugr.filter(repls);
+                ugr.filter(repls, cli_info);
+
+                if(repls.size() ==0){
+                    std::cout << "No replicas for given file"<< std::endl;
+                }
+
+                for (std::deque<UgrFileItem_replica>::iterator it = repls.begin(); it < repls.end(); it++)
+                    std::cout << "Sorted Replicas :  " << it->name << " " << it->location << std::endl;
+            }
     }
 
     cout << "Invoking stat " << cnt-1 << " times." << endl;
