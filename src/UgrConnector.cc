@@ -344,7 +344,7 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 }
 
 static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
-    if (c->isEndpointOK(r.pluginID)) {
+    if (!c->isEndpointOK(r.pluginID)) {
         return false;
     }
     
