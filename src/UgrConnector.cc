@@ -252,7 +252,7 @@ int UgrConnector::init(char *cfgfile) {
 }
 
 bool UgrConnector::isEndpointOK(int pluginID) {
-    if ((pluginID > (int) locPlugins.size()) || (pluginID < 0)) return false;
+    if ((pluginID >= (int) locPlugins.size()) || (pluginID < 0)) return false;
 
     return locPlugins[pluginID]->isOK();
 }
