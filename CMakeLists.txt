@@ -15,6 +15,9 @@ OPTION(HTTP_PLUGIN "Enable Webdav client side plugin" TRUE)
 OPTION(RSYSLOG_SUPPORT "Enable rsyslog Support inside UGR" FALSE)
 OPTION(LOGROTATE_SUPPORT "Enable logrotate Support for UGR" FALSE)
 
+# tests options
+option(UNIT_TESTS "enable or disable the unit tests" FALSE)
+
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
@@ -53,6 +56,8 @@ include(DefineInstallationPaths REQUIRED)
 include(DefineApachePaths REQUIRED)
 include(ReleaseDebugAutoFlags REQUIRED)
 include(CMakeGeneratePkgConfig REQUIRED)
+#enable testing
+INCLUDE(CTest)
  
 # Force the build dorectory to be different from the source directory
 include(MacroOutOfSourceBuild)
@@ -94,6 +99,7 @@ find_package(Protobuf REQUIRED)
 
 add_subdirectory(src)
 add_subdirectory(dist)
+add_subdirectory(test)
 
 enable_testing()
 
