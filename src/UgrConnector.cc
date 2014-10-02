@@ -345,7 +345,7 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 
 static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (!c->isEndpointOK(r.pluginID)) {
-        Info(SimpleDebug::kHIGH, "UgrConnector::filter", "Skipping " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
+        Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
         return false;
     }
     return true;
@@ -355,6 +355,8 @@ static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r
 /// Apply configured filters on the replica list
 int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
     // applys all filters
+    int l1 = replicas.size();
+    
     for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
         (*it)->filterReplicaList(replicas);
     }
@@ -364,6 +366,11 @@ int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
     replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, this, _1)),
 		    replicas.end() );
 
+    int l2 = replicas.size();
+    
+    if (l1 != l2) 
+      Info(SimpleDebug::kLOW, "UgrConnector::filter", "Replicas have been dropped: " << l1 << " -> " << l2);
+    
     return 0;
 }
 
