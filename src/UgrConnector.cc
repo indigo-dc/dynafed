@@ -348,7 +348,7 @@ static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r
         return false;
     }
     
-    Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);    
+    Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID);    
     return true;
 }
 
