@@ -24,14 +24,10 @@ using namespace boost::filesystem;
 using namespace boost::system;
 
 
-#define EXECUTE_ON_AVAILABLE(myfunc) \
-    do{ \
-    for (unsigned int i = 0; i < locPlugins.size(); i++) { \
-        if (locPlugins[i].) \
-            locPlugins[i]->myfunc; \
-    }  \
-    } while(0)
+bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r);
 
+// mocking object
+std::function<bool (UgrConnector*, const UgrFileItem_replica&)> replicasStatusObj(replicas_is_offline);
 
 
 // ------------------------------------------------------------------------------------
@@ -349,31 +345,24 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
     return 0;
 }
 
-static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
+bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (c->isEndpointOK(r.pluginID)) {
-        Info(SimpleDebug::kLOW, "UgrConnector::filter", "not a replica offline" << r.name);
+        Info(SimpleDebug::kHIGH, "UgrConnector::filter", "not a replica offline" << r.name << " ");
         return false;
     }
     
-    Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID);    
+    Info(SimpleDebug::kHIGH, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID << " ");
     return true;
 }
 
 
 void filter_offline_replica(UgrConnector & c, std::deque<UgrFileItem_replica> & replicas){
 
-    // applys all filters
-    int l1 = replicas.size();
-
     // remove from the list the dead endpoints
     // Filter out the replicas that belong to dead endpoints
-    replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(&replicas_is_offline, &c, _1)),
+    replicas.erase( std::remove_if(replicas.begin(), replicas.end(), boost::bind(replicasStatusObj, &c, _1)),
             replicas.end() );
 
-    int l2 = replicas.size();
-
-    if (l1 != l2)
-      Info(SimpleDebug::kLOW, "UgrConnector::filter", "Replicas have been dropped: " << l1 << " -> " << l2);
 }
 
 ///

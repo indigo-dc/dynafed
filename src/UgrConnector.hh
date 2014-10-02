@@ -7,7 +7,8 @@
 #ifndef UGRCONNECTOR_HH
 #define UGRCONNECTOR_HH
 
-
+#include <string>
+#include <functional>
 #include <boost/filesystem.hpp>
 
 #include "SimpleDebug.hh"
@@ -20,7 +21,6 @@
 #include "ExtCacheHandler.hh"
 
 
-#include <string>
 
 class LocationPlugin;
 class ExtCacheHandler;
