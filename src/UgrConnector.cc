@@ -344,10 +344,11 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 }
 
 static bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
-    if (!c->isEndpointOK(r.pluginID)) {
-        Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);
+    if (c->isEndpointOK(r.pluginID)) {
         return false;
     }
+    
+    Info(SimpleDebug::kLOW, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude);    
     return true;
 }
 
