@@ -1,12 +1,12 @@
 /** 
- * @file   UgrLocPlugin_dav.cc
+ * @file   UgrLocPlugin_s3.cc
  * @brief  Plugin that talks to any Webdav compatible endpoint
  * @author Devresse Adrien
  * @date   Feb 2012
  */
 
 
-#include "UgrLocPlugin_dav.hh"
+#include "UgrLocPlugin_s3.hh"
 #include "../../PluginLoader.hh"
 #include "../../ExtCacheHandler.hh"
 #include "../utils/HttpPluginUtils.hh"
@@ -21,19 +21,18 @@ using namespace std;
 // Plugin-related stuff
 // ------------------------------------------------------------------------------------
 
-
-
-UgrLocPlugin_dav::UgrLocPlugin_dav(UgrConnector & c, std::vector<std::string> & parms) :
+UgrLocPlugin_s3::UgrLocPlugin_s3(UgrConnector & c, std::vector<std::string> & parms) :
     UgrLocPlugin_http(c, parms) {
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "UgrLocPlugin_[http/dav]: WebDav ENABLED");
-    params.setProtocol(Davix::RequestProtocol::Webdav);
+    Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/s3]", "UgrLocPlugin_[http/s3]: s3 ENABLED");
+    configure_S3_parameter(getConfigPrefix() + name);
+    params.setProtocol(Davix::RequestProtocol::AwsS3);
 }
 
 
-void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
+void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
     struct stat st;
     Davix::DavixError * tmp_err = NULL;
-    static const char * fname = "UgrLocPlugin_dav::runsearch";
+    static const char * fname = "UgrLocPlugin_s3::runsearch";
     std::string canonical_name(base_url_endpoint.getString());
     std::vector<Davix::File> replica_vec;
     std::string xname;
@@ -105,25 +104,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
         case LocationPlugin::wop_Locate:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
-            if(flags & UGR_HTTP_FLAG_METALINK){
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
-                Davix::File f(dav_core, canonical_name);
-                replica_vec = f.getReplicas(&params, &tmp_err);
-                if(tmp_err){
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
-                }
-            }
-
-            if( (flags & UGR_HTTP_FLAG_METALINK) == false || tmp_err != NULL){
-                Davix::DavixError::clearError(&tmp_err);
-                if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0)
-                    replica_vec.push_back(Davix::File(dav_core, canonical_name));
+            Davix::DavixError::clearError(&tmp_err);
+            if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
+                replica_vec.push_back(Davix::File(dav_core, canonical_name));
             }
             break;
+
         case LocationPlugin::wop_CheckReplica:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
+
         case LocationPlugin::wop_List:
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
             d = pos.opendirpp(&params, canonical_name, &tmp_err);
@@ -146,9 +137,6 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         st.lastcheck = time(0);
         if (st.state == PLUGIN_ENDPOINT_ONLINE)
             availInfo.setStatus(st, true, (char *) name.c_str());
-
-
-
     } else {
 
         // Connection problem... it's offline for sure!
@@ -165,7 +153,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         }
 
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
     }
 
 
@@ -273,16 +261,11 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 break;
         }
 
-
         if (tmp_err) {
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
         }
 
-
-
     }
-
-
 
     // Anyway the notification has to be correct, not redundant
     {
@@ -321,12 +304,25 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
 }
 
-int UgrLocPlugin_dav::do_List(UgrFileInfo *fi, LocationInfoHandler *handler){
+int UgrLocPlugin_s3::do_List(UgrFileInfo *fi, LocationInfoHandler *handler){
     return LocationPlugin::do_List(fi, handler);
 }
 
-void UgrLocPlugin_dav::do_Check(int myidx) {
-    do_CheckInternal(myidx, "UgrLocPlugin_dav::do_Check");
+
+
+void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
+
+    const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");
+    const std::string s3_pub_key = pluginGetParam<std::string>(prefix, "s3.pub_key");
+    if (s3_priv_key.size() > 0 && s3_pub_key.size()){
+        Info(SimpleDebug::kLOW, name, " S3 authentication defined");
+    }
+    params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
+}
+
+
+void UgrLocPlugin_s3::do_Check(int myidx) {
+    do_CheckInternal(myidx, "UgrLocPlugin_s3::do_Check");
 
 }
 
