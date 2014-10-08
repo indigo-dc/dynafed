@@ -142,6 +142,7 @@ make DESTDIR=%{buildroot} install
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dav.so
 %{_libdir}/ugr/libugrlocplugin_http.so
+%{_libdir}/ugr/libugrlocplugin_s3.so
 
 
 %files lfc-plugin
