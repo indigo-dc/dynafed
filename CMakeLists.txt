@@ -124,17 +124,3 @@ CONFIGURE_FILE(
 ADD_CUSTOM_TARGET(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
 
-############# CPack section ################
-# NOTE... this custom kludge is needed because
-# by now CPack is not able to create multiple packages
-# following the COMPONENT directives
-
-ADD_CUSTOM_TARGET(package
-  COMMAND make
-  COMMAND cpack --verbose --config ${CMAKE_HOME_DIRECTORY}/MyPackager_Core.cmake 
-    -D CPACK_PACKAGE_DESCRIPTION_FILE=${CMAKE_HOME_DIRECTORY}/README.txt
-    -D CMAKE_HOME_DIRECTORY=${CMAKE_HOME_DIRECTORY}
-    -D CPACK_INSTALL_PREFIX=${CPACK_INSTALL_PREFIX}
-  DEPENDS 
-  COMMENT "Building packages..."
-  VERBATIM)
