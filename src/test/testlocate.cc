@@ -38,8 +38,9 @@ int main(int argc, char **argv) {
     if (file_infos->getLocationStatus() == UgrFileInfo::Ok) {
         for (std::set<UgrFileItem_replica, UgrFileItemComp>::iterator it = file_infos->replicas.begin();
                 it != file_infos->replicas.end();
-                ++it)
+                ++it){
             std::cout << "Raw Replicas :  " << it->name << std::endl;
+        }
 
         std::deque<UgrFileItem_replica> repls;
         file_infos->getReplicaList(repls);

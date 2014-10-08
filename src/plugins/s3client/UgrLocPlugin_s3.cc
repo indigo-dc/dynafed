@@ -99,7 +99,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
         it++;
 
     canonical_name.append("/");
-    canonical_name.append(it, canonical_name.end());
+    canonical_name.append(it, xname.end());
 
     memset(&st, 0, sizeof (st));
 
@@ -114,9 +114,12 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
             Davix::DavixError::clearError(&tmp_err);
             if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
+                time_t expiration_time = time(NULL) +3600;
                 Davix::HeaderVec vec;
-                Davix::Uri u = Davix::S3::tokenizeRequest(params, "GET", canonical_name, vec, time(NULL) + 3600);
-                replica_vec.push_back(Davix::File(dav_core, u.getString()));
+                Davix::Uri replica = Davix::S3::tokenizeRequest(params, "GET", canonical_name, vec, expiration_time);
+                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Obtain tokenized replica " << replica);
+
+                replica_vec.push_back(Davix::File(dav_core, replica.getString()));
             }
             break;
 

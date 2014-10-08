@@ -41,8 +41,7 @@ inline void pathHttpNomalize(std::string & url){
     if( ( it = std::find(url.begin(), url.end(), ':') ) != url.end()){
         it+=3;
         char c='\0';
-        std::string::iterator new_end= std::remove_if(it, url.end(), boost::bind(compare_prec_char, &c, _1));
-        url.resize(new_end - url.begin());
+        url.erase(std::remove_if(it, url.end(), boost::bind(compare_prec_char, &c, _1)), url.end());
     }
 
 }
