@@ -26,6 +26,7 @@ UgrLocPlugin_s3::UgrLocPlugin_s3(UgrConnector & c, std::vector<std::string> & pa
     Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/s3]", "UgrLocPlugin_[http/s3]: s3 ENABLED");
     configure_S3_parameter(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::AwsS3);
+    checker_params.setProtocol(Davix::RequestProtocol::AwsS3);
 }
 
 
@@ -327,6 +328,7 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
         Info(SimpleDebug::kLOW, name, " S3 authentication defined");
     }
     params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
+    checker_params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
 }
 
 
