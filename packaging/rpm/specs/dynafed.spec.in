@@ -6,7 +6,7 @@
 
 Name:				dynafed
 Version:			@UGR_VERSION_MAJOR@.@UGR_VERSION_MINOR@.@UGR_VERSION_PATCH@
-Release:			19%{?dist}
+Release:			1%{?dist}
 Summary:			Dynamic federation system for HTTP resources
 Group:				Applications/Internet
 License:			ASL 2.0

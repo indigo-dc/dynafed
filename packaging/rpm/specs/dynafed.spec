@@ -6,7 +6,7 @@
 
 Name:				dynafed
 Version:			1.0.8
-Release:			19%{?dist}
+Release:			1%{?dist}
 Summary:			Dynamic federation system for HTTP resources
 Group:				Applications/Internet
 License:			ASL 2.0
