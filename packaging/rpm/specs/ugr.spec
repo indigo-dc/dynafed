@@ -5,7 +5,7 @@
 %endif
 
 Name:				dynafed
-Version:			1.0.7
+Version:			1.0.8
 Release:			19%{?dist}
 Summary:			Dynamic federation system for HTTP resources
 Group:				Applications/Internet
