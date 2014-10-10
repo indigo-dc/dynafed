@@ -4,10 +4,10 @@
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include
 %endif
 
-Name:				ugr
+Name:				dynafed
 Version:			1.0.7
 Release:			19%{?dist}
-Summary:			The Dynamic Federations - Ultra-scalable storage federation system
+Summary:			Dynamic federation system for HTTP resources
 Group:				Applications/Internet
 License:			ASL 2.0
 URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
@@ -30,29 +30,33 @@ BuildRequires:		libmemcached-devel
 BuildRequires:		protobuf-devel
 
 Requires:               rsyslog
+# name transition ugr -> dynafed
+Obsoletes:              ugr < 1.0.8
 
 
 %description
-Ugr provides a powerfull, fast and scalable dynamic storage federation 
-system for grid and clouds.
-It is able to federate several distributed storage systems 
-in one consistent namespace in a transparent manner for the client side.
-Ugr is accessible by any HTTP/Webdav compatible client.
+Dynafed provides a dynamic scalable HTTP resource federation mechanism for distributed storage systems.
+Dynafed is accessible by any HTTP/Webdav compatible client.
 
-%package devel
+%package private-devel
 Summary:			Development files for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Requires:			pkgconfig
+# name transition ugr -> dynafed
+Obsoletes:                      ugr-devel < 1.0.8
 
-%description devel
-development files for %{name}
+%description private-devel
+Headers files for %{name}'s plugin development.
 
 %package http-plugin
 Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
+# name transition ugr -> dynafed
+Obsoletes:                      ugr-http-plugin < 1.0.8
+Obsoletes:                      ugr-dav-plugin < 1.0.8
 
 %description http-plugin
 Plugin for the WebDav based storage system for %{name}
@@ -62,6 +66,8 @@ Summary:			Logical File catalog (LFC) plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			gfal2-plugin-lfc%{?_isa}
+# name transition ugr -> dynafed
+Obsoletes:                      ugr-lfc-plugin < 1.0.8
 
 %description lfc-plugin
 Plugin for the Logical File catalog system for %{name}
@@ -70,8 +76,6 @@ Plugin for the Logical File catalog system for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
-# transition dependency
-Requires:                       %{name}-dmlite-frontend
 
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
@@ -82,6 +86,9 @@ Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
 Requires:                       dmlite-libs%{?_isa} >= 0.7.0
+# name transition ugr -> dynafed
+Obsoletes:                      ugr-dmlite-plugin < 1.0.8
+Obsoletes:                      ugr-dmlite-frontend < 1.0.8
 
 %description dmlite-frontend
 Webdav frontend for %{name} using dmlite and lcgdm-dav
@@ -113,6 +120,8 @@ make DESTDIR=%{buildroot} install
 %post
 /sbin/ldconfig
 /sbin/service rsyslog condrestart || true
+## conf file plugin path transition
+sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 
 %postun
 /sbin/ldconfig
@@ -124,14 +133,14 @@ make DESTDIR=%{buildroot} install
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_libdir}/ugr/libugrgeoplugin_geoip.so
-%{_libdir}/ugr/libugrnoloopplugin.so
+%{_libdir}/dynafed/libugrgeoplugin_geoip.so
+%{_libdir}/dynafed/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
 %doc RELEASE-NOTES
 
-%files devel
+%files private-devel
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so
 %dir %{_includedir}/ugr
@@ -140,25 +149,25 @@ make DESTDIR=%{buildroot} install
 
 %files http-plugin
 %defattr (-,root,root)
-%{_libdir}/ugr/libugrlocplugin_dav.so
-%{_libdir}/ugr/libugrlocplugin_http.so
-%{_libdir}/ugr/libugrlocplugin_s3.so
+%{_libdir}/dynafed/libugrlocplugin_dav.so
+%{_libdir}/dynafed/libugrlocplugin_http.so
+%{_libdir}/dynafed/libugrlocplugin_s3.so
 
 
 %files lfc-plugin
 %defattr (-,root,root)
-%{_libdir}/ugr/libugrlocplugin_lfc.so
+%{_libdir}/dynafed/libugrlocplugin_lfc.so
 
 
 %files dmlite-plugin
 %defattr (-,root,root)
-%{_libdir}/ugr/libugrlocplugin_dmliteclient.so
+%{_libdir}/dynafed/libugrlocplugin_dmliteclient.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
 
 %files dmlite-frontend
-%{_libdir}/ugr/libugrdmlite.so
+%{_libdir}/dynafed/libugrdmlite.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 

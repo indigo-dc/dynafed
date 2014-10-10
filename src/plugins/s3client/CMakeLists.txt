@@ -9,7 +9,7 @@ IF(S3_PLUGIN)
 # The source modules
 FILE(GLOB src_s3_plugin "*.cc")
 
-message(STATUS "Building the s3 plugin")
+message(STATUS "Building the S3 plugin")
 
 pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.0.20)
 
