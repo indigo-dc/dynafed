@@ -189,10 +189,14 @@ long Config::GetLong(const char *name, long deflt) {
 }
 
 long Config::GetLong(const string &name, long deflt){
-    if (data.find(name) == data.end()) return deflt;
-        return atol( data[name].c_str() );
+    if (data.find(name) == data.end()) {
+        std::string newname;
+        if(!Config::FindWithWildcard(name, &newname, deflt) )
+            return deflt;
+        return atol( data[newname].c_str() );
+    }        
+    return atol( data[name].c_str() );
 }
-
 
 bool Config::GetBool(const char *name, bool deflt) 
 {
@@ -202,25 +206,38 @@ bool Config::GetBool(const char *name, bool deflt)
 
 bool Config::GetBool(const string & name, bool deflt) 
 {
-  if (data.find(name) == data.end()) return deflt;
+  if (data.find(name) == data.end()){
+      std::string newname;  
+      if(!Config::FindWithWildcard(name, &newname, deflt) )
+          return deflt;    
+      else {
+          if (!strcasecmp(data[newname].c_str(), "yes")) return true;
+          if (!strcasecmp(data[newname].c_str(), "true")) return true;
+          
+          return false;
+      } 
+  } 
 
   if (!strcasecmp(data[name].c_str(), "yes")) return true;
   if (!strcasecmp(data[name].c_str(), "true")) return true;
   
   return false;
-  
 }
 
 string Config::GetString(const char *name, char *deflt) {
 
-  return GetString(string(name), string(deflt));
+  return GetString(std::string(name), std::string(deflt));
 }
 
 string Config::GetString(const string & name, const string & deflt) {
 
-  if (data.find(name) == data.end()) return deflt;
+  if (data.find(name) == data.end()) {
+      std::string newname;  
+      if(!Config::FindWithWildcard(name, &newname, deflt) )
+          return deflt;
+      return data[newname];
+  }
   return data[name];
-
 }
 
 void Config::GetString(const char *name, char *val, char *deflt) {

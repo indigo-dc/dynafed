@@ -14,6 +14,9 @@
 /// The macro to be used to access the cfg options
 #define CFG (Config::GetInstance())
 
+// Utility to tokenize compound lines
+std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);
+
 /// Singleton class that implements a simple config manager
 /// Once initialized with ProcessFile, it will contain all
 /// the config parameters, organized as:
@@ -92,13 +95,40 @@ public:
     /// @param val  The place where the string is written
     /// @param pos The position of the arrray to fetch
     void ArrayGetString(const char *name, char *val, int pos);
+
+    /// Convert locplugin ID to *, then re-search
+    /// @param name The name of the parameter
+    /// @param newname The wildcard version of name
+    /// @param deflt The default value for the parameter
+    template <typename T>
+    bool FindWithWildcard(const std::string & name, std::string *newname, const T deflt) {
+        // return default unless entry starts with locplugin
+        if(name.compare(0, 10, "locplugin") == 0)
+            return false; 
+
+        // entry is a locplugin config item, split name
+        std::vector<std::string> tkns = tokenize(name, ".");
+          
+        // replace ID with wildcard and reconstruct name string
+        tkns[1] = "*";
+        for(unsigned int i = 0; i < tkns.size(); ++i) {
+            *newname += tkns[i];
+            *newname += ".";
+        }
+        // remove trailing '.'
+        newname->erase((newname->length()-1), 1);      
+
+        // new search with wildcard
+        if (data.find(*newname) == data.end()) 
+            return false;
+
+        return true;
+    }
 };
 
 
 
 
-// Utility to tokenize compound lines
-std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);
 
 
 #endif
