@@ -106,7 +106,7 @@ public:
     template <typename T>
     bool FindWithWildcard(const std::string & name, std::string *newname, const T deflt) {
         // return default unless entry starts with locplugin
-        if(name.compare(0, 10, "locplugin") == 0)
+        if(name.compare(0, 9, "locplugin") != 0)
             return false; 
 
         // entry is a locplugin config item, split name
