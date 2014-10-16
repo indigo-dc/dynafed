@@ -12,6 +12,8 @@
 #include <fstream>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
+#include <dirent.h>
 
 using namespace std;
 
@@ -85,7 +87,7 @@ int Config::ProcessFile(char *filename) {
 
   // Do the parsing
   if (!filename || (strlen(filename) == 0)) {
-    strcpy(fn, "/etc/sysconfig/SEMsg.cf");
+    strcpy(fn, "/etc/ugr.conf");
     Info(SimpleDebug::kMEDIUM, "Config::ProcessFile", "Using default config file " << fn);
   }
   else {
@@ -96,55 +98,80 @@ int Config::ProcessFile(char *filename) {
   string line, token, val;
   ifstream myfile (fn);
   if (myfile.is_open()) {
-
+    vector<string> configfiles;
     while ( myfile.good() ) {
       getline (myfile,line);
 
       // Avoid comments
       if (line[0] == '#') continue;
       Info(SimpleDebug::kHIGH, "Config::ProcessFile", line);
-      
-      token = "";
-      val = "";
 
-      char *p = strchr((char *)line.c_str(), (int)':');
-      if (!p) continue;
-
-      int pos = p-line.c_str();
-      if (pos > 0) {
-	char buf[1024];
-
-	strncpy(buf, line.c_str(), pos);
-	buf[pos] = 0;
-	token = buf;
-
-	strncpy(buf, line.c_str()+pos+1, 1024);
-	buf[1023] = 0;
-	val = buf;
-      }
-
-      TrimSpaces(val);
-      DoSubst(val);
-
-      if (token.length() > 0) {
-          char *p2 = strstr((char *)token.c_str(), "[]");
-          char buf2[1024];
-          int pos2 = p2-token.c_str();
-          if (p2 && (pos2 > 0)) {
-	    // it's a string to be added to an array
-            strncpy(buf2, token.c_str(), pos2);
-            buf2[pos2] = 0;
-            token = buf2;
-            Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
-	    arrdata[token].push_back(val);
-	  }
-          else {
-            Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "<-" << val);
-            data[token] = val;
+      // Check for INCLUDE 
+      if(line.compare(0, 7, "INCLUDE") == 0) {    
+          // only interested in the path
+          line.erase(0, 7);
+          TrimSpaces(line);
+          // check if path is absolute
+          if(line[0] != '/') {
+              Error("Config::ProcessFile", "Directory path must be absolute");
+              continue;
           }
-      }
-	
+          configfiles = ReadDirectory(line);
+      } 
+      else {  
+          token = "";
+          val = "";
+
+          char *p = strchr((char *)line.c_str(), (int)':');
+          if (!p) continue;
+
+          int pos = p-line.c_str();
+          if (pos > 0) {
+        char buf[1024];
+
+        strncpy(buf, line.c_str(), pos);
+        buf[pos] = 0;
+        token = buf;
+
+        strncpy(buf, line.c_str()+pos+1, 1024);
+        buf[1023] = 0;
+        val = buf;
+          }
+
+          TrimSpaces(val);
+          DoSubst(val);
+
+          if (token.length() > 0) {
+              char *p2 = strstr((char *)token.c_str(), "[]");
+              char buf2[1024];
+              int pos2 = p2-token.c_str();
+              if (p2 && (pos2 > 0)) {
+            // it's a string to be added to an array
+                strncpy(buf2, token.c_str(), pos2);
+                buf2[pos2] = 0;
+                token = buf2;
+                // check if key already exist
+                if(arrdata.count(token) == 1) {
+                    Info(SimpleDebug::kLOW, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                }
+                Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
+            arrdata[token].push_back(val);
+          }
+              else {
+                if(data.count(token) == 1) {
+                    Info(SimpleDebug::kLOW, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                }
+                Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "<-" << val);
+                data[token] = val;
+              }
+          }
+      }  
     }
+    if(!configfiles.empty() ) {
+        for(unsigned int i; i < configfiles.size(); ++i) {
+        ProcessFile((char *)configfiles[i].c_str() );
+    }  
+  }
 
     myfile.close();
   }
@@ -270,7 +297,32 @@ void Config::ArrayGetString(const char *name, char *val, int pos) {
 
 }
 
+vector<string> ReadDirectory(const string& path) {
+    vector<string> filename_vec;
+    DIR* dp;
+    dirent* entry;
 
+    dp = opendir(path.c_str() );
+
+    if(!dp) {
+        Error("Config::ReadDirectory", "Failed to open directory: " << path);
+        return filename_vec;
+    }
+    
+    // find all files inside the directory and push full path to vector
+    while(true) {
+        entry = readdir(dp);
+        if(entry == NULL) break;
+        if((strcmp(entry->d_name, ".")==0) || (strcmp(entry->d_name, "..")==0))
+            continue;
+        // construct full absolute path to file
+        filename_vec.push_back(path + "/" + string(entry->d_name) );
+    }
+    closedir(dp);
+    std::sort(filename_vec.begin(), filename_vec.end() );
+    
+    return filename_vec;
+}
 
 vector<string> tokenize(const string& str, const string& delimiters) {
     vector<string> tokens;
@@ -294,4 +346,6 @@ vector<string> tokenize(const string& str, const string& delimiters) {
 
     return tokens;
 }
+
+
 

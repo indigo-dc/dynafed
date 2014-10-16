@@ -17,6 +17,9 @@
 // Utility to tokenize compound lines
 std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);
 
+// Utility to get filename entries in a directory
+std::vector<std::string> ReadDirectory(const std::string& path);
+
 /// Singleton class that implements a simple config manager
 /// Once initialized with ProcessFile, it will contain all
 /// the config parameters, organized as:
