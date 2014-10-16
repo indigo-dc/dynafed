@@ -255,7 +255,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     if (op->wop == wop_CheckReplica) {
 
         // Do the default name translation for this plugin (prefix xlation)
-        if (imdisabled || doNameXlation(op->repl, xname)) {
+        if (imdisabled || doNameXlation(op->repl, xname, op->wop, op->altpfx)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
@@ -264,7 +264,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     } else {
 
         // Do the default name translation for this plugin (prefix xlation)
-        if (imdisabled || doNameXlation(op->fi->name, xname)) {
+        if (imdisabled || doNameXlation(op->fi->name, xname, op->wop, op->altpfx)) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:

@@ -93,6 +93,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     // locplugin.dmlite1.xlatepfx /dpm/cern.ch/ /
     // locplugin.http1.host[] http://exthost.y.z/path_pfx_to_strip
 
+    // Get the xlatepfx
     std::string pfx = "locplugin.";
     pfx += name;
 
@@ -112,14 +113,44 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
             unsigned int i;
             for (i = 0; i < parms.size() - 1; i++)
                 xlatepfx_from.push_back(parms[i]);
+	    
             xlatepfx_to = parms[parms.size()-1];
-
+	    UgrFileInfo::trimpath(xlatepfx_to);
+	    
             for (i = 0; i < parms.size() - 1; i++) {
-                Info(SimpleDebug::kLOW, fname, " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
+		UgrFileInfo::trimpath(xlatepfx_from[i]);
+                Info(SimpleDebug::kLOW, fname, name << " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
             }
         }
     }
 
+    // Now get the content of pfxmultiply
+    pfx = "locplugin.";
+    pfx += name;
+
+    s = pfx;
+    s += ".pfxmultiply";
+
+    v = CFG->GetString(s.c_str(), (char *) "");
+
+    if (v.size() > 0) {
+
+
+        vector<string> parms = tokenize(v, " ");
+        if (parms.size() < 2) {
+            Error(fname, "Bad pfxmultiply: '" << v << "'");
+        } else {
+            unsigned int i;
+            for (i = 0; i < parms.size(); i++)
+                pfxmultiply.push_back(parms[i]);
+            
+            for (i = 0; i < pfxmultiply.size(); i++) {
+		UgrFileInfo::trimpath(pfxmultiply[i]);
+                Info(SimpleDebug::kLOW, fname, name << " Multiplying prefixes '" << pfxmultiply[i]);
+            }
+        }
+    }
+    
     // get state checker
     availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
     Info(SimpleDebug::kLOW, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
@@ -158,7 +189,7 @@ void LocationPlugin::stop() {
 
     for (unsigned int i = 0; i < workers.size(); i++) {
 
-        pushOp(0, 0, wop_Nop);
+        pushOp(0, 0);
     }
 
     for (unsigned int i = 0; i < workers.size(); i++) {
@@ -193,7 +224,7 @@ LocationPlugin::~LocationPlugin() {
 
 // Pushes a new op in the queue
 
-void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop) {
+void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop, char *newpfx) {
     const char *fname = "LocationPlugin::pushOp";
 
     {
@@ -203,10 +234,11 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
         tk->fi = fi;
         tk->wop = wop;
         tk->handler = handler;
+	if (newpfx) tk->altpfx = newpfx;
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop << " " << (fi ? fi->name : ""));
+    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
 
     workcondvar.notify_one();
 
@@ -350,18 +382,33 @@ void LocationPlugin::run_Check(int myidx){
 // Mark the fileinfo with one more pending stat request (by this plugin)
 
 int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
-    const char *fname = "LocationPlugin::do_Stat";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
-
+  const char *fname = "LocationPlugin::do_Stat";
+  
+  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  
+  
+  // We may have to multiply this query, to search inside multiple prefixes for this plugin
+  if (pfxmultiply.size() < 2) {
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
     fi->notifyStatPending();
-
     pushOp(fi, handler, wop_Stat);
-
-    return 0;
+  }
+  else {
+    
+    // For every "pfxmultiply" item, we submit it with the query as suggested substitution
+    // and submit the query
+    for (unsigned int i = 0; i < pfxmultiply.size(); i++) {
+      // We immediately notify that this plugin is starting a search for this info
+      // Depending on the plugin, the symmetric notifyNotPending() will be done
+      // in a parallel thread, or inside do_waitstat
+      fi->notifyStatPending();      
+      pushOp(fi, handler, wop_Stat, (char *)pfxmultiply[i].c_str());
+    }
+  }
+  
+  return 0;
 };
 
 // Waits max a number of seconds for a stat task to be complete
@@ -394,18 +441,37 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 // so they act concurrently
 
 int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
-    const char *fname = "LocationPlugin::do_Locate";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
-
+  const char *fname = "LocationPlugin::do_Locate";
+  
+  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  
+  
+  // We may have to multiply this query, to search inside multiple prefixes for this plugin
+  if (pfxmultiply.size() < 2) {
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
     fi->notifyLocationPending();
-
     pushOp(fi, handler, wop_Locate);
-
-    return 0;
+  }
+  else {
+    
+    // For every "pfxmultiply" item, we submit it with the query as suggested substitution
+    // and submit the query
+    for (unsigned int i = 0; i < pfxmultiply.size(); i++) {
+      // We immediately notify that this plugin is starting a search for this info
+      // Depending on the plugin, the symmetric notifyNotPending() will be done
+      // in a parallel thread, or inside do_waitstat
+      fi->notifyLocationPending();      
+      pushOp(fi, handler, wop_Locate, (char *)pfxmultiply[i].c_str());
+    }
+  }
+  
+  
+  
+  
+  
+  return 0;
 }
 
 int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler) {
@@ -436,18 +502,35 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 // so they act concurrently
 
 int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
-    const char *fname = "LocationPlugin::do_List";
-
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
-
+  const char *fname = "LocationPlugin::do_List";
+  
+  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  
+  
+  
+  
+  // We may have to multiply this query, to search inside multiple prefixes for this plugin
+  if (pfxmultiply.size() < 2) {
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
     // in a parallel thread, or inside do_waitstat
     fi->notifyItemsPending();
-
     pushOp(fi, handler, wop_List);
-
-    return 0;
+  }
+  else {
+    
+    // For every "pfxmultiply" item, we submit it with the query as suggested substitution
+    // and submit the query
+    for (unsigned int i = 0; i < pfxmultiply.size(); i++) {
+      // We immediately notify that this plugin is starting a search for this info
+      // Depending on the plugin, the symmetric notifyNotPending() will be done
+      // in a parallel thread, or inside do_waitstat
+      fi->notifyItemsPending();      
+      pushOp(fi, handler, wop_List, (char *)pfxmultiply[i].c_str());
+    }
+  }
+  
+  return 0;
 }
 
 bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx){
@@ -503,40 +586,57 @@ int LocationPlugin::do_waitList(UgrFileInfo *fi, int tmout) {
 
 
 // default name xlation
-// Return 0 if the prefix was found
+// Return 0 if the prefix was found (and hence translated)
 
-int LocationPlugin::doNameXlation(std::string &from, std::string &to) {
+int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op, std::string &altpfx) {
     const char *fname = "LocationPlugin::doNameXlation";
     int r = 1;
     size_t i;
     const size_t xtlate_size = xlatepfx_from.size();
 
     if(xtlate_size == 0){ // no translation required
-        to = from;
-        return 0;
+      to = from;
+      r = 0;
+    }
+    else {
+      for (i = 0; i < xtlate_size; i++) {
+	if ((xlatepfx_from[i].size() > 0) &&
+	  ((from.size() == 0) || (from.compare(0, xlatepfx_from[i].length(), xlatepfx_from[i]) == 0))) {
+	  
+	  if (from.size() == 0)
+	    to = xlatepfx_to;
+	  else
+	    to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
+	  
+	  r = 0;
+	break;
+	
+	  }
+      }
+      
+      if (r) to = from;
     }
 
-    for (i = 0; i < xtlate_size; i++) {
-        if ((xlatepfx_from[i].size() > 0) &&
-                ((from.size() == 0) || (from.compare(0, xlatepfx_from[i].length(), xlatepfx_from[i]) == 0))) {
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "xlated pfx: " << from << "->" << to);
 
-            if (from.size() == 0)
-                to = xlatepfx_to;
-            else
-                to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
-
-            r = 0;
-            break;
-
-        }
+    // If r is nonzero then a xlatepfx translation was specified, AND no matching prefix was found
+    if (r) {
+      LocPluginLogInfo(SimpleDebug::kHIGH, fname, "No match on xlated pfx: " << from);
+      return r;
     }
-
-    if (r) to = from;
-
-
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, from << "->" << to);
-
-    return r;
+    
+    // We are here if the prefix xlation for the query succeeded, and the path has been translated
+    // (or there was no xlation to apply)
+    // We may have a xlation suggestion coming from the pfxmultiply, in the format of a bare prefix
+    // to add to this query. An usage of this is to prepend the names of spacetokens
+    // where to multiply to query to
+    if (altpfx.size() > 1) {
+      to.insert(0, altpfx);
+    }
+    
+    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "xlated pfx: " << from << "->" << to);
+    
+    return 0;
 }
 
 

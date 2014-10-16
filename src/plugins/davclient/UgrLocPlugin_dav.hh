@@ -20,7 +20,7 @@
  *
  */
 
-/** 
+/**  
  * Location Plugin for Ugr, inherit from the LocationPlugin
  *  allow to do basic query to a webdav endpoint
  **/

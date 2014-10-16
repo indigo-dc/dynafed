@@ -7,7 +7,9 @@ IF(DAV_PLUGIN)
 
 
 # The source modules
-FILE(GLOB src_dav_plugin "*.cc")
+FILE(GLOB src_dav_plugin "*dav.cc")
+SET(src_dav_plugin ${src_dav_plugin} PARENT_SCOPE)
+FILE(GLOB src_dav_plugin_entry "*entry.cc")
 
 message(STATUS "Building the DAV plugin")
 
@@ -15,7 +17,7 @@ pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.0.20)
 
 include_directories(${DAVIX_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
-add_library(ugrlocplugin_dav SHARED ${src_dav_plugin} ${src_http_plugin})
+add_library(ugrlocplugin_dav SHARED ${src_dav_plugin} ${src_http_plugin} ${src_dav_plugin_entry})
 set_target_properties(ugrlocplugin_dav PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
 

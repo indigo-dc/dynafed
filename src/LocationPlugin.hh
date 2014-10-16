@@ -136,13 +136,20 @@ public:
         wop_Check,
         wop_CheckReplica
     };
+    
     /// The description of an operation to be done asynchronously
-
     struct worktoken {
+        /// FileInfo that refers to the file
         UgrFileInfo *fi;
+	/// Operation to perform to gather info on the item
         workOp wop;
+	
         LocationInfoHandler *handler;
+	
+	/// Alternative replica name to check for the given file
         std::string repl;
+	/// Alternative prefix to locally prepend to the string being searched
+        std::string altpfx;
     };
 
 protected:
@@ -177,7 +184,7 @@ protected:
     boost::mutex workmutex;
 
     /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
-    void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop);
+    void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop = wop_Nop, char *newpfx = 0);
     void pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handler, std::string &rep);
     /// Gets the next op to perform
     struct worktoken *getOp();
@@ -195,9 +202,12 @@ protected:
     // The simple, default global name translation
     std::vector<std::string> xlatepfx_from;
     std::string xlatepfx_to;
+    
+    // The prefix multiplier, to look for files in multiple dirs at once
+    std::vector<std::string> pfxmultiply;
 
-    /// Applies the plugin-specific name translation
-    virtual int doNameXlation(std::string &from, std::string &to);
+    /// Applies the plugin-specific name translation. This may depend also on the operation being requested.
+    virtual int doNameXlation(std::string &from, std::string &to, workOp op, std::string &altpfx);
 
     /// Add parent directory if needed
     bool doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx);

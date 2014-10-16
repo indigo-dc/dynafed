@@ -65,7 +65,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     if (op->wop == wop_CheckReplica){
 
         // Do the default name translation for this plugin (prefix xlation)
-        if (doNameXlation(op->repl, xname)) {
+        if (doNameXlation(op->repl, xname, op->wop, op->altpfx)) {
             unique_lock<mutex> l(*(op->fi));
             op->fi->notifyLocationNotPending();
             return;
@@ -73,7 +73,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
     } else {
         // Do the default name translation for this plugin (prefix xlation)
-        if (doNameXlation(op->fi->name, xname)) {
+        if (doNameXlation(op->fi->name, xname, op->wop, op->altpfx)) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
@@ -224,7 +224,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         case LocationPlugin::wop_CheckReplica:
             if (!exc) {
                 UgrFileItem_replica itr;
-                doNameXlation(op->repl, itr.name);
+                doNameXlation(op->repl, itr.name, op->wop, op->altpfx);
 
                 itr.pluginID = getID();
                 LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
