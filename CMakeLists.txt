@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (dynafeds)
+project (dynafed)
 
 # build type
 set(CMAKE_BUILD_TYPE "RelWithDebInfo"
@@ -42,8 +42,8 @@ configure_file (
 
 # create the specfile
 configure_file (
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafeds.spec.in"
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafeds.spec"
+               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec.in"
+               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec"
                @ONLY
 )
 

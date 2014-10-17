@@ -4,7 +4,7 @@
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include
 %endif
 
-Name:				dynafeds
+Name:				dynafed
 Version:			1.0.8
 Release:			1%{?dist}
 Summary:			Ultra-scalable dynamic system for federating HTTP-based storage resources
@@ -31,7 +31,7 @@ BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
 
 Requires:               rsyslog
-# name transition ugr -> dynafeds
+# name transition ugr -> dynafed
 Obsoletes:              ugr < 1.0.8
 
 
@@ -44,7 +44,7 @@ Summary:			Development files for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Requires:			pkgconfig
-# name transition ugr -> dynafeds
+# name transition ugr -> dynafed
 Obsoletes:                      ugr-devel < 1.0.8
 
 %description private-devel
@@ -55,7 +55,7 @@ Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
-# name transition ugr -> dynafeds
+# name transition ugr -> dynafed
 Obsoletes:                      ugr-http-plugin < 1.0.8
 Obsoletes:                      ugr-dav-plugin < 1.0.8
 
@@ -67,7 +67,7 @@ Summary:			Logical File catalog (LFC) plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			gfal2-plugin-lfc%{?_isa}
-# name transition ugr -> dynafeds
+# name transition ugr -> dynafed
 Obsoletes:                      ugr-lfc-plugin < 1.0.8
 
 %description lfc-plugin
@@ -134,8 +134,8 @@ sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_libdir}/dynafeds/libugrgeoplugin_geoip.so
-%{_libdir}/dynafeds/libugrnoloopplugin.so
+%{_libdir}/dynafed/libugrgeoplugin_geoip.so
+%{_libdir}/dynafed/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
@@ -150,26 +150,26 @@ sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 
 %files http-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafeds/libugrlocplugin_dav.so
-%{_libdir}/dynafeds/libugrlocplugin_http.so
-%{_libdir}/dynafeds/libugrlocplugin_s3.so
-%{_libdir}/dynafeds/libugrlocplugin_davrucio.so
+%{_libdir}/dynafed/libugrlocplugin_dav.so
+%{_libdir}/dynafed/libugrlocplugin_http.so
+%{_libdir}/dynafed/libugrlocplugin_s3.so
+%{_libdir}/dynafed/libugrlocplugin_davrucio.so
 
 
 %files lfc-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafeds/libugrlocplugin_lfc.so
+%{_libdir}/dynafed/libugrlocplugin_lfc.so
 
 
 %files dmlite-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafeds/libugrlocplugin_dmliteclient.so
+%{_libdir}/dynafed/libugrlocplugin_dmliteclient.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
 
 %files dmlite-frontend
-%{_libdir}/dynafeds/libugrdmlite.so
+%{_libdir}/dynafed/libugrdmlite.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 
