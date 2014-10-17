@@ -27,6 +27,7 @@ BuildRequires:		davix-devel >= 0.2.11
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		libmemcached-devel
+BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
 
 Requires:               rsyslog
