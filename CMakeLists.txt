@@ -42,8 +42,8 @@ configure_file (
 
 # create the specfile
 configure_file (
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec.in"
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec"
+               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafeds.spec.in"
+               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafeds.spec"
                @ONLY
 )
 
