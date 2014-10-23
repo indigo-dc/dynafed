@@ -103,14 +103,14 @@ public:
 
     UgrConnector() : ticker(0), ticktime(10), initdone(false) {
         const char *fname = "UgrConnector::ctor";
-        Info(SimpleDebug::kLOW, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
+        Info(Logger::Lvl1, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
     };
 
     virtual ~UgrConnector();
 
     Config & getConfig() const;
 
-    SimpleDebug & getLogger() const;
+    Logger & getLogger() const;
 
     /// To be called after the ctor to initialize the object.
     /// @param cfgfile Path to the config file to be loaded

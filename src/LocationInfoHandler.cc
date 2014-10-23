@@ -34,13 +34,13 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 
             // If we still have no space, try to garbage collect the old items
             if (data.size() > maxitems) {
-                Info(SimpleDebug::kHIGHEST, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
+                Info(Logger::Logger::Lvl4, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
                 purgeExpired();
             }
 
             // If we still have no space, complain and do it anyway.
             if (data.size() > maxitems) {
-                Info(SimpleDebug::kHIGHEST, fname, "Maximum capacity exceeded. " << data.size() << ">" << maxitems);
+                Info(Logger::Logger::Lvl4, fname, "Maximum capacity exceeded. " << data.size() << ">" << maxitems);
             }
 
 
@@ -135,13 +135,13 @@ int LocationInfoHandler::purgeLRUitem() {
 
     // No LRU item, the LRU list is empty
     if (lrudata.empty()) {
-        Info(SimpleDebug::kHIGHEST, fname, "LRU list is empty. Nothing to purge.");
+        Info(Logger::Logger::Lvl4, fname, "LRU list is empty. Nothing to purge.");
         return 1;
     }
 
     // Take the key of the lru item   
     std::string s = lrudata.left.begin()->second;
-    Info(SimpleDebug::kHIGHEST, fname, "LRU item is " << s);
+    Info(Logger::Logger::Lvl4, fname, "LRU item is " << s);
 
     // Lookup its instance in the cache
     UgrFileInfo *fi = data[s];
@@ -155,11 +155,11 @@ int LocationInfoHandler::purgeLRUitem() {
     {
         unique_lock<mutex> lck(*fi);
         if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
-            Info(SimpleDebug::kHIGHEST,fname, "The LRU item is marked as pending. Cannot purge " << fi->name);
+            Info(Logger::Logger::Lvl4,fname, "The LRU item is marked as pending. Cannot purge " << fi->name);
             return 3;
         }
         if (fi->ispinned()) {
-            Info(SimpleDebug::kHIGHEST,fname, "The LRU item is marked as pinned. Cannot purge " << fi->name);
+            Info(Logger::Logger::Lvl4,fname, "The LRU item is marked as pinned. Cannot purge " << fi->name);
             return 4;
         }
     }
@@ -214,7 +214,7 @@ void LocationInfoHandler::purgeExpired() {
 
                 if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
                     // The item is old...
-                    Info(SimpleDebug::kMEDIUM, fname, "purging expired item " << fi->name);
+                    Info(Logger::Lvl2, fname, "purging expired item " << fi->name);
 
                     if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
                         Error(fname, "Found pending expired entry. Cannot purge " << fi->name);
@@ -247,12 +247,12 @@ void LocationInfoHandler::purgeExpired() {
     }
 
     if (d > 0)
-        Info(SimpleDebug::kLOW, fname, "purged " << d << " expired items.");
+        Info(Logger::Lvl1, fname, "purged " << d << " expired items.");
 }
 
 void LocationInfoHandler::tick() {
     const char *fname = "LocationInfoHandler::tick";
-    Info(SimpleDebug::kHIGHEST, fname, "tick...");
+    Info(Logger::Logger::Lvl4, fname, "tick...");
 
     boost::lock_guard<LocationInfoHandler> l(*this);
 
@@ -263,7 +263,7 @@ void LocationInfoHandler::tick() {
         if (purgeLRUitem()) break;
     }
 
-    Info(SimpleDebug::kHIGHEST, fname, "Cache status. nItems:" << data.size() << " nLRUItems: " << lrudata.size());
+    Info(Logger::Logger::Lvl4, fname, "Cache status. nItems:" << data.size() << " nLRUItems: " << lrudata.size());
 
 
 }

@@ -4,49 +4,54 @@
 \contentsline {subsection}{\numberline {3.1}DPM and dCache via WebDAV}{7}
 \contentsline {subsection}{\numberline {3.2}Add third-party storage farms}{8}
 \contentsline {subsection}{\numberline {3.3}Create a small local federation of close sites sharing storage}{8}
-\contentsline {subsection}{\numberline {3.4}Add resources managed by one or more LFCs}{9}
+\contentsline {subsection}{\numberline {3.4}Add resources managed by one or more replica catalogues}{9}
 \contentsline {subsection}{\numberline {3.5}Federating file caches}{10}
 \contentsline {subsection}{\numberline {3.6}Allow the system to apply geography-aware redirection choices}{10}
 \contentsline {section}{\numberline {4}The system}{11}
 \contentsline {subsection}{\numberline {4.1}Two clients issue a stat() request}{13}
 \contentsline {subsection}{\numberline {4.2}Two clients request the full list of the replicas of a file}{14}
-\contentsline {subsection}{\numberline {4.3}In-memory volatile namespace and caching}{16}
-\contentsline {subsection}{\numberline {4.4}Simple name translations}{16}
+\contentsline {subsection}{\numberline {4.3}In-memory volatile namespace and caching}{15}
+\contentsline {subsection}{\numberline {4.4}Simple name translations}{17}
 \contentsline {section}{\numberline {5}Typical deployment of a Dynamic Federations frontend}{18}
 \contentsline {section}{\numberline {6}Configuration parameters reference}{19}
-\contentsline {subsection}{\numberline {6.1}Ugr core configuration}{19}
-\contentsline {subsubsection}{\numberline {6.1.1}glb.debug}{19}
-\contentsline {subsubsection}{\numberline {6.1.2}glb.locplugin}{21}
-\contentsline {subsubsection}{\numberline {6.1.3}glb.waittimeout}{21}
-\contentsline {subsubsection}{\numberline {6.1.4}glb.maxlistitems}{22}
-\contentsline {subsubsection}{\numberline {6.1.5}glb.filterplugin}{22}
-\contentsline {subsection}{\numberline {6.2}Global name translation}{22}
-\contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{22}
-\contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{23}
-\contentsline {subsection}{\numberline {6.3}Slave plugins and replica translators}{23}
-\contentsline {subsection}{\numberline {6.4}Plugin-level filename prefix translation}{24}
-\contentsline {subsubsection}{\numberline {6.4.1}locplugin.$<$ID$>$.xlatepfx}{25}
-\contentsline {subsection}{\numberline {6.5}Infohandler advanced parameters}{26}
-\contentsline {subsubsection}{\numberline {6.5.1}infohandler.maxitems}{26}
-\contentsline {subsubsection}{\numberline {6.5.2}infohandler.itemttl}{26}
-\contentsline {subsubsection}{\numberline {6.5.3}infohandler.itemmaxttl}{26}
-\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{27}
-\contentsline {subsubsection}{\numberline {6.5.5}infohandler.useextcache}{27}
-\contentsline {subsection}{\numberline {6.6}extcache.memcached.server[]}{27}
-\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{28}
-\contentsline {subsubsection}{\numberline {6.6.2}extcache.memcached.useBinaryProtocol}{28}
-\contentsline {subsection}{\numberline {6.7}DAV and HTTP plugin}{28}
-\contentsline {subsubsection}{\numberline {6.7.1}locplugin.$<$ID$>$.ssl\_check}{29}
-\contentsline {subsubsection}{\numberline {6.7.2}locplugin.$<$ID$>$.ca\_path}{29}
-\contentsline {subsubsection}{\numberline {6.7.3}locplugin.$<$ID$>$.cli\_type}{29}
-\contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{30}
-\contentsline {subsubsection}{\numberline {6.7.5}locplugin.$<$ID$>$.cli\_certificate}{30}
-\contentsline {subsubsection}{\numberline {6.7.6}locplugin.$<$ID$>$.conn\_timeout}{30}
-\contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.custom\_header[]}{30}
-\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{31}
-\contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checking}{31}
-\contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{31}
-\contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{31}
-\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{32}
-\contentsline {subsubsection}{\numberline {6.7.13}locplugin.$<$ID$>$.metalink\_support}{32}
-\contentsline {subsection}{\numberline {6.8}DMLite client plugin}{32}
+\contentsline {subsection}{\numberline {6.1}Ugr core configuration}{21}
+\contentsline {subsubsection}{\numberline {6.1.1}INCLUDE}{21}
+\contentsline {subsubsection}{\numberline {6.1.2}glb.debug}{21}
+\contentsline {subsubsection}{\numberline {6.1.3}glb.locplugin}{22}
+\contentsline {subsubsection}{\numberline {6.1.4}glb.waittimeout}{22}
+\contentsline {subsubsection}{\numberline {6.1.5}glb.maxlistitems}{23}
+\contentsline {subsubsection}{\numberline {6.1.6}glb.filterplugin}{23}
+\contentsline {subsection}{\numberline {6.2}Global name translation}{23}
+\contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{23}
+\contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{24}
+\contentsline {subsection}{\numberline {6.3}Slave plugins and replica translators}{24}
+\contentsline {subsection}{\numberline {6.4}Plugin-level filename prefix translation}{25}
+\contentsline {subsubsection}{\numberline {6.4.1}Example: Translate SRM TURLs into HTTP URLs}{25}
+\contentsline {subsubsection}{\numberline {6.4.2}locplugin.$<$ID$>$.pfxmultiply}{26}
+\contentsline {subsubsection}{\numberline {6.4.3}locplugin.$<$ID$>$.xlatepfx}{27}
+\contentsline {subsection}{\numberline {6.5}Infohandler advanced parameters}{28}
+\contentsline {subsubsection}{\numberline {6.5.1}infohandler.maxitems}{29}
+\contentsline {subsubsection}{\numberline {6.5.2}infohandler.itemttl}{29}
+\contentsline {subsubsection}{\numberline {6.5.3}infohandler.itemmaxttl}{29}
+\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{29}
+\contentsline {subsubsection}{\numberline {6.5.5}infohandler.useextcache}{29}
+\contentsline {subsection}{\numberline {6.6}extcache.memcached.server[]}{30}
+\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{30}
+\contentsline {subsubsection}{\numberline {6.6.2}extcache.memcached.useBinaryProtocol}{30}
+\contentsline {subsection}{\numberline {6.7}DAV and HTTP plugin}{31}
+\contentsline {subsubsection}{\numberline {6.7.1}locplugin.$<$ID$>$.ssl\_check}{32}
+\contentsline {subsubsection}{\numberline {6.7.2}locplugin.$<$ID$>$.ca\_path}{32}
+\contentsline {subsubsection}{\numberline {6.7.3}locplugin.$<$ID$>$.cli\_type}{32}
+\contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{32}
+\contentsline {subsubsection}{\numberline {6.7.5}locplugin.$<$ID$>$.cli\_certificate}{33}
+\contentsline {subsubsection}{\numberline {6.7.6}locplugin.$<$ID$>$.conn\_timeout}{33}
+\contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.custom\_header[]}{33}
+\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{33}
+\contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checking}{34}
+\contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{34}
+\contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{34}
+\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{34}
+\contentsline {subsubsection}{\numberline {6.7.13}locplugin.$<$ID$>$.metalink\_support}{34}
+\contentsline {subsection}{\numberline {6.8}DAVrucio plugin}{35}
+\contentsline {subsubsection}{\numberline {6.8.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{35}
+\contentsline {subsection}{\numberline {6.9}DMLite client plugin}{37}

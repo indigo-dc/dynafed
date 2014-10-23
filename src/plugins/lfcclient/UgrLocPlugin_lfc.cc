@@ -36,12 +36,12 @@ extern "C" PluginInterface *GetPluginInterface(GetPluginInterfaceArgs) {
 UgrLocPlugin_lfc::UgrLocPlugin_lfc(UgrConnector & c, std::vector<std::string> & parms) :
 LocationPlugin(c, parms) {
     GError* tmp_err=NULL;
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", "Creating instance named " << name);
+    Info(Logger::Lvl1, "UgrLocPlugin_lfc", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
     if (params_size > 3) {
 
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", "Try to bind UgrLocPlugin_lfc with " << parms[3]);
+        Info(Logger::Lvl1, "UgrLocPlugin_lfc", "Try to bind UgrLocPlugin_lfc with " << parms[3]);
         base_url = parms[3];
         UgrFileInfo::trimpath(base_url);
     } else {
@@ -65,28 +65,28 @@ void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
 
     const std::string proxy_cred = c->GetString(pref_dot + std::string("cli_proxy_cert"), "");
     if(proxy_cred.empty() == false){
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " Client proxy credential:  " + proxy_cred);
+        Info(Logger::Lvl1, "UgrLocPlugin_lfc", " Client proxy credential:  " + proxy_cred);
         g_setenv("X509_USER_PROXY",proxy_cred.c_str(), TRUE);
     }
 
     const std::string credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
     if(credential_path.empty() == false){
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " Client certificate:  " + credential_path);
+        Info(Logger::Lvl1, "UgrLocPlugin_lfc", " Client certificate:  " + credential_path);
         g_setenv("X509_USER_CERT",credential_path.c_str(), TRUE);
     }
 
     const std::string privatekey_path = c->GetString(pref_dot + std::string("cli_privatekey"), "");
     if(privatekey_path.empty() == false){
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " Client private key:  " + privatekey_path);
+        Info(Logger::Lvl1, "UgrLocPlugin_lfc", " Client private key:  " + privatekey_path);
         g_setenv("X509_USER_KEY",privatekey_path.c_str(), TRUE);
     }
 
     const std::string csec_mech = c->GetString(pref_dot + std::string("csec_mech"), "");
     if(csec_mech.empty() == false){
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " Csec mechanism:  " + csec_mech);
+        Info(Logger::Lvl1, "UgrLocPlugin_lfc", " Csec mechanism:  " + csec_mech);
         g_setenv("CSEC_MECH",csec_mech.c_str(), TRUE);
     }else{
-         Info(SimpleDebug::kLOW, "UgrLocPlugin_lfc", " default Csec Mechanism");
+         Info(Logger::Lvl1, "UgrLocPlugin_lfc", " default Csec Mechanism");
     }
 
     const bool debug = c->GetBool(pref_dot + std::string("debug"), false);
@@ -120,7 +120,7 @@ int UgrLocPlugin_lfc::getReplicasFromLFC(const std::string & url, const int myid
         UgrFileItem_replica itr;
         itr.name = p;
         itr.pluginID = getID();
-        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, "UgrLocPlugin_lfc::getReplicasFromLFC", "Worker: Inserting replicas " << p);
+        LocPluginLogInfoThr(Logger::Logger::Lvl4, "UgrLocPlugin_lfc::getReplicasFromLFC", "Worker: Inserting replicas " << p);
         p += strlen(p) +1; // select next replicas
         inserter(itr);
     }
@@ -198,18 +198,18 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking LFC Stat(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking LFC Stat(" << canonical_name << ")");
             gfal2_stat(context, canonical_name.c_str(), &st, &tmp_err);
             break;
 
         case LocationPlugin::wop_Locate:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking LFC Locate(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking LFC Locate(" << canonical_name << ")");
             getReplicasFromLFC(canonical_name.c_str(), myidx,
                                boost::function< void(UgrFileItem_replica &) >(boost::bind(&UgrLocPlugin_lfc::insertReplicas, ref(*this), _1, op)),&tmp_err);
             break;
 
         case LocationPlugin::wop_List:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking LFC openDir(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " invoking LFC openDir(" << canonical_name << ")");
             d= gfal2_opendir(context, canonical_name.c_str(), &tmp_err);
             op->fi->unixflags |= S_IFDIR;
             break;
@@ -235,20 +235,20 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
         }
 
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "LFC plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
+        LocPluginLogInfoThr(Logger::Lvl3, fname, "LFC plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
     }
 
 
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+        LocPluginLogInfoThr(Logger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
         op->fi->setPluginID(getID());
 
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                 op->fi->takeStat(st);
                 break;
 
@@ -266,14 +266,14 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                         op->fi->dirtyitems = true;
 
                         if (cnt++ > CFG->GetLong("glb.maxlistitems", 20000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                            LocPluginLogInfoThr(Logger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subdirs.clear();
                             break;
                         }
 
                         // create new items
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+                        LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting list " << dent->d_name);
                         it.name = std::string(dent->d_name);
                         it.location.clear();
 
@@ -287,7 +287,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                         child = child + "/";
                     child = child + it.name;
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
                     UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
@@ -308,7 +308,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
 
 
         if (tmp_err) {
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " UgrDav plugin request Error : " << ((int) tmp_err->code) << " errMsg: " << tmp_err->message);
         }
 
 
@@ -324,12 +324,12 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Stat");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
                 op->fi->notifyStatNotPending();
                 break;
 
             case LocationPlugin::wop_Locate:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
@@ -341,7 +341,7 @@ void UgrLocPlugin_lfc::runsearch(struct worktoken *op, int myidx) {
                 } else
                     op->fi->status_items = UgrFileInfo::Ok;
 
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Listdir");
                 op->fi->notifyItemsNotPending();
                 break;
 

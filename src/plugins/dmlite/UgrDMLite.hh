@@ -176,7 +176,7 @@ namespace dmlite {
         UgrFactory() throw (DmException);
         /// Destructor
         ~UgrFactory() ;
-
+	
         virtual void configure(const std::string& key, const std::string& value) throw (DmException);
         Catalog* createCatalog(CatalogFactory* factory,
                 PluginManager* pm) throw (DmException);

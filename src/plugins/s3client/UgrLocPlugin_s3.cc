@@ -23,7 +23,7 @@ using namespace std;
 
 UgrLocPlugin_s3::UgrLocPlugin_s3(UgrConnector & c, std::vector<std::string> & parms) :
     UgrLocPlugin_http(c, parms) {
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/s3]", "UgrLocPlugin_[http/s3]: s3 ENABLED");
+    Info(Logger::Lvl1, "UgrLocPlugin_[http/s3]", "UgrLocPlugin_[http/s3]: s3 ENABLED");
     configure_S3_parameter(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::AwsS3);
     checker_params.setProtocol(Davix::RequestProtocol::AwsS3);
@@ -71,17 +71,17 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Stat() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Stat() " << canonical_name << ")");
                     op->fi->notifyStatNotPending();
                     break;
 
                 case LocationPlugin::wop_Locate:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Locate() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Locate() " << canonical_name << ")");
                     op->fi->notifyLocationNotPending();
                     break;
 
                 case LocationPlugin::wop_List:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on List() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on List() " << canonical_name << ")");
                     op->fi->notifyItemsNotPending();
                     break;
 
@@ -106,30 +106,30 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking davix_Stat(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
 
         case LocationPlugin::wop_Locate:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Locate(" << canonical_name << ")");
             Davix::DavixError::clearError(&tmp_err);
             if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
                 time_t expiration_time = time(NULL) +3600;
                 Davix::HeaderVec vec;
                 Davix::Uri replica = Davix::S3::tokenizeRequest(params, "GET", canonical_name, vec, expiration_time);
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Obtain tokenized replica " << replica);
+                LocPluginLogInfoThr(Logger::Lvl3, fname, "Obtain tokenized replica " << replica);
 
                 replica_vec.push_back(Davix::File(dav_core, replica.getString()));
             }
             break;
 
         case LocationPlugin::wop_CheckReplica:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking CheckReplica(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
 
         case LocationPlugin::wop_List:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " invoking davix_openDir(" << canonical_name << ")");
             d = pos.opendirpp(&params, canonical_name, &tmp_err);
             // if reach here -> valid opendir -> specify file as well
             if(d)
@@ -166,20 +166,20 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
         }
 
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+        LocPluginLogInfoThr(Logger::Lvl3, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
     }
 
 
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+        LocPluginLogInfoThr(Logger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
         op->fi->setPluginID(getID());
 
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                 op->fi->takeStat(st);
                 break;
 
@@ -190,7 +190,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                     itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
                     HttpUtils::pathHttpNomalize(itr.name);
                     itr.pluginID = getID();
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
@@ -209,7 +209,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                 itr.name = canonical_name;
 
                 itr.pluginID = getID();
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -232,14 +232,14 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                         op->fi->dirtyitems = true;
 
                         if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                            LocPluginLogInfoThr(Logger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subdirs.clear();
                             break;
                         }
 
                         // create new items
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+                        LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting list " << dent->d_name);
                         it.name = std::string(dent->d_name);
                         it.location.clear();
 
@@ -253,7 +253,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                         child = child + "/";
                     child = child + it.name;
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
                     UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
@@ -275,7 +275,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
         }
 
         if (tmp_err) {
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " Ugrs3 plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
         }
 
     }
@@ -287,13 +287,13 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Stat");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
                 op->fi->notifyStatNotPending();
                 break;
 
             case LocationPlugin::wop_Locate:
             case LocationPlugin::wop_CheckReplica:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
@@ -305,7 +305,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                 } else
                     op->fi->status_items = UgrFileInfo::Ok;
 
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Listdir");
                 op->fi->notifyItemsNotPending();
                 break;
 
@@ -328,7 +328,7 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
     const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");
     const std::string s3_pub_key = pluginGetParam<std::string>(prefix, "s3.pub_key");
     if (s3_priv_key.size() > 0 && s3_pub_key.size()){
-        Info(SimpleDebug::kLOW, name, " S3 authentication defined");
+        Info(Logger::Lvl1, name, " S3 authentication defined");
     }
     params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
     checker_params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);

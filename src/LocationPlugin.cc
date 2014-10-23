@@ -19,7 +19,7 @@ const std::string location_config_prefix = "locplugin.";
 
 void pluginFunc(LocationPlugin *pl, int myidx) {
     const char *fname = "LocationPlugin::pluginFunc";
-    Info(SimpleDebug::kHIGHEST, fname, "Worker: started");
+    Info(Logger::Logger::Lvl4, fname, "Worker: started");
 
     // Get some work to do
     while (!pl->exiting) {
@@ -50,7 +50,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
         }
     }
 
-    Info(SimpleDebug::kHIGHEST, fname, "Worker: finished");
+    Info(Logger::Logger::Lvl4, fname, "Worker: finished");
 
 }
 
@@ -81,7 +81,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     }
 
     if (nthreads > 10000) {
-        Error(fname, "Fixing nthreads: " << nthreads << "-->10000")
+        Error(fname, "Fixing nthreads: " << nthreads << "-->10000");
         nthreads = 10000;
     }
 
@@ -119,7 +119,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
 	    
             for (i = 0; i < parms.size() - 1; i++) {
 		UgrFileInfo::trimpath(xlatepfx_from[i]);
-                Info(SimpleDebug::kLOW, fname, name << " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
+                Info(Logger::Lvl1, fname, name << " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
             }
         }
     }
@@ -146,29 +146,29 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
             
             for (i = 0; i < pfxmultiply.size(); i++) {
 		UgrFileInfo::trimpath(pfxmultiply[i]);
-                Info(SimpleDebug::kLOW, fname, name << " Multiplying prefixes '" << pfxmultiply[i]);
+                Info(Logger::Lvl1, fname, name << " Multiplying prefixes '" << pfxmultiply[i]);
             }
         }
     }
     
     // get state checker
     availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
-    Info(SimpleDebug::kLOW, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
+    Info(Logger::Lvl1, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
 
     availInfo.time_interval_ms = CFG->GetLong(pfx + ".status_checker_frequency", 5000);
-    Info(SimpleDebug::kLOW, fname, " State checker frequency : " << availInfo.time_interval_ms);
+    Info(Logger::Lvl1, fname, " State checker frequency : " << availInfo.time_interval_ms);
 
     // get maximum latency
     availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
-    Info(SimpleDebug::kLOW, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
+    Info(Logger::Lvl1, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
 
     // get slave status
     slave = CFG->GetBool(pfx + ".slave", false);
-    Info(SimpleDebug::kLOW, fname, " Slave : " << ((slave) ? "true" : "false"));
+    Info(Logger::Lvl1, fname, " Slave : " << ((slave) ? "true" : "false"));
 
     // get replica xlator
     replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
-    Info(SimpleDebug::kLOW, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
+    Info(Logger::Lvl1, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
     exiting = false;
 
@@ -183,7 +183,7 @@ void LocationPlugin::stop() {
 
     /// Note: this tends to hang due to a known bug in boost
     //for (unsigned int i = 0; i < workers.size(); i++) {
-    //        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Interrupting thread: " << i);
+    //        LocPluginLogInfo(Logger::Lvl1, fname, "Interrupting thread: " << i);
     //        workers[i]->interrupt();
     //    }
 
@@ -193,11 +193,11 @@ void LocationPlugin::stop() {
     }
 
     for (unsigned int i = 0; i < workers.size(); i++) {
-        LocPluginLogInfo(SimpleDebug::kLOW, fname, "Joining thread: " << i);
+        LocPluginLogInfo(Logger::Lvl1, fname, "Joining thread: " << i);
         workers[i]->join();
     }
 
-    LocPluginLogInfo(SimpleDebug::kLOW, fname, "Deleting " << workers.size() << " threads. ");
+    LocPluginLogInfo(Logger::Lvl1, fname, "Deleting " << workers.size() << " threads. ");
     while (workers.size() > 0) {
         delete *workers.begin();
         workers.erase(workers.begin());
@@ -210,7 +210,7 @@ int LocationPlugin::start(ExtCacheHandler *c) {
     extCache = c;
 
     // Create our pool of threads
-    LocPluginLogInfo(SimpleDebug::kLOW, fname, "creating " << nthreads << " threads.");
+    LocPluginLogInfo(Logger::Lvl1, fname, "creating " << nthreads << " threads.");
     for (int i = 0; i < nthreads; i++) {
         workers.push_back(new boost::thread(pluginFunc, this, i));
     }
@@ -238,7 +238,7 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
+    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
 
     workcondvar.notify_one();
 
@@ -258,7 +258,7 @@ void LocationPlugin::pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handle
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "pushed op: wop_CheckReplica " << rep);
+    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "pushed op: wop_CheckReplica " << rep);
 
     workcondvar.notify_one();
 
@@ -297,7 +297,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     }
 
     if (mytk) {
-        LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "got op:" << mytk->wop);
+        LocPluginLogInfo(Logger::Logger::Lvl4, fname, "got op:" << mytk->wop);
     }
 
     return mytk;
@@ -310,7 +310,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
     boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
-    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
+    LocPluginLogInfoThr(Logger::Lvl2, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
 
     // Now put the results
     if (op) {
@@ -366,7 +366,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
 
     }
 
-    LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
+    LocPluginLogInfoThr(Logger::Lvl2, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
 }
 
 
@@ -384,7 +384,7 @@ void LocationPlugin::run_Check(int myidx){
 int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_Stat";
   
-  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
   
   
   // We may have to multiply this query, to search inside multiple prefixes for this plugin
@@ -443,7 +443,7 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_Locate";
   
-  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
   
   
   // We may have to multiply this query, to search inside multiple prefixes for this plugin
@@ -477,7 +477,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
 int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_CheckReplica";
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -504,7 +504,7 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_List";
   
-  LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Entering");
+  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
   
   
   
@@ -547,11 +547,11 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                 case LocationPlugin::wop_List :{
                     wtk->fi->setPluginID(getID());
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting prefix item  " << item.name);
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting prefix item  " << item.name);
                     wtk->fi->subdirs.insert(item);
 
                     wtk->fi->status_items = UgrFileInfo::Ok;
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Listdir");
                     wtk->fi->notifyItemsNotPending();
                     return true;
                 }
@@ -562,7 +562,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                     st.st_mode |= S_IFDIR;
                     wtk->fi->takeStat(st);
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Stat");
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
                     wtk->fi->notifyStatNotPending();
                     return true;
                 }
@@ -617,11 +617,11 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
       if (r) to = from;
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(Logger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
 
     // If r is nonzero then a xlatepfx translation was specified, AND no matching prefix was found
     if (r) {
-      LocPluginLogInfo(SimpleDebug::kHIGH, fname, "No match on xlated pfx: " << from);
+      LocPluginLogInfo(Logger::Lvl3, fname, "No match on xlated pfx: " << from);
       return r;
     }
     
@@ -634,7 +634,7 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
       to.insert(0, altpfx);
     }
     
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(Logger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
     
     return 0;
 }
@@ -722,7 +722,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
     // Set state, log the status change
     // A status change in an endpoint is logged at level kLOW
     // A status setting is logged at level kHIGHEST
-    short lvl = SimpleDebug::kHIGH;
+    short lvl = Logger::Lvl3;
     const char *online = "ONLINE";
     const char *offline = "OFFLINE";
     const char *s = online;
@@ -734,7 +734,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
         // Reject the status if it is older than the one that we already have
         if (st.lastcheck > status.lastcheck) {
             if (st.state != PLUGIN_ENDPOINT_ONLINE) s = offline;
-            if (st.state != status.state) lvl = SimpleDebug::kLOW;
+            if (st.state != status.state) lvl = Logger::Lvl1;
             status = st;
             if (setdirty) status_dirty = true;
             reject = false;
@@ -742,7 +742,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
     }
 
     if (reject) {
-        Info(SimpleDebug::kHIGHEST, "PluginAvailabilityInfo::setStatus",
+        Info(Logger::Logger::Lvl4, "PluginAvailabilityInfo::setStatus",
                 " Status of " << logname <<
                 " checked: " << s << " was rejected.");
     } else {
@@ -808,35 +808,35 @@ PluginInterface *GetPluginInterfaceClass(char *pluginPath, GetPluginInterfaceArg
 
     // If we have no plugin path then return NULL
     if (!pluginPath || !strlen(pluginPath)) {
-        Info(SimpleDebug::kMEDIUM, fname, "No plugin to load.");
+        Info(Logger::Lvl2, fname, "No plugin to load.");
         return NULL;
     }
 
     // Create a plugin object (we will throw this away without deletion because
     // the library must stay open but we never want to reference it again).
     if (!myLib) {
-        Info(SimpleDebug::kMEDIUM, fname, "Loading plugin " << pluginPath);
+        Info(Logger::Lvl2, fname, "Loading plugin " << pluginPath);
         if (!(myLib = new PluginLoader(pluginPath))) {
-            Info(SimpleDebug::kLOW, fname, "Failed loading plugin " << pluginPath);
+            Info(Logger::Lvl1, fname, "Failed loading plugin " << pluginPath);
             return NULL;
         }
     } else {
-        Info(SimpleDebug::kMEDIUM, fname, "Plugin " << pluginPath << "already loaded.");
+        Info(Logger::Lvl2, fname, "Plugin " << pluginPath << "already loaded.");
     }
 
     // Now get the entry point of the object creator
-    Info(SimpleDebug::kMEDIUM, fname, "Getting entry point for plugin " << pluginPath);
+    Info(Logger::Lvl2, fname, "Getting entry point for plugin " << pluginPath);
     ep = (PluginInterface * (*)(GetPluginInterfaceArgs))(myLib->getPlugin("GetPluginInterface"));
     if (!ep) {
-        Info(SimpleDebug::kLOW, fname, "Could not get entry point for plugin " << pluginPath);
+        Info(Logger::Lvl1, fname, "Could not get entry point for plugin " << pluginPath);
         return NULL;
     }
 
     // Get the Object now
-    Info(SimpleDebug::kMEDIUM, fname, "Getting class instance for plugin " << pluginPath);
+    Info(Logger::Lvl2, fname, "Getting class instance for plugin " << pluginPath);
     PluginInterface *p = ep(c, parms);
     if (!p)
-        Info(SimpleDebug::kLOW, fname, "Could not get class instance for plugin " << pluginPath);
+        Info(Logger::Lvl1, fname, "Could not get class instance for plugin " << pluginPath);
     return p;
 
 }

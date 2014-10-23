@@ -15,13 +15,13 @@ using namespace std;
 
 UgrLocPlugin_dmlite::UgrLocPlugin_dmlite(UgrConnector & c, std::vector<std::string> & parms) :
 LocationPlugin(c, parms) {
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Creating instance named " << name);
+    Info(Logger::Lvl1, "UgrLocPlugin_dmlite", "Creating instance named " << name);
 
     pluginManager = 0;
     catalogfactory = 0;
 
     if (parms.size() > 3) {
-        Info(SimpleDebug::kHIGH, "UgrLocPlugin_dmlite", "Initializing dmlite client. cfg: " << parms[3]);
+        Info(Logger::Lvl3, "UgrLocPlugin_dmlite", "Initializing dmlite client. cfg: " << parms[3]);
 
         try {
             pluginManager = new dmlite::PluginManager();
@@ -33,7 +33,7 @@ LocationPlugin(c, parms) {
 
         }
 
-        Info(SimpleDebug::kLOW, "UgrLocPlugin_dmlite", "Dmlite plugin manager loaded. cfg: " << parms[3]);
+        Info(Logger::Lvl1, "UgrLocPlugin_dmlite", "Dmlite plugin manager loaded. cfg: " << parms[3]);
 
     } else {
         Error("UgrLocPlugin_dav", "Not enough parameters in the plugin line.");
@@ -97,11 +97,11 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
     }
 
     // Catalog
-    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
+    LocPluginLogInfoThr(Logger::Lvl3, fname, "Getting the catalogue instance");
     si = this->GetStackInstance(myidx);
     if (!si) exc = true;
 
-    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Got the catalogue instance.");
+    LocPluginLogInfoThr(Logger::Lvl3, fname, "Got the catalogue instance.");
 
 
     if (si) {
@@ -126,26 +126,26 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
             switch (op->wop) {
 
                 case LocationPlugin::wop_Stat:
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xname << ")");
+                    LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Stat(" << xname << ")");
 
                     // For now I don't see why it should not follow the links here
                     st = catalog->extendedStat(xname, true);
                     break;
 
                 case LocationPlugin::wop_Locate:
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking getReplicas(" << xname << ")");
+                    LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking getReplicas(" << xname << ")");
                     repvec = catalog->getReplicas(xname);
                     break;
 
                 case LocationPlugin::wop_CheckReplica:
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xname << ")");
+                    LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Stat(" << xname << ")");
 
                     // For now I don't see why it should not follow the links here
                     st = catalog->extendedStat(op->repl, true);
                     break;
 
                 case LocationPlugin::wop_List:
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking openDir(" << xname << ")");
+                    LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking openDir(" << xname << ")");
                     d = catalog->openDir(xname);
                     break;
 
@@ -156,7 +156,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogErr(fname, "op: " << op->wop << " name: " << xname << " Catched exception: " << e.code() << " what: " << e.what());
             exc = true;
         }
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+        LocPluginLogInfoThr(Logger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
     }
 
 
@@ -179,7 +179,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         case LocationPlugin::wop_Stat:
             if (exc) {
                 //op->fi->status_statinfo = UgrFileInfo::NotFound;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat not found.");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: stat not found.");
             } else {
                 op->fi->setPluginID(getID());
                 op->fi->takeStat(st.stat);
@@ -191,7 +191,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
         case LocationPlugin::wop_Locate:
             if (exc) {
                 //op->fi->status_locations = UgrFileInfo::NotFound;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: locations not found.");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: locations not found.");
             } else {
 
                 op->fi->setPluginID(getID());
@@ -203,7 +203,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                     UgrFileItem_replica it;
                     it.name = i->rfn;
                     it.pluginID = getID();
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas" << i->rfn);
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas" << i->rfn);
 
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
@@ -227,7 +227,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                 doNameXlation(op->repl, itr.name, op->wop, op->altpfx);
 
                 itr.pluginID = getID();
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << op->repl);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << op->repl);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -243,25 +243,25 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
 
         case LocationPlugin::wop_List:
             if (exc) {
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: list not found.");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: list not found.");
                 //op->fi->status_items = UgrFileInfo::NotFound;
             } else {
 
                 dmlite::ExtendedStat *dent;
                 long cnt = 0;
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list. ");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting list. ");
                 op->fi->setPluginID(getID());
 
                 try {
                     UgrFileItem it;
                     while ((dent = catalog->readDirx(d))) {
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "readDirx -> " << dent->name);
+                        LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "readDirx -> " << dent->name);
                         {
                             // Lock the file instance
                             unique_lock<mutex> l(*(op->fi));
 
                             if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                                LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                                LocPluginLogInfoThr(Logger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                                 listerror = true;
                                 op->fi->subdirs.clear();
                                 break;
@@ -278,7 +278,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         if (op->handler) {
                             string newlfn = op->fi->name + "/" + dent->name;
                             UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
-                            LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting readdirx stat info for  " << dent->name << ", flags " << dent->stat.st_mode << " size : " << dent->stat.st_size);
+                            LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting readdirx stat info for  " << dent->name << ", flags " << dent->stat.st_mode << " size : " << dent->stat.st_size);
                             if (fi) fi->takeStat(dent->stat);
                         }
 
@@ -371,7 +371,7 @@ dmlite::StackInstance *UgrLocPlugin_dmlite::GetStackInstance(int myidx, bool can
     if (!si && cancreate) {
 
         try {
-            LocPluginLogInfoThr(SimpleDebug::kLOW, fname, "Creating new StackInstance.");
+            LocPluginLogInfoThr(Logger::Lvl1, fname, "Creating new StackInstance.");
             si = new dmlite::StackInstance(pluginManager);
         } catch (dmlite::DmException e) {
             LocPluginLogErr(fname, "Cannot create StackInstance. Catched exception: " << e.code() << " what: " << e.what());
@@ -380,13 +380,13 @@ dmlite::StackInstance *UgrLocPlugin_dmlite::GetStackInstance(int myidx, bool can
 
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Got stack instance " << si);
+    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Got stack instance " << si);
     return si;
 
 }
 
 void UgrLocPlugin_dmlite::ReleaseStackInstance(dmlite::StackInstance *inst) {
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, "fUgrLocPlugin_dmlite::ReleaseStackInstance", "Releasing stack instance " << inst);
+    LocPluginLogInfo(Logger::Logger::Lvl4, "fUgrLocPlugin_dmlite::ReleaseStackInstance", "Releasing stack instance " << inst);
     if (inst) {
         boost::unique_lock< boost::mutex > l(dmlitemutex);
         siqueue.push(inst);
@@ -406,7 +406,7 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
     dmlite::SecurityContext secCtx;
 
 
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "Start checker for " << xlatepfx_to << " with timeout " << availInfo.time_interval_ms);
+    LocPluginLogInfo(Logger::Lvl3, fname, "Start checker for " << xlatepfx_to << " with timeout " << availInfo.time_interval_ms);
 
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -414,11 +414,11 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
     // Do the check
 
     // Get a handle, if there are none then the check is fine
-    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Getting the catalogue instance");
+    LocPluginLogInfoThr(Logger::Lvl3, fname, "Getting the catalogue instance");
 
     si = this->GetStackInstance(myidx, false);
     if (!si) {
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "All the instances of StackInstance are busy. The check is passed.");
+        LocPluginLogInfoThr(Logger::Lvl3, fname, "All the instances of StackInstance are busy. The check is passed.");
         return;
     }
 
@@ -435,7 +435,7 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
 
     try {
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Stat(" << xlatepfx_to << ")");
+        LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Stat(" << xlatepfx_to << ")");
         st = catalog->extendedStat(xlatepfx_to, false);
 
     } catch (dmlite::DmException e) {
@@ -504,7 +504,7 @@ void UgrLocPlugin_dmlite::do_Check(int myidx) {
         this->ReleaseStackInstance(si);
 
     }
-    LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, " End checker for " << xlatepfx_to);
+    LocPluginLogInfo(Logger::Logger::Lvl4, fname, " End checker for " << xlatepfx_to);
 
 }
 

@@ -57,11 +57,11 @@ UgrLocPlugin_davrucio::UgrLocPlugin_davrucio(UgrConnector & c, std::vector<std::
 	    
             for (i = 0; i < parms.size() - 1; i++) {
 		UgrFileInfo::trimpath(xlatepfxruciohash_from[i]);
-                Info(SimpleDebug::kLOW, fname, name << " Translating prefixes with Rucio hashing '" << xlatepfxruciohash_from[i] << "' -> '" << xlatepfxruciohash_to << "'");
+                Info(Logger::Lvl1, fname, name << " Translating prefixes with Rucio hashing '" << xlatepfxruciohash_from[i] << "' -> '" << xlatepfxruciohash_to << "'");
             }
         }
     }
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_[davrucio]", "UgrLocPlugin_[davrucio]: WebDav ENABLED");
+    Info(Logger::Lvl1, "UgrLocPlugin_[davrucio]", "UgrLocPlugin_[davrucio]: WebDav ENABLED");
     
 }
 
@@ -102,12 +102,12 @@ int UgrLocPlugin_davrucio::doNameXlation(std::string &from, std::string &to, wor
       if (r) to = from;
     }
 
-    LocPluginLogInfo(SimpleDebug::kHIGH, fname, "xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(Logger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
 
     // If r is nonzero then a xlatepfxruciohash translation was specified, AND no matching prefix was found
     // In this case we proceed with the normal name xlation, as this query has not been recognized as a Rucio one
     if (r) {
-      LocPluginLogInfo(SimpleDebug::kHIGH, fname, "No match on xlated pfx: " << from);
+      LocPluginLogInfo(Logger::Lvl3, fname, "No match on xlated pfx: " << from);
       return LocationPlugin::doNameXlation(from, to, op, altpfx);
     }
     
@@ -140,7 +140,7 @@ int UgrLocPlugin_davrucio::doNameXlation(std::string &from, std::string &to, wor
       for(int i = 0; i < 16; ++i)
 	sprintf(&md5string[i*2], "%02x", (unsigned int)md5digest[i]);
       
-      LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "Rucio MD5 of " << tmp << " is:" << md5string);
+      LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Rucio MD5 of " << tmp << " is:" << md5string);
       
       // Create the hash part, in the format /XX/YY ready to be inserted
       char tmp2[16];
@@ -155,7 +155,7 @@ int UgrLocPlugin_davrucio::doNameXlation(std::string &from, std::string &to, wor
       p = to.rfind("/");
       if (p != string::npos) to.insert(p, tmp2);
       
-      LocPluginLogInfo(SimpleDebug::kHIGHEST, fname, "final hashed pfx: " << from << "->" << to);
+      LocPluginLogInfo(Logger::Logger::Lvl4, fname, "final hashed pfx: " << from << "->" << to);
     }
     
     
@@ -166,7 +166,7 @@ int UgrLocPlugin_davrucio::doNameXlation(std::string &from, std::string &to, wor
       to.insert(0, altpfx);
     }
      
-    LocPluginLogInfo(SimpleDebug::kMEDIUM, fname, "final xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(Logger::Lvl2, fname, "final xlated pfx: " << from << "->" << to);
   return 0;
 }
 

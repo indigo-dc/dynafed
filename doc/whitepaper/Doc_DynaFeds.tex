@@ -22,18 +22,41 @@
 \geometry{a4paper} % Set the page size to be A4 as opposed to the default US Letter
 
 \usepackage{graphicx} % Required for including pictures
-
+\usepackage{listings}
 \usepackage{float} % Allows putting an [H] in \begin{figure} to specify the exact location of the figure
 \usepackage{wrapfig} % Allows in-line images such as the example fish picture
-
-
-\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
-
+\usepackage{color}
 \linespread{1.2} % Line spacing
 
 %\setlength\parindent{0pt} % Uncomment to remove all indentation from paragraphs
 
 \graphicspath{{./Pictures/}} % Specifies the directory where pictures are stored
+
+
+
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=perl,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  breaklines=true,
+  breakatwhitespace=true,
+  breaklines=true,
+  frame=none
+}
+%%  numberstyle=\tiny\color{gray},
+%%  keywordstyle=\color{blue},
+%%  commentstyle=\color{dkgreen},
+%%  stringstyle=\color{mauve},
+
 
 \begin{document}
 
@@ -53,7 +76,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.3}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.10}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -93,7 +116,7 @@ Fabrizio \textsc{Furano} \\ % Your name\\
 
 
 \begin{abstract}
-A number of storage elements now offer standard protocol interfaces like NFS 4.1/pNFS and WebDAV, for access to their data repositories, in line with the standardization effort of the European Middleware Initiative (EMI). Also the LCG FileCatalogue (LFC) can offer such features. Here we report on work that seeks to exploit the federation potential of these protocols and build a system that offers a unique view of the storage and metadata ensemble and the possibility of integration of other  compatible resources such as those from cloud providers.
+A number of storage elements and Grid data management components now offer standard protocol interfaces like WebDAV for access to their data repositories. Here we report on work that seeks to exploit the federation potential of these protocols and build a system that offers a unique view of the storage and metadata ensemble and the possibility of integration of other compatible resources such as those from cloud providers.
 The challenge, here undertaken by the providers of dCache and DPM, and pragmatically open to other Grid and Cloud storage solutions, is to build such a system while being able to accommodate  name translations from existing catalogues (e.g. LFCs), experiment-based metadata catalogues, or stateless algorithmic name translations, also known as ''trivial file catalogues''.
 Such so-called storage federations of standard protocols-based storage elements give a unique view of their content, thus promoting simplicity in accessing the data they contain and offering new possibilities for resilience and data placement strategies.
 The goal is to consider HTTP and NFS4.1-based storage elements and metadata catalogues and make them able to cooperate through an architecture that properly feeds the redirection mechanisms that they are based upon, thus giving the functionalities of a ''loosely coupled'' storage federation. One of the key requirements is to use standard clients (provided by OS'es or open source distributions, e.g. Web browsers) to access an already aggregated system; this approach is quite different from aggregating the repositories at the client side through some wrapper API, like for instance GFAL, or by developing new custom clients.
@@ -157,7 +180,7 @@ We would like to recall that we are treating data access protocols that natively
 
 \subsection{DPM and dCache via WebDAV}
 
-Given a number of storage endpoints deploying the WebDAV door of the dCache system, and the upcoming versions of DPM \cite{dpmfuture} \cite{dpmnew}, we wanted to show that a completely transparent federation of them was possible, using the WebDAV protocol.
+Given a number of storage endpoints deploying the WebDAV door of the dCache or DPM systems \cite{dpmfuture} \cite{dpmnew}, a completely transparent federation of them is possible, using only features of the WebDAV protocol.
 This use case has been the first one to be demoed by the Dynamic Federations project, and the first two endpoints that were added to a working federation have been a dCache instance at DESY (Germany) and a DPM instance in ASGC (Taipei). The test did what it advertised, i.e. the users could not realize that they were browsing and using a federation of two distant sites. Moreover, the feeling of performance that the system gives is the one of a site that is hosted in the federation's frontend machine, with a fast and smooth interactivity.
 
 \subsection{Add third-party storage farms}
@@ -167,13 +190,13 @@ We cite here what was the first formulation of this use case to be fulfilled by 
 We want the clients to be able to see this service through the same entry point that aggregates other similar services in a completely transparent way, at least for the data reading case. We don't want the client applications to be instrumented in order to accommodate this case. We don't want a Data Management system to treat this case as an exception of some kind.\\
 This would allow users to browse their files using Internet Explorer without potentially being aware of the location of the items they see, and to run their personal analyses pointing their applications to the unique entry point, using the URLs that they see in the browser.}\\
 
-This use case may also accommodate the use case of the ''Cloud storage providers''. Technically, we chose to use a Cloud storage service provided by T-Mobile (Germany) through WebDAV, which then became a standard component of the various demos of the Dynamic Federations system.
+This use case may also accommodate the use case of the ''Cloud storage providers''. Technically, we chose to use a Cloud storage service provided by T-Mobile (Germany) through WebDAV, which then became a standard component of the various demos of the Dynamic Federations system. Recent improvements allow for example to insert seamlessly S3 storage endpoints.
 
 \subsection{Create a small local federation of close sites sharing storage}
 
 Having a flexible system that can manage storage federations opens many possibilities. One of them is being able to create a small federation of sites that share their storage, and appear as a unique storage element. In other words, a common repository (for example an instance of the so-called "conditions data" for a High Energy Physics experiment) may be distributed across collaborating sites. Doing so, the clients would not  need to know the exact location of the file they need, as they would just access it through the federation frontend.
 
-\subsection{Add resources managed by one or more LFCs}
+\subsection{Add resources managed by one or more replica catalogues}
 
 We informally define an \textit{LFC cloud} as a set of storage elements that contain file replicas that are indexed by an instance of an LFC file catalogue. In this example, without loss of generality, we suppose that the content of the LFC is accessible through an HTTP/DAV gateway, like the ones that have been recently released \cite{dpmfuture}.
 Let’s suppose that we have two such clouds, as the example fits with no changes also the case in which there are more.\\
@@ -209,7 +232,7 @@ An easy implementation of the Geo plugin consisted in wrapping the GeoIP API \ci
 
 \section{The system}
 
-The Dynamic Federations system is built around a new internal component that was called Uniform Generic Redirector (UGR). The Ugr exposes an API, called \textit{UgrConnector} that gives the functionalities of a namespace, thus including file/replica metadata information and directory listing information.
+The Dynamic Federations system is built around a new internal component that is called Uniform Generic Redirector (UGR). Ugr exposes an API, called \textit{UgrConnector} that gives the functionalities of a namespace, thus including file/replica metadata information and directory listing information.
 
 As visible in Figure \ref{fig_dynafeds1}, the Ugr acts as loader of a set of plugins, which interface it to the external storage and metadata endpoints. Each kind of plugin can talk to a different kind of external endpoint (one or many in principle).\\ Right now we developed the following plugins:
 
@@ -305,11 +328,11 @@ The simple default configuration installs \textit{memcached} in the same server 
 UGR embeds a configurable scheme of name translation, which has the purpose of creating a match between the path prefixes of the resulting global name space and of the individual name spaces of the endpoints whose content is aggregated.\\
 The complete scheme is shown in Figure \ref{fig_n2n}. Starting from the left, the clients have the illusion of interacting with a name space that is the federation's namespace, e.g.\\
 
- \verb"/myfed/dteam/mydir/myfile"\\
+\lstinline{/myfed/dteam/mydir/myfile}\\
  
  which (in the case of a setup with HTTP) may come from an URL like:\\
  
- \verb"http://<host>/myfed/dteam/mydir/myfile" .\\\
+ \lstinline"http://<host>/myfed/dteam/mydir/myfile" .\\\
  
  Then, internally, if the path starts with the prefix specified in \textit{n2n\_pfx}, this prefix is stripped from the path and the \textit{n2n\_newpfx} is put in its place.
  
@@ -362,18 +385,33 @@ In this section, we document the UGR configuration directives and their usage. I
 
 \subsection{Ugr core configuration}
 
+\subsubsection{INCLUDE}
+
+ Interpret as configuration files all the files that are contained in the give directory. Only absolute paths are accepted.\\
+ 
+ Syntax:\\
+
+\lstinline"INCLUDE: <path>"\\
+
+\lstinline"<path>" is a directory containing Ugr configuration files.\\
+The configuration files are loaded and processed by the Ugr configuration subsystem in ascending alphabetic order.\\
+
+Example:\\
+Load all the configuration files that are contained in \lstinline"/etc/ugr.conf.d/"\\
+\lstinline"INCLUDE: /etc/ugr.conf.d/"
+
 \subsubsection{glb.debug}
 
  Sets the UGR log verbosity.\\
  
  Syntax:\\
 
-\verb"glb.debug: <level>"\\
+\lstinline"glb.debug: <level>"\\
 
-\verb"<level>" is the desired debug level, from 0 to 10.\\ \\
- NOTE: UGR internally uses \verb"syslog" to log its activity, in the \verb"user" class. We refer to the \verb"syslog" documentation for the platform in use in order to configure its behavior, e.g. to output the log to a logfile.\\
+\lstinline"<level>" is the desired debug level, from 0 to 10.\\ \\
+ NOTE: UGR internally uses \lstinline"syslog" to log its activity, in the \lstinline"user" class. We refer to the \lstinline"syslog" documentation for the platform in use in order to configure its behavior, e.g. to output the log to a logfile.\\
  
-  NOTE: a debug level higher than 1 severely affects the performance of UGR. Never set it to a value higher than 1 in a production server.\\
+ NOTE: a debug level higher than 1 severely affects the performance of UGR. Never set it to a value higher than 1 in a production server.\\
 
 \subsubsection{\label{glb.locplugin}glb.locplugin}
 
@@ -381,17 +419,17 @@ In this section, we document the UGR configuration directives and their usage. I
  
  Syntax:\\
 
-\verb"glb.locplugin[]: <path/name.so> <ID> <max_concurrency> [parameters]"\\
+\lstinline"glb.locplugin[]: <path/name.so> <ID> <max_concurrency> [parameters]"\\
 
 where:
 
 \begin{itemize}
-\item \verb"<path/name.so>" is the full path to the shared library that implements the plugin
-\item \verb"<ID>" is a unique name that is given to this plugin instance. This is used to identify it in this configuration file, and give settings that are private to that loaded instance. These other settings have the syntax:\\
-      \verb"locplugin.<ID>.<parm>: <value>"\\
+\item \lstinline"<path/name.so>" is the full path to the shared library that implements the plugin
+\item \lstinline"<ID>" is a unique name that is given to this plugin instance. This is used to identify it in this configuration file, and give settings that are private to that loaded instance. These other settings have the syntax:\\
+      \lstinline"locplugin.<ID>.<parm>: <value>"\\
      where <parm> is the plugin-specific parameter that we want to set.
-\item \verb"<max_concurrency>" is the maximum number of threads that can enter the plugin at the same time
-\item \verb"[parameters]" is a plugin-specific series of space-limited parameters
+\item \lstinline"<max_concurrency>" is the maximum number of threads that can enter the plugin at the same time
+\item \lstinline"[parameters]" is a plugin-specific series of space-limited parameters
 \end{itemize}
 
 
@@ -400,14 +438,14 @@ where:
 The maximum time in seconds that a client can wait for some information to be collected by UGR. This is just a guard time. If reached, some external endpoint may be overloaded or not responsive. In this case, UGR may decide to internally treat it as disabled, until it becomes responsive again.
 \\
 Syntax:\\
-\verb"glb.waittimeout: <number>"
+\lstinline"glb.waittimeout: <number>"
 
 Default value: 180
 
 \subsubsection{glb.maxlistitems}
 Mark as non listable any directory that contains more than a certain number of items. This avoids thrashing the cache in difficult situations. This setting deals only with listing, not with the metadata of the individual files or subdirectories that are needed by the clients. In other words, the items in the directory are always accessible, no matter how many they are.\\
 Syntax:\\
-\verb"glb.maxlistitems: <number>"
+\lstinline"glb.maxlistitems: <number>"
 
 
 Default value: 10000
@@ -417,11 +455,11 @@ A filter plugin is a generic way of filtering a list of replicas before it is gi
 The typical usage example is to sort a list of replicas to be given to a client in ascending geographical distance from it.
 \\
 Syntax:\\
-\verb"glb.filterplugin[]: <plugin path> <plugin parameters>"
+\lstinline"glb.filterplugin[]: <plugin path> <plugin parameters>"
 \\
 Example:\\
 Sort all the replicas in ascending geographical distance from the client.
-\verb"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"
+\lstinline"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"
 
 
 \subsection{\label{globalxlation}Global name translation}
@@ -432,27 +470,27 @@ UGR can process the file paths it is requested, in order to normalize them by me
 
 Remove the given prefix, if found in the requested URL.\\
 Syntax:\\
-\verb"glb.n2n_pfx: <string_prefix>"
+\lstinline"glb.n2n_pfx: <string_prefix>"
 
 Default value: none
 \\
 Example:\\
 
-\verb"glb.n2n_pfx: /myfed"
+\lstinline"glb.n2n_pfx: /myfed"
 
-If the requested path starts with \verb"/myfed", remove this prefix, so that internally in UGR that file is known without prefix.
+If the requested path starts with \lstinline"/myfed", remove this prefix, so that internally in UGR that file is known without prefix.
 
-If the user requests /myfed/atlas/fabrizio/testfile.txt, internally the file will be known as /atlas/fabrizio/testfile.txt
+If the user requests /myfed/atlas/fabrizio/testfile.txt, internally the file will be known as /atlas/fabrizio/testfile.txt\\
+The practical consequence of this example is that the federation will be browseable with the prefix ``myfed'', like:\\
+\lstinline"http://myfederation.myhost/myfed/<path>/<file>"
  
 \subsubsection{glb.n2n\_newpfx}
 
-After having eventually stripped out a prefix with the \verb"n2n_pfx" directive, replace it with a new prefix.\\
+After having eventually stripped out a prefix with the \lstinline"n2n_pfx" directive, replace it with a new prefix.\\
 Syntax:\\
-\verb"glb.n2n_pfx: <string_prefix>"
+\lstinline"glb.n2n_newpfx: <string_prefix>"
 
 Default value: none
-
-
 
 
 \subsection{Slave plugins and replica translators}
@@ -470,11 +508,11 @@ What characterizes a plugin that is marked as a replica translator plugin is the
 
 To mark a plugin as a replica translator the syntax is:
 
-\verb"locplugin.<ID>.replicaxlator: true" (default: false)\\
+\lstinline"locplugin.<ID>.replicaxlator: true" (default: false)\\
 
 To mark a plugin as a slave the syntax is:\\
 
-\verb"locplugin.<ID>.slave: true" (default: false)\\
+\lstinline"locplugin.<ID>.slave: true" (default: false)\\
 
 
 
@@ -482,24 +520,30 @@ To mark a plugin as a slave the syntax is:\\
 \subsection{Plugin-level filename prefix translation}
 
 Every plugin can apply a private rule to translate filename prefixes from the endpoint's name space to the UGR name space. As an additional feature, this prefix translating rule may specify more than one prefix that can be recognized and translated to the internal UGR namespace.\\
-A typical example for which this feature is used is to translate \verb"srm://" TURLS coming from external services like an LFC or a replica database. For the plugin being configured we want to specify that both backward-compatible srm syntaxes must be correctly recognised and translated.\\
+
+When the xlatepfx directive is specified, the plugin will be triggered only if the incoming query matches one of the given endopint.
+
+\subsubsection{Example: Translate SRM TURLs into HTTP URLs}
+An advanced example for which this feature is used is to translate \lstinline"srm://" TURLS coming from external services like an LFC or a replica database. For the plugin being configured we want to specify that both backward-compatible srm syntaxes must be correctly recognised and translated.\\
 
 Let's suppose that the UGR is asked for the file:\\
 
-\verb"/myfed/atlas/data/file1.dat" \\
+\lstinline"/myfed/atlas/data/file1.dat" \\
 
 The global name translation of the UGR (described and configured like in \ref{globalxlation}) translates this file into the internal structure of the UGR namespace:\\
 
-\verb"/atlas/data/file1.dat"\\
+\lstinline"/atlas/data/file1.dat"\\
 
-An HTTP location plugin is used as a master translation plugin. This queries an external service and returns a replica that may follow one of the two possible syntaxes fro SRM TURLs.
+An HTTP location plugin is used as a master translation plugin. This queries an external service and returns a replica that may follow one of the two possible syntaxes for SRM TURLs.\\
 
-\verb"srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat"\\
-\verb"srm://host2.site.org:8446/srm/managerv2?SFN=/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat"\\
+\begin{lstlisting}
+srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat
+srm://host2.site.org:8446/srm/managerv2? SFN=/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat
+\end{lstlisting}
 
-We want to map these two TURLs to the new HTTP-based service setup by the site. This service resides in the machine \verb"host3.site.org" that is different from the hosts that give the SRM service. In this service, we are told by the sysadmin that the path for the aforesaid replica is:\\
+We want to map these two TURLs to the new HTTP-based service setup by the site. This service resides in the machine \lstinline"host3.site.org" that is different from the hosts that give the SRM service. In this service, we are told by the sysadmin that the path for the aforesaid replica is:\\
 
-\verb"https://host3.site.org/bigstorage/atlas/datadisk/xyzw/file1_replica1.dat"\\
+\lstinline"https://host3.site.org/bigstorage/atlas/datadisk/xyzw/file1_replica1.dat"\\
 
 
 
@@ -507,29 +551,57 @@ We want to map these two TURLs to the new HTTP-based service setup by the site. 
 To do this, we have to:
 
 \begin{itemize}
- \item configure a slave plugin named \verb"HOST3" that manages the endpoint \verb"host3.site.org", in order to check for the replicas indicated by the master translator plugin.
+ \item configure a slave plugin named \lstinline"HOST3" that manages the endpoint \lstinline"host3.site.org", in order to check for the replicas indicated by the master translator plugin.
  \item configure the plugin-level filename prefix translation of this plugin, described in the following directive.
 \end{itemize}
 
-\subsubsection{locplugin.$<$ID$>$.xlatepfx}
-Sets up the path/name translation that the plugin identified by \verb"<ID>" can apply, in order to match the namespace of the endpoint it manages to the federation's namespace. A typical example of this is to convert an SRM TURL got by some other service
+
+\subsubsection{locplugin.$<$ID$>$.pfxmultiply}
+Search for a metadata item in multiple directory prefixes on the given plugin. The effect of this directive is to merge the content of several directories into one. An use case can be to see as merged the content of multiple directories representing \textit{space tokens} in a remote storage.\\
 
 Syntax:\\
-\verb"locplugin.<ID>.xlatepfx: <internal_workspace_prefix_1> [... <internal_workspace_prefix_N>] <prefix_to_substitute>"\\
+\lstinline{locplugin.<ID>.pfxmultiply: <prefix_1> [... <prefix_N>]}\\
 
+Example:\\
+This example says that this plugin has to consider as merged the content of 9 spacetoken directories in the given endpoint.\\
+\begin{lstlisting}
+locplugin.MYPLUGIN.pfxmultiply: /disk-only/atlasgroupdisk/perf-tau /disk-only/atlasgroupdisk/perf-idtracking /disk-only/atlasgroupdisk/perf-egamma /disk-only/atlashotdisk /disk-only/atlasdatadisk /atlaslocalgroupdisk /disk-only/atlasproddisk /disk-only/atlasgroupdisk/soft-test /disk-only/atlasscratchdisk
+\end{lstlisting}
+
+\subsubsection{locplugin.$<$ID$>$.xlatepfx}
+Sets up the path/name translation that the plugin identified by \lstinline"<ID>" can apply, in order to match the namespace of the endpoint it manages to the federation's namespace.\\
+Simply speaking, this directive can be used to 'mount' a directory tree of the remote endpoint into the federation's namespace.\\
+
+A side effect if this directory is that the plugin will be triggered only if the incoming query matches its namespace.\\
+
+Another example tat makes use of this directive is to convert an SRM TURL got by some other service. In practice an SRM prefix has to be deleted and replaced with the HTTP URL of the remote HTTP endpoint.
+
+Syntax:\\
+\begin{lstlisting}
+locplugin.<ID>.xlatepfx: <query_prefix_1> [... <query_prefix_N>] <prefix_to_substitute>
+\end{lstlisting}
 Where: \\
 
-\verb"<internal_workspace_prefix_1> [... <internal_workspace_prefix_N>]" is a set of prefixes that may identify that SRM endpoint. These prefixes, if found, will be internally stripped and substituted.\\
+\lstinline"<query_prefix_1> [... <query_prefix_N>]" is a set of prefixes that will be matched against the incoming query. They may identify an SRM endpoint or just a part of the query string that has to be internally
+removed in order to match the namespace of the remote endpoint. These prefixes, if found, will be internally stripped and substituted.\\
 
-\verb"<prefix_to_substitute>" is the prefix that has to be put to match the namespace of the final DAV endpoint.\\
+\lstinline"<prefix_to_substitute>" is the prefix that has to be put to match the namespace of the remote endpoint.\\
 
 Example:\\
 
-\verb"locplugin.HOST3.xlatepfx: srm://host2.site.org:8446/srm/managerv2?SFN=/dpm/site.org/atlas/  srm://host2.site.org/dpm/site.org/atlas/ /"\\
+\lstinline"locplugin.HOST3.xlatepfx: /browseatlas /atlas/atlasdatadisk/rucio"\\
+
+This example will show to the user a directory named \lstinline``browseatlas''. Browsing this directory will show the content gathered from \lstinline``/atlas/atlasdatadisk/rucio'' from the remote endpoint.
+
+Example:\\
+\begin{lstlisting}
+locplugin.HOST3.xlatepfx: srm://host2.site.org:8446/srm/managerv2?SFN=/dpm/site.org/atlas/  srm://host2.site.org/dpm/site.org/atlas/ /
+\end{lstlisting}
 
 This example serves to federate a DPM endpoint as a slave replica checker.\\
-A file named in DPM \verb"srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat" would be known as \\
-\verb"/datadisk/xyzw/file1_replica1.dat" in the internal UGR workspaces and caches.
+A file named in DPM \\
+\lstinline"srm://host1.site.org/dpm/site.org/atlas/datadisk/xyzw/file1_replica1.dat" would be known as \\
+\lstinline"/datadisk/xyzw/file1_replica1.dat" in the internal UGR workspaces and caches.
 
 
 
@@ -543,14 +615,14 @@ The infohandler parameters influence how the internal UGR buffers collect  and r
 \subsubsection{infohandler.maxitems}
 Set the maximum number of items in the cache.\\
 Syntax:\\
-\verb"infohandler.maxitems: <number>"\\
+\lstinline"infohandler.maxitems: <number>"\\
 
 Default value: 1000
 
 \subsubsection{infohandler.itemttl}
 Set the maximum time (in seconds) an item is allowed to stay in the cache after it has been referenced.\\
 Syntax:\\
-\verb"infohandler.maxttl: <number>"\\
+\lstinline"infohandler.maxttl: <number>"\\
 Default value: 600
 
 
@@ -558,14 +630,14 @@ Default value: 600
 \subsubsection{infohandler.itemmaxttl}
 Set the maximum time (in seconds) an item is ever allowed to stay in the cache (even if it was referenced in the meantime).\\
 Syntax:\\
-\verb"infohandler.itemmaxttl: <number>"\\
+\lstinline"infohandler.itemmaxttl: <number>"\\
 Default value: 3600
 
 
 \subsubsection{infohandler.itemttl\_negative}
 Set the maximum time (in seconds) a negative information (like a "file not found" error) is allowed to stay in the cache.
 Syntax:\\
-\verb"infohandler.itemttl: <number>"\\
+\lstinline"infohandler.itemttl: <number>"\\
 Default value: 10
 
 
@@ -573,15 +645,15 @@ Default value: 10
 If true, instantiate a 2nd level cache that uses \textit{memcached}. This cache will be shared among all the processes that are spawned.\\
 This cache will also be used to store other information, like the status of the endpoints, whose determination can be shared among multiple processes running Ugr.
 Syntax:\\
-\verb"infohandler.useextcache: <true|false>"\\
+\lstinline"infohandler.useextcache: <true|false>"\\
 Default value: true
 
 \subsection{extcache.memcached.server[]}
-In the case the \verb"infohandler.useextcache" is set to true, UGR will try to contact an external \textit{memcached} cluster.  This section describes the parameters that configure that.\\
+In the case the \lstinline"infohandler.useextcache" is set to true, UGR will try to contact an external \textit{memcached} cluster.  This section describes the parameters that configure that.\\
 
  Syntax:\\
 
-\verb"extcache.memcached.server[]: <IP_address>[:port]"\\
+\lstinline"extcache.memcached.server[]: <IP_address>[:port]"\\
 
 Add one memcached server to contact. Multiple entries like this add multiple servers to contact, in order to support advanced memcached clustering configurations.\\
 
@@ -590,13 +662,13 @@ Default value: 127.0.0.1:11211
 \subsubsection{extcache.memcached.ttl}
 Set the maximum time (in seconds) an item is allowed to live in the external memcached.
 Syntax:\\
-\verb"extcache.memcached.ttl: <number>"\\
+\lstinline"extcache.memcached.ttl: <number>"\\
 Default value: 43200\\
 
 \subsubsection{extcache.memcached.useBinaryProtocol}
 Enable/disable the memcached binary protocol.
 Syntax:\\
-\verb"extcache.memcached.useBinaryProtocol: <true|false>"\\
+\lstinline"extcache.memcached.useBinaryProtocol: <true|false>"\\
 Default value: true\\
 
 \subsection{DAV and HTTP plugin}
@@ -604,96 +676,154 @@ Default value: true\\
 The DAV plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 
 Syntax:\\
-\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"\\
+\lstinline"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so <ID> <concurrency> <URL prefix>"\\
 or
-\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_http.so <ID> <concurrency> <URL prefix>"
+\lstinline"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_http.so <ID> <concurrency> <URL prefix>"
 
 
-The parameters \verb"<ID>" and \verb"<concurrency>" have already been described in the section \ref{glb.locplugin}
+The parameters \lstinline"<ID>" and \lstinline"<concurrency>" have already been described in the section \ref{glb.locplugin}
 
-The parameter \verb"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \verb"http://" and \verb"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it can be added to this \verb"URL prefix". This is a basic way of implementing a simple algorithmic, prefix-based name translation that is similar to the concept of \textit{chroot jail} with respect to the \verb"sshd" configuration.\\
+The parameter \lstinline"URL prefix" is the URL prefix that points to the endpoint to be federated. Both \lstinline"http://" and \lstinline"https://" are supported. Please note that if a prefix of the files stored in the external storage has to be ignored, then it can be added to this \lstinline"URL prefix". This is a basic way of implementing a simple algorithmic, prefix-based name translation that is similar to the concept of \textit{chroot jail} with respect to the \lstinline"sshd" configuration.\\
 
 A typical example of this is the following:\\
-\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so dav_plugin_dcache_desy 30 http://sligo.desy.de:2880/pnfs/desy.de/data"\\ \\
+\lstinline"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dav.so dav_plugin_dcache_desy 30 http://sligo.desy.de:2880/pnfs/desy.de/data"\\ \\
 
-where the prefix \verb"/pnfs/desy.de/data" has to be stripped in order to consider the files as belonging to a uniform name space.\\
+where the prefix \lstinline"/pnfs/desy.de/data" has to be stripped in order to consider the files as belonging to a uniform name space.\\
 
 In other words, a file whose name inthe storage element is:\\
-\verb"/pnfs/desy.de/data/atlas/fabrizio/testfile.txt"\\
+\lstinline"/pnfs/desy.de/data/atlas/fabrizio/testfile.txt"\\
 
 will be known to UGR as\\
-\verb"/atlas/fabrizio/testfile.txt"\\
+\lstinline"/atlas/fabrizio/testfile.txt"\\
 
-The DAV plugin has several parameters that configure the way it works and authenticates with the servers. For all these parameters, \verb"<ID>" is the name that was assigned to the specific plugin instance we want to refer to.
+The DAV plugin has several parameters that configure the way it works and authenticates with the servers. For all these parameters, \lstinline"<ID>" is the name that was assigned to the specific plugin instance we want to refer to.
 
 \subsubsection{locplugin.$<$ID$>$.ssl\_check}
 Enable or disable the SSL validity check of the remote host.\\
 Syntax:\\
-\verb"locplugin.<ID>.ssl_check: <true|false>"\\
+\lstinline"locplugin.<ID>.ssl_check: <true|false>"\\
 Default value: true\\
 \subsubsection{locplugin.$<$ID$>$.ca\_path}
 Add a X509 certificate authorities directory, each CA file contained inside the directory will be considered as a valid CA for the plugin requests.\\
 Syntax:\\
-\verb"locplugin.<ID>.ca_path: <path/ca_dir>"\\
+\lstinline"locplugin.<ID>.ca_path: <path/ca_dir>"\\
 Default value: true\\
 \subsubsection{locplugin.$<$ID$>$.cli\_type}
 Type of the client side credential to use. The format type PEM, PROXY (VOMS) and PKCS12 are supported.
 Syntax:\\
-\verb"locplugin.<ID>.cli_type: (PEM|PKCS12|PROXY)"\\
+\lstinline"locplugin.<ID>.cli_type: (PEM|PKCS12|PROXY)"\\
 Default value: PKCS12\\
 \subsubsection{locplugin.$<$ID$>$.cli\_private\_key}
 Path to a local file containing the client private key to use when contacting this endpoint. Only the PEM and proxy format are supported.\\
 Syntax:\\
-\verb"locplugin.<ID>.cli_private_key: <path/file>"\\
+\lstinline"locplugin.<ID>.cli_private_key: <path/file>"\\
 Default value: none\\
 \subsubsection{locplugin.$<$ID$>$.cli\_certificate}
 Path to a local file containing the client side credentials to use when contacting this endpoint. Only the PEM, proxy and PKCS12 format are supported.\\
 Syntax:\\
-\verb"locplugin.<ID>.cli_certificate: <path/file>"\\
+\lstinline"locplugin.<ID>.cli_certificate: <path/file>"\\
 Default value: none\\
 \subsubsection{locplugin.$<$ID$>$.conn\_timeout}
 TCP connection timeout (in seconds) to use when establishing a connection to this endpoint. \\
 Syntax:\\
-\verb"locplugin.<ID>.conn_timeout: <timeout>"\\
+\lstinline"locplugin.<ID>.conn_timeout: <timeout>"\\
 Default value: 15\\
 \subsubsection{locplugin.$<$ID$>$.custom\_header[]}
 Additional header fields to populate the requests with.
 Syntax:\\
-\verb"locplugin.<ID>.custom_header[]: <header line>"\\
+\lstinline"locplugin.<ID>.custom_header[]: <header line>"\\
 Default value: none\\
-Example: \verb"locplugin.<ID>.custom_header[]: X-Rucio-Auth-Token: blah123"\\
+Example: \lstinline"locplugin.<ID>.custom_header[]: X-Rucio-Auth-Token: blah123"\\
 \subsubsection{locplugin.$<$ID$>$.ops\_timeout}
 TCP communication timeout (in seconds) to use when sending/receiving data from this endpoint.\\
 Syntax:\\
-\verb"locplugin.<ID>.ops_timeout: <timeout>"\\
+\lstinline"locplugin.<ID>.ops_timeout: <timeout>"\\
 Default value: 60\\
 \subsubsection{locplugin.$<$ID$>$.status\_checking}
 Enable or disable the asynchronous endpoint status checker. If enabled, the endpoint will be probed at regular intervals of time.\\
 Syntax:\\
-\verb"locplugin.<ID>.status_checking: <true|false>"\\
+\lstinline"locplugin.<ID>.status_checking: <true|false>"\\
 Default value: true\\
 \subsubsection{locplugin.$<$ID$>$.status\_checker\_frequency}
 Set the frequency (in milliseconds) of the status checker.\\
 Syntax:\\
-\verb"locplugin.<ID>.status_checker_frequency: <time>"\\
+\lstinline"locplugin.<ID>.status_checker_frequency: <time>"\\
 Default value: 10000\\
 \subsubsection{locplugin.$<$ID$>$.auth\_login}
 Set the username to use in the case of endpoints that support user/pasword login.\\
 Syntax:\\
-\verb"locplugin.<ID>.auth_login: <username>"\\
+\lstinline"locplugin.<ID>.auth_login: <username>"\\
 Default value: none\\
 \subsubsection{locplugin.$<$ID$>$.auth\_passwd}
 Set the password to use in the case of endpoints that support user/password login.\\
 Syntax:\\
-\verb"locplugin.<ID>.auth_passwd: <password>"\\
+\lstinline"locplugin.<ID>.auth_passwd: <password>"\\
 Default value: none\\
 \subsubsection{locplugin.$<$ID$>$.metalink\_support}
 Enable or disable the metalink support for the plugin. \\
 The metalink support give the possibility of the federation to query a list of replica of a given resource. \\
 Metalink support allows for instance the construction of recursive federations.  \\
 Syntax:\\
-\verb"locplugin.<ID>.metalink_support: <true|false>"\\
+\lstinline"locplugin.<ID>.metalink_support: <true|false>"\\
 Default value: false \\
+
+
+\subsection{DAVrucio plugin}
+The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
+It allows to browse and access a federation of remote sites that host content that is managed by the ATLAS experiment \textit{rucio} data management system.\\
+The DAVrucio plugin works like the generic DAV plugin, and adds a directive that enables the hash-based name translation of the \textit{rucio} data management system.\\
+
+Syntax:\\
+\lstinline"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_davrucio.so <ID> <concurrency> <URL prefix>"\\
+
+In other words, the DAVrucio plugin will make the federation export two aliased namespaces, with the same file content accessible through different paths:
+\begin{itemize}
+ \item A human-browseable path obtained by just merging the namespaces of the remote endpoints.
+ \item A non-browseable path that does not contain the rucio hashes after the rucio token. This path is more suitable for jobs.
+\end{itemize}
+
+
+\subsubsection{locplugin.$<$ID$>$.xlatepfx\_ruciohash}
+
+Specifies the sets of prefixes that when matched will make the plugin apply the rucio hash-based name translation to it, in alternative to the regular xlatepfx translation.\\
+Sets up the path/name translation that the plugin identified by \lstinline"<ID>" can apply, in order to match the namespace of the endpoint it manages to the federation's namespace.\\
+Simply speaking, this directive can be used to 'mount' a directory tree of the remote endpoint into the federation's namespace.\\
+
+It should be noted that the \textit{xlatepfx\_ruciohash} directive does not imply that a rucio \textit{scope} can be browsed in a flat way, without rucio hashes in the path.
+
+
+Syntax:\\
+\begin{lstlisting}
+locplugin.<ID>.xlatepfx_ruciohash: <query_prefix_1> [... <query_prefix_N>] <prefix_to_substitute>
+\end{lstlisting}
+
+Default value: none\\
+
+Example:\\
+\begin{lstlisting}
+glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so KIT 5 https://f01-060-110-e.gridka.de:2880/pnfs/gridka.de/atlas
+locplugin.KIT.ssl_check: false
+locplugin.KIT.cli_type:PROXY
+locplugin.KIT.cli_certificate: /tmp/xyzproxy
+locplugin.KIT.cli_private_key: /tmp/xyzproxy
+locplugin.KIT.xlatepfx: /browseatlas /
+locplugin.KIT.pfxmultiply: /disk-only/atlasgroupdisk/perf-tau /disk-only/atlasgroupdisk/perf-idtracking /disk-only/atlasgroupdisk/perf-egamma /disk-only/atlashotdisk /disk-only/atlasdatadisk /atlaslocalgroupdisk /disk-only/atlasproddisk /disk-only/atlasgroupdisk/soft-test /disk-only/atlasscratchdisk
+locplugin.KIT.xlatepfx_ruciohash: /atlas /
+\end{lstlisting}
+
+This example configures an endpoint with the DAVrucio plugin. It has the following relevant features:
+
+\begin{itemize}
+ \item An user will be able to browse the content of the federation pointing the browser to \lstinline{<URL_prefix>/browseatlas/}. He will browse it as a regular storage federation containing this site. Hence, the rucio hashes will be visible and will give the ``hierarchical'' feeling.
+ \item The content of all the specified ``spacetoken directories'' will be seen as merged.
+ \item Any file will be reacheable with an URL like \\
+       \lstinline{<URL_prefix>/browseatlas/rucio/data13_8TeV/11/b4/}\\
+       \lstinline{log.01387999._000012.job.log.tgz.2} (click-on browser use case)
+ \item Any file will be reachable ALSO with an URL like \\
+       \lstinline{<URL_prefix>/atlas/rucio/data13_8TeV/}\\
+       \lstinline{log.01387999._000012.job.log.tgz.2} (use case of a job accessing one file)
+\end{itemize}
+
 
 
 
@@ -702,11 +832,13 @@ Default value: false \\
 The DMLite client plugin, when loaded as a location plugin instance, instantiates a DMLite instance as a source of metadata information to federate. The typical usage is to contact natively an LFC or DPM database, for increased performance.\\
 
 Syntax:\\
-\verb"glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dmliteclient.so <ID> <concurrency> <config>"
+\begin{lstlisting}
+glb.locplugin[]: /usr/lib64/ugr/libugrlocplugin_dmliteclient.so <ID> <concurrency> <config>
+\end{lstlisting}
 
-The parameters \verb"<ID> <concurrency>" have already been described in the section \ref{glb.locplugin}
+The parameters \lstinline"<ID> <concurrency>" have already been described in the section \ref{glb.locplugin}
 
-The parameter \verb"<config>" is the full path to a DMLite configuration file. To configure DMLite, we refer the reader to the DMLite documentation.
+The parameter \lstinline"<config>" is the full path to a DMLite configuration file. To configure DMLite, we refer the reader to the DMLite documentation.
 
 
 
@@ -719,29 +851,29 @@ Commission Grant Agreement INFSO-RI-261611
 
 \begin{thebibliography}{9}
 
-\bibitem{ibmglamour} IBM Glamour \verb"http://www.almaden.ibm.com/storagesystems/projects/glamour/". 
+\bibitem{ibmglamour} IBM Glamour \lstinline"http://www.almaden.ibm.com/storagesystems/projects/glamour/". 
 
 
 \bibitem{rfc5716} RFC 5716
-\verb"http://tools.ietf.org/html/rfc5716"
+\lstinline"http://tools.ietf.org/html/rfc5716"
 
 
 \bibitem{gluster} Gluster
-\verb"http://gluster.com"
+\lstinline"http://gluster.com"
 
 \bibitem{glusterwiki} Gluster on Wikipedia
-\verb"http://en.wikipedia.org/wiki/GlusterFS"
+\lstinline"http://en.wikipedia.org/wiki/GlusterFS"
 
 
 \bibitem{fedfs} FedFS
-\verb"http://discolab.rutgers.edu/fs/"
+\lstinline"http://discolab.rutgers.edu/fs/"
 
 \bibitem{xrdwan} Scalla/xrootd WAN globalization tools: Where we are
 Fabrizio Furano and Andrew Hanushevsky 2010 J. Phys.: Conf. Ser. 219 072005
-\verb"http://iopscience.iop.org/1742-6596/219/7/072005/"
+\lstinline"http://iopscience.iop.org/1742-6596/219/7/072005/"
 
 \bibitem{xrd} The xrootd.org homepage
-\verb"http://www.xrootd.org"
+\lstinline"http://www.xrootd.org"
 
 \bibitem{datamgmthep}
 Furano F. Data Management in HEP: an approach. 
@@ -757,7 +889,7 @@ Alejandro Alvarez, Alexandre Beche, Fabrizio Furano, Martin Hellmich, Oliver Kee
 CHEP2012
 
 \bibitem{dpmcomp} DPM components
-\verb"https://svnweb.cern.ch/trac/lcgdm/wiki/Dpm/Dev/Components"
+\lstinline"https://svnweb.cern.ch/trac/lcgdm/wiki/Dpm/Dev/Components"
 
 \bibitem{geoip}
 "This product includes GeoLite data created by MaxMind, available from http://www.maxmind.com/."
@@ -771,7 +903,7 @@ ISBN 978-90-444-1067-9
 
 
 \bibitem{libneon}
-\verb"http://www.webdav.org/neon/"
+\lstinline"http://www.webdav.org/neon/"
 
 \end{thebibliography}
 

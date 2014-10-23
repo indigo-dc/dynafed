@@ -3,22 +3,22 @@ cmake_minimum_required (VERSION 2.6)
 add_executable(teststat "teststat.cc")
 set_target_properties(teststat PROPERTIES COMPILE_FLAGS "-I../")
 
-target_link_libraries (teststat ugrconnector)
+target_link_libraries (teststat ugrconnector ${DMLITE_LIBRARY})
 
 add_executable(teststatseq "teststat_sequential.cc")
 set_target_properties(teststatseq PROPERTIES COMPILE_FLAGS "-I../")
 
-target_link_libraries (teststatseq ugrconnector)
+target_link_libraries (teststatseq ugrconnector ${DMLITE_LIBRARY})
 
 add_executable(testlistdir "testlistdir.cc")
 set_target_properties(teststat PROPERTIES COMPILE_FLAGS "-I../")
 
-target_link_libraries (testlistdir ugrconnector)
+target_link_libraries (testlistdir ugrconnector ${DMLITE_LIBRARY})
 
 add_executable(testlocate "testlocate.cc")
 set_target_properties(testlocate PROPERTIES COMPILE_FLAGS "-I../")
 
-target_link_libraries (testlocate ugrconnector)
+target_link_libraries (testlocate ugrconnector ${DMLITE_LIBRARY})
 
 
 # How to install. This is part of the Core component

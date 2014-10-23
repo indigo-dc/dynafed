@@ -50,7 +50,7 @@ int ExtCacheHandler::getFileInfo(UgrFileInfo *fi) {
     char *strnfo = memcached_get(conn, k.c_str(), k.length(),
             &value_len, &flags, &err);
 
-    Info(SimpleDebug::kHIGH, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
+    Info(Logger::Lvl3, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
 
     releaseconn(conn);
 
@@ -87,7 +87,7 @@ int ExtCacheHandler::getSubitems(UgrFileInfo *fi) {
     char *strnfo = memcached_get(conn, k.c_str(), k.length(),
             &value_len, &flags, &err);
 
-    Info(SimpleDebug::kHIGH, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
+    Info(Logger::Lvl3, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
 
     releaseconn(conn);
 
@@ -132,7 +132,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
 
     if (s.length() > 0) {
 
-        Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
+        Info(Logger::Lvl3, fname, "memcached_set " <<
                 " key:" << k << " len:" << s.length());
 
         memcached_return r = memcached_set(conn,
@@ -140,7 +140,7 @@ int ExtCacheHandler::putFileInfo(UgrFileInfo *fi) {
                 s.c_str(), s.length() + 1,
                 expirationtime, (uint32_t) 0);
 
-        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
+        Info(Logger::Logger::Lvl4, fname, "memcached_set " << "r:" << r <<
                 " key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {
@@ -187,7 +187,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
         memcached_st *conn = getconn();
         if (!conn) return 0;
 
-        Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
+        Info(Logger::Lvl3, fname, "memcached_set " <<
                 " key:" << k << " len:" << s.length());
 
         memcached_return r = memcached_set(conn,
@@ -195,7 +195,7 @@ int ExtCacheHandler::putSubitems(UgrFileInfo *fi) {
                 s.c_str(), s.length() + 1,
                 expirationtime, (uint32_t) 0);
 
-        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
+        Info(Logger::Logger::Lvl4, fname, "memcached_set " << "r:" << r <<
                 " key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {
@@ -232,16 +232,16 @@ memcached_st* ExtCacheHandler::getconn() {
     }
 
 
-    Info(SimpleDebug::kLOW, fname, "Creating NEW memcached instance...");
+    Info(Logger::Lvl1, fname, "Creating NEW memcached instance...");
 
     // Passing NULL means dynamically allocating space
     res = memcached_create(NULL);
 
     if (res) {
-        Info(SimpleDebug::kLOW, fname, "Configuring memcached...");
+        Info(Logger::Lvl1, fname, "Configuring memcached...");
 
         // Configure the memcached behaviour
-        Info(SimpleDebug::kHIGH, fname, "Setting memcached protocol...");
+        Info(Logger::Lvl3, fname, "Setting memcached protocol...");
         if (CFG->GetBool("extcache.memcached.useBinaryProtocol", true)) {
             r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
             if (r != MEMCACHED_SUCCESS) {
@@ -254,25 +254,25 @@ memcached_st* ExtCacheHandler::getconn() {
             }
         }
 
-        Info(SimpleDebug::kHIGH, fname, "Setting memcached distribution...");
+        Info(Logger::Lvl3, fname, "Setting memcached distribution...");
         r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_DISTRIBUTION, MEMCACHED_DISTRIBUTION_CONSISTENT);
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot set memcached behavior to consistent. retval=" << r);
         }
 
-        Info(SimpleDebug::kHIGH, fname, "Setting memcached noblock...");
+        Info(Logger::Lvl3, fname, "Setting memcached noblock...");
         r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_NO_BLOCK, 1);
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot set memcached behavior to async. retval=" << r);
         }
 
-        Info(SimpleDebug::kHIGH, fname, "Setting memcached TCP_NODELAY...");
+        Info(Logger::Lvl3, fname, "Setting memcached TCP_NODELAY...");
         r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_TCP_NODELAY, 1);
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot set memcached TCP_NODELAY. retval=" << r);
         }
 
-        Info(SimpleDebug::kHIGH, fname, "Setting memcached NOREPLY...");
+        Info(Logger::Lvl3, fname, "Setting memcached NOREPLY...");
         r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_NOREPLY, 1);
         if (r != MEMCACHED_SUCCESS) {
             Error(fname, "Cannot set memcached NOREPLY. retval=" << r);
@@ -307,7 +307,7 @@ memcached_st* ExtCacheHandler::getconn() {
                 port = atoi(token);
             }
 
-            Info(SimpleDebug::kHIGH, fname, "Adding memcached server '" << buf << "'" << host << ":" << port);
+            Info(Logger::Lvl3, fname, "Adding memcached server '" << buf << "'" << host << ":" << port);
 
             r = memcached_server_add(res, host, port);
             if (r != MEMCACHED_SUCCESS) {
@@ -351,7 +351,7 @@ int ExtCacheHandler::getEndpointStatus(PluginEndpointStatus *st, std::string end
     char *strnfo = memcached_get(conn, k.c_str(), k.length(),
             &value_len, &flags, &err);
 
-    Info(SimpleDebug::kHIGH, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
+    Info(Logger::Lvl3, fname, "Memcached get: Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
 
     releaseconn(conn);
 
@@ -391,7 +391,7 @@ int ExtCacheHandler::putEndpointStatus(PluginEndpointStatus *st, std::string end
 
     if (s.length() > 0) {
 
-        Info(SimpleDebug::kHIGH, fname, "memcached_set " <<
+        Info(Logger::Lvl3, fname, "memcached_set " <<
                 " key:" << k << " len:" << s.length());
 
         memcached_return r = memcached_set(conn,
@@ -399,7 +399,7 @@ int ExtCacheHandler::putEndpointStatus(PluginEndpointStatus *st, std::string end
                 s.c_str(), s.length() + 1,
                 expirationtime, (uint32_t) 0);
 
-        Info(SimpleDebug::kHIGHEST, fname, "memcached_set " << "r:" << r <<
+        Info(Logger::Logger::Lvl4, fname, "memcached_set " << "r:" << r <<
                 " key:" << k << " len:" << s.length());
 
         if (r != MEMCACHED_SUCCESS) {

@@ -88,11 +88,11 @@ int Config::ProcessFile(char *filename) {
   // Do the parsing
   if (!filename || (strlen(filename) == 0)) {
     strcpy(fn, "/etc/ugr.conf");
-    Info(SimpleDebug::kMEDIUM, "Config::ProcessFile", "Using default config file " << fn);
+    Info(Logger::Lvl2, "Config::ProcessFile", "Using default config file " << fn);
   }
   else {
     strcpy(fn, filename);
-    Info(SimpleDebug::kMEDIUM, "Config::ProcessFile", "Reading config file " << fn);
+    Info(Logger::Lvl2, "Config::ProcessFile", "Reading config file " << fn);
   }
 
   string line, token, val;
@@ -104,7 +104,7 @@ int Config::ProcessFile(char *filename) {
 
       // Avoid comments
       if (line[0] == '#') continue;
-      Info(SimpleDebug::kHIGH, "Config::ProcessFile", line);
+      Info(Logger::Lvl3, "Config::ProcessFile", line);
 
       // Check for INCLUDE 
       if(line.compare(0, 7, "INCLUDE") == 0) {    
@@ -152,16 +152,16 @@ int Config::ProcessFile(char *filename) {
                 token = buf2;
                 // check if key already exist
                 if(arrdata.count(token) == 1) {
-                    Info(SimpleDebug::kLOW, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                    Info(Logger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value");
                 }
-                Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
+                Info(Logger::Logger::Lvl4, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
             arrdata[token].push_back(val);
           }
               else {
                 if(data.count(token) == 1) {
-                    Info(SimpleDebug::kLOW, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                    Info(Logger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value");
                 }
-                Info(SimpleDebug::kHIGHEST, "Config::ProcessFile", token << "<-" << val);
+                Info(Logger::Logger::Lvl4, "Config::ProcessFile", token << "<-" << val);
                 data[token] = val;
               }
           }

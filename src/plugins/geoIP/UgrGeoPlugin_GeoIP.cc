@@ -38,7 +38,7 @@ public:
         y = (s2.latitude-ltt);
         d2 = x*x + y*y;
 
-        Info(SimpleDebug::kHIGHEST, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
+        Info(Logger::Logger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
                                                          << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
                                                          << "client=("<< ltt << "," << lng <<") " );
 
@@ -51,7 +51,7 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
     CFG->Set(&c.getConfig());
 
     const char *fname = "UgrGeoPlugin::UgrGeoPlugin_GeoIP";
-    Info(SimpleDebug::kLOW, fname, "Creating instance.");
+    Info(Logger::Lvl1, fname, "Creating instance.");
 
     gi = 0;
     init(parms);
@@ -103,7 +103,7 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
     const char *fname = "UgrGeoPlugin::setReplicaLocation";
 
     // Get the server name from the name field
-    Info(SimpleDebug::kHIGHEST, fname, "Got name: " << it.name);
+    Info(Logger::Logger::Lvl4, fname, "Got name: " << it.name);
     // skip delimiters at beginning.
     string::size_type lastPos = it.name.find_first_not_of(" :/\\", 0);
     if (lastPos == string::npos) return;
@@ -121,8 +121,8 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
     if (pos == string::npos) return;
 
     string srv = it.name.substr(lastPos, pos-lastPos);
-    Info(SimpleDebug::kHIGHEST, fname, "pos:" << pos << " lastpos: " << lastPos);
-    Info(SimpleDebug::kHIGHEST, fname, "Got server: " << srv);
+    Info(Logger::Logger::Lvl4, fname, "pos:" << pos << " lastpos: " << lastPos);
+    Info(Logger::Logger::Lvl4, fname, "Got server: " << srv);
 
     GeoIPRecord *gir = GeoIP_record_by_name(gi, (const char *)srv.c_str());
 
@@ -131,7 +131,7 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
         return;
     }
 
-    Info(SimpleDebug::kHIGH, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
+    Info(Logger::Lvl3, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
     it.latitude = gir->latitude;
     it.longitude = gir->longitude;
 
@@ -165,7 +165,7 @@ void UgrGeoPlugin_GeoIP::getAddrLocation(const std::string &clientip, float &ltt
     
     GeoIPRecord_delete(gir);
 
-    Info(SimpleDebug::kHIGHEST, fname, clientip << " " << ltt << " " << lng);
+    Info(Logger::Logger::Lvl4, fname, clientip << " " << ltt << " " << lng);
 }
 
 

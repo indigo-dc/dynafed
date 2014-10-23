@@ -1,7 +1,7 @@
 /// @file    UgrDMLite.cc
 /// @brief   Let dmlite use UGR as a plugin.
 /// @author  Fabrizio Furano <furano@cern.ch>
-/// @date    Feb 2012
+/// @date    Oct 2014
 #include "UgrDMLite.hh"
 #include <set>
 #include <vector>
@@ -10,12 +10,18 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "dmlite/cpp/utils/urls.h"
+#include "dmlite/cpp/utils/logger.h"
 
 using namespace dmlite;
 
 UgrConnector *UgrCatalog::conn = 0;
 
+
 UgrFactory::UgrFactory() throw (DmException) {
+  
+    ugrlogmask = Logger::get()->getMask(ugrlogname);
+    Log(Logger::Lvl4, ugrlogmask, ugrlogname, " UgrFactory starting");
+  
     // Make sure that there is an UgrConnector ready to be used
     // NOTE: calls to this ctor MUST be serialized
     UgrCatalog::getUgrConnector();
@@ -28,17 +34,15 @@ UgrFactory::~UgrFactory()  {
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
     if (!key.compare("Ugr_cfgfile")) {
         cfgfile = value;
+	Log(Logger::Lvl2, ugrlogmask, 0, "Getting config file: " << value);
         UgrCatalog::getUgrConnector()->resetinit();
-
-
-    } else
-      Log(Logger::Lvl4, Logger::unregistered, 0, "Unrecognized option. Key: " << key << " Value: " << value);
-//        throw DmException(DMLITE_CFGERR(0), std::string("Unknown option ") + key);
+    }
 }
 
 Catalog* UgrFactory::createCatalog(CatalogFactory* factory,
         PluginManager* pm) throw (DmException) {
 
+    Log(Logger::Lvl2, ugrlogmask, 0, "Creating catalog instance. cfg: " << cfgfile.c_str());
     int r = UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
     if (r > 0)
         throw DmException(DMLITE_CFGERR(DMLITE_NO_CATALOG), "UgrConnector initialization failed.");
@@ -50,6 +54,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     UgrFactory *f = new UgrFactory();
 
     try {
+	Log(Logger::Lvl4, ugrlogmask, 0, "Registering Ugr Catalog Factory");
         pm->registerCatalogFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
@@ -58,6 +63,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     }
 
     try {
+	Log(Logger::Lvl4, ugrlogmask, 0, "Registering Ugr Authn Factory");
         pm->registerAuthnFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
@@ -93,7 +99,6 @@ std::string UgrCatalog::getImplId() const throw () {
 std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmException) {
     std::vector<Replica> replicas;
 
-
     // Get all of them
     UgrFileInfo *nfo = 0;
 
@@ -101,7 +106,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
 
         UgrClientInfo info(secCredentials.remoteAddress);
-        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
+        Info(Logger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
         std::deque<UgrFileItem_replica> reps;
         nfo->getReplicaList(reps);
         getUgrConnector()->filter(reps, info);
@@ -120,14 +125,14 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
             // Look for ://, then for the subsequent / or :
             size_t p1;
             p1 = i->name.find("://");
-            //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas000", p1 << " " <<  i->name.npos);
+            //Info(Logger::Lvl3, "UgrCatalog::getReplicas000", p1 << " " <<  i->name.npos);
             if (p1 != i->name.npos) {
-                //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas00", r.server);
+                //Info(Logger::Lvl3, "UgrCatalog::getReplicas00", r.server);
                 // get the name of the server
                 size_t p2 = i->name.find_first_of(":/", p1 + 3);
                 if (p2 != std::string::npos) {
                     r.server = i->name.substr(p1 + 3, p2 - p1 - 3);
-                    //Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas0", r.server);
+                    //Info(Logger::Lvl3, "UgrCatalog::getReplicas0", r.server);
                 }
 
 
@@ -140,28 +145,28 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 //            for (pslh = 10; pslh < r.rfn.size() - 1; pslh++) {
 //
 //                if ((r.rfn[pslh] == '/') && (r.rfn[pslh + 1] == '/')) {
-//                    Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas1", r.rfn << "-" << r.server << "-" << pslh);
+//                    Info(Logger::Lvl3, "UgrCatalog::getReplicas1", r.rfn << "-" << r.server << "-" << pslh);
 //                    r.rfn.erase(pslh + 1, 1);
-//                    Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas2", r.rfn << " " << r.server << " " << pslh);
+//                    Info(Logger::Lvl3, "UgrCatalog::getReplicas2", r.rfn << " " << r.server << " " << pslh);
 //                }
 //
 //
 //
 //            };
             
-            Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
+            Info(Logger::Lvl3, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
             replicas.push_back(r);
         }
 
 
     } else {
-        Info(SimpleDebug::kLOW, "UgrCatalog::getReplicas", "Failure in get location. " << path);
+        Info(Logger::Lvl1, "UgrCatalog::getReplicas", "Failure in get location. " << path);
     }
 
     // Return
     if (replicas.size() == 0) {
-        Info(SimpleDebug::kHIGH, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
-        throw DmException(DMLITE_NO_REPLICAS, "No endpoints have replicas of this file. " + path);
+        Info(Logger::Lvl3, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
+        throw DmException(DMLITE_NO_REPLICAS, "No active endpoints have replicas of this file now. " + path);
     }
     
     return replicas;
@@ -345,7 +350,24 @@ std::string UgrCatalog::getAbsPath(std::string &path) {
 
 dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
 
-    Info(SimpleDebug::kHIGHEST, "UgrAuthn::createSecurityContext", c.remoteAddress);
+    std::ostringstream ss;
+    ss << "ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
+    for (unsigned int i = 0; i < c.fqans.size(); i++ ) {
+      ss << c.fqans[i];
+      if (i < c.fqans.size() - 1) ss << ",";
+    }
+    std::vector<std::string> vs = c.getKeys();
+    if (vs.size() > 0) {
+      ss << " Other keys: ";
+      for (unsigned int i = 0; i < vs.size(); i++ ) {
+	ss << vs[i];
+	if (i < vs.size() - 1) ss << ",";
+      }
+    }
+    
+    
+    
+    Info(Logger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
 
 
     return new dmlite::SecurityContext(c, userinfo, groupinfo);

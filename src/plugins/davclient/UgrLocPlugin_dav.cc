@@ -25,7 +25,7 @@ using namespace std;
 
 UgrLocPlugin_dav::UgrLocPlugin_dav(UgrConnector & c, std::vector<std::string> & parms) :
     UgrLocPlugin_http(c, parms) {
-    Info(SimpleDebug::kLOW, "UgrLocPlugin_[http/dav]", "UgrLocPlugin_[http/dav]: WebDav ENABLED");
+    Info(Logger::Lvl1, "UgrLocPlugin_[http/dav]", "UgrLocPlugin_[http/dav]: WebDav ENABLED");
     params.setProtocol(Davix::RequestProtocol::Webdav);
 }
 
@@ -71,17 +71,17 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Stat() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Stat() " << canonical_name << ")");
                     op->fi->notifyStatNotPending();
                     break;
 
                 case LocationPlugin::wop_Locate:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on Locate() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Locate() " << canonical_name << ")");
                     op->fi->notifyLocationNotPending();
                     break;
 
                 case LocationPlugin::wop_List:
-		    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Short-circuit on List() " << canonical_name << ")");
+		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on List() " << canonical_name << ")");
                     op->fi->notifyItemsNotPending();
                     break;
 
@@ -99,18 +99,18 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking davix_Stat(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking davix_Stat(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
 
         case LocationPlugin::wop_Locate:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Locate(" << canonical_name << ")");
             if(flags & UGR_HTTP_FLAG_METALINK){
-                LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking Locate with metalink support");
+                LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Locate with metalink support");
                 Davix::File f(dav_core, canonical_name);
                 replica_vec = f.getReplicas(&params, &tmp_err);
                 if(tmp_err){
-                    LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
+                    LocPluginLogInfoThr(Logger::Lvl3, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
                 }
             }
 
@@ -121,11 +121,11 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             }
             break;
         case LocationPlugin::wop_CheckReplica:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, "invoking CheckReplica(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking CheckReplica(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
         case LocationPlugin::wop_List:
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " invoking davix_openDir(" << canonical_name << ")");
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " invoking davix_openDir(" << canonical_name << ")");
             d = pos.opendirpp(&params, canonical_name, &tmp_err);
             // if reach here -> valid opendir -> specify file as well
             if(d)
@@ -165,20 +165,20 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         }
 
 
-        LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+        LocPluginLogInfoThr(Logger::Lvl3, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
     }
 
 
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-        LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Worker: inserting data for " << op->fi->name);
+        LocPluginLogInfoThr(Logger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
         op->fi->setPluginID(getID());
 
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                 op->fi->takeStat(st);
                 break;
 
@@ -189,7 +189,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                     itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
                     HttpUtils::pathHttpNomalize(itr.name);
                     itr.pluginID = getID();
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
@@ -208,7 +208,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 itr.name = canonical_name;
 
                 itr.pluginID = getID();
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting replicas " << itr.name);
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -231,14 +231,14 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         op->fi->dirtyitems = true;
 
                         if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
-                            LocPluginLogInfoThr(SimpleDebug::kMEDIUM, fname, "Setting as non listable. cnt=" << cnt);
+                            LocPluginLogInfoThr(Logger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subdirs.clear();
                             break;
                         }
 
                         // create new items
-                        LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Worker: Inserting list " << dent->d_name);
+                        LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting list " << dent->d_name);
                         it.name = std::string(dent->d_name);
                         it.location.clear();
 
@@ -252,7 +252,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         child = child + "/";
                     child = child + it.name;
 
-                    LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname,
+                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
                     UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
@@ -275,7 +275,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
 
         if (tmp_err) {
-            LocPluginLogInfoThr(SimpleDebug::kHIGH, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+            LocPluginLogInfoThr(Logger::Lvl3, fname, " UgrDav plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
         }
 
 
@@ -291,13 +291,13 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Stat");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
                 op->fi->notifyStatNotPending();
                 break;
 
             case LocationPlugin::wop_Locate:
             case LocationPlugin::wop_CheckReplica:
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Locate");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
@@ -309,7 +309,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                 } else
                     op->fi->status_items = UgrFileInfo::Ok;
 
-                LocPluginLogInfoThr(SimpleDebug::kHIGHEST, fname, "Notify End Listdir");
+                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Listdir");
                 op->fi->notifyItemsNotPending();
                 break;
 
