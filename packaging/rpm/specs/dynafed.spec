@@ -122,7 +122,7 @@ make DESTDIR=%{buildroot} install
 /sbin/ldconfig
 /sbin/service rsyslog condrestart || true
 ## conf file plugin path transition
-sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
+## sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 
 %postun
 /sbin/ldconfig
@@ -134,9 +134,10 @@ sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 %files
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
-%{_libdir}/dynafed/libugrgeoplugin_geoip.so
-%{_libdir}/dynafed/libugrnoloopplugin.so
+%{_libdir}/ugr/libugrgeoplugin_geoip.so
+%{_libdir}/ugr/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
+%config(noreplace) %{_sysconfdir}/ugr.conf.d/*
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
 %doc RELEASE-NOTES
@@ -150,26 +151,26 @@ sed -i 's@/usr/lib\([0-9]*\)/ugr@/usr/lib\1/dynafed@g' /etc/ugr.conf || true
 
 %files http-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafed/libugrlocplugin_dav.so
-%{_libdir}/dynafed/libugrlocplugin_http.so
-%{_libdir}/dynafed/libugrlocplugin_s3.so
-%{_libdir}/dynafed/libugrlocplugin_davrucio.so
+%{_libdir}/ugr/libugrlocplugin_dav.so
+%{_libdir}/ugr/libugrlocplugin_http.so
+%{_libdir}/ugr/libugrlocplugin_s3.so
+%{_libdir}/ugr/libugrlocplugin_davrucio.so
 
 
 %files lfc-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafed/libugrlocplugin_lfc.so
+%{_libdir}/ugr/libugrlocplugin_lfc.so
 
 
 %files dmlite-plugin
 %defattr (-,root,root)
-%{_libdir}/dynafed/libugrlocplugin_dmliteclient.so
+%{_libdir}/ugr/libugrlocplugin_dmliteclient.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
 
 %files dmlite-frontend
-%{_libdir}/dynafed/libugrdmlite.so
+%{_libdir}/ugr/libugrdmlite.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
 

@@ -137,6 +137,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %{_libdir}/ugr/libugrnoloopplugin.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
+%config(noreplace) %{_sysconfdir}/ugr.conf.d/*
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
 %doc RELEASE-NOTES

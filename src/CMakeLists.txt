@@ -65,13 +65,7 @@ install(TARGETS ugrconnector
   COMPONENT core)
 
 
-# Install the config files
-if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr.conf)
-  install(FILES ugr.conf
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${SYSCONF_INSTALL_DIR}
-  COMPONENT core)
-endif()
+
 
 
 # auto-generate pkgconfig
