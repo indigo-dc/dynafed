@@ -26,14 +26,13 @@ ENDIF(LOGROTATE_SUPPORT)
 if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr.conf)
   install(FILES ugr.conf
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${SYSCONF_INSTALL_DIR}
+  DESTINATION ${SYSCONF_INSTALL_DIR} 
   COMPONENT core)
 endif()
 if (NOT EXISTS ${conf_dir}/endpoints.conf)
-  install(FILES ugr.conf.d/*
+  install(FILES ugr.conf.d/endpoints.conf
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${SYSCONF_INSTALL_DIR}
+  DESTINATION ${conf_dir}
   COMPONENT core)
 endif()
 
-add_subdirectory(ugr.conf.d)
