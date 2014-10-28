@@ -19,7 +19,7 @@ const std::string location_config_prefix = "locplugin.";
 
 void pluginFunc(LocationPlugin *pl, int myidx) {
     const char *fname = "LocationPlugin::pluginFunc";
-    Info(Logger::Logger::Lvl4, fname, "Worker: started");
+    Info(UgrLogger::Lvl4, fname, "Worker: started");
 
     // Get some work to do
     while (!pl->exiting) {
@@ -50,9 +50,14 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
         }
     }
 
-    Info(Logger::Logger::Lvl4, fname, "Worker: finished");
+    Info(UgrLogger::Lvl4, fname, "Worker: finished");
 
 }
+
+
+// Sort Container by descending len function
+bool sortStringsByDescLen(const string &a, const string &b) { return a.size() > b.size(); }
+
 
 LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms) :
     PluginInterface(c, parms),
@@ -119,10 +124,13 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
 	    
             for (i = 0; i < parms.size() - 1; i++) {
 		UgrFileInfo::trimpath(xlatepfx_from[i]);
-                Info(Logger::Lvl1, fname, name << " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
+                Info(UgrLogger::Lvl1, fname, name << " Translating prefixes '" << xlatepfx_from[i] << "' -> '" << xlatepfx_to << "'");
             }
         }
     }
+    
+    // Very important... the xlatepfx_from vector must be sorted by descending string length
+    sort(xlatepfx_from.begin(), xlatepfx_from.end(), sortStringsByDescLen);
 
     // Now get the content of pfxmultiply
     pfx = "locplugin.";
@@ -146,29 +154,32 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
             
             for (i = 0; i < pfxmultiply.size(); i++) {
 		UgrFileInfo::trimpath(pfxmultiply[i]);
-                Info(Logger::Lvl1, fname, name << " Multiplying prefixes '" << pfxmultiply[i]);
+                Info(UgrLogger::Lvl1, fname, name << " Multiplying prefixes '" << pfxmultiply[i]);
             }
         }
     }
     
+    // Very important... the pfxmultiply vector must be sorted by descending string length
+    sort(pfxmultiply.begin(), pfxmultiply.end(), sortStringsByDescLen);
+    
     // get state checker
     availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
-    Info(Logger::Lvl1, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
+    Info(UgrLogger::Lvl1, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
 
     availInfo.time_interval_ms = CFG->GetLong(pfx + ".status_checker_frequency", 5000);
-    Info(Logger::Lvl1, fname, " State checker frequency : " << availInfo.time_interval_ms);
+    Info(UgrLogger::Lvl1, fname, " State checker frequency : " << availInfo.time_interval_ms);
 
     // get maximum latency
     availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
-    Info(Logger::Lvl1, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
+    Info(UgrLogger::Lvl1, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
 
     // get slave status
     slave = CFG->GetBool(pfx + ".slave", false);
-    Info(Logger::Lvl1, fname, " Slave : " << ((slave) ? "true" : "false"));
+    Info(UgrLogger::Lvl1, fname, " Slave : " << ((slave) ? "true" : "false"));
 
     // get replica xlator
     replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
-    Info(Logger::Lvl1, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
+    Info(UgrLogger::Lvl1, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
     exiting = false;
 
@@ -183,7 +194,7 @@ void LocationPlugin::stop() {
 
     /// Note: this tends to hang due to a known bug in boost
     //for (unsigned int i = 0; i < workers.size(); i++) {
-    //        LocPluginLogInfo(Logger::Lvl1, fname, "Interrupting thread: " << i);
+    //        LocPluginLogInfo(UgrLogger::Lvl1, fname, "Interrupting thread: " << i);
     //        workers[i]->interrupt();
     //    }
 
@@ -193,11 +204,11 @@ void LocationPlugin::stop() {
     }
 
     for (unsigned int i = 0; i < workers.size(); i++) {
-        LocPluginLogInfo(Logger::Lvl1, fname, "Joining thread: " << i);
+        LocPluginLogInfo(UgrLogger::Lvl1, fname, "Joining thread: " << i);
         workers[i]->join();
     }
 
-    LocPluginLogInfo(Logger::Lvl1, fname, "Deleting " << workers.size() << " threads. ");
+    LocPluginLogInfo(UgrLogger::Lvl1, fname, "Deleting " << workers.size() << " threads. ");
     while (workers.size() > 0) {
         delete *workers.begin();
         workers.erase(workers.begin());
@@ -210,7 +221,7 @@ int LocationPlugin::start(ExtCacheHandler *c) {
     extCache = c;
 
     // Create our pool of threads
-    LocPluginLogInfo(Logger::Lvl1, fname, "creating " << nthreads << " threads.");
+    LocPluginLogInfo(UgrLogger::Lvl1, fname, "creating " << nthreads << " threads.");
     for (int i = 0; i < nthreads; i++) {
         workers.push_back(new boost::thread(pluginFunc, this, i));
     }
@@ -238,7 +249,7 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
+    LocPluginLogInfo(UgrLogger::Lvl4, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
 
     workcondvar.notify_one();
 
@@ -258,7 +269,7 @@ void LocationPlugin::pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handle
         workqueue.push_back(tk);
     }
 
-    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "pushed op: wop_CheckReplica " << rep);
+    LocPluginLogInfo(UgrLogger::Lvl4, fname, "pushed op: wop_CheckReplica " << rep);
 
     workcondvar.notify_one();
 
@@ -297,7 +308,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     }
 
     if (mytk) {
-        LocPluginLogInfo(Logger::Logger::Lvl4, fname, "got op:" << mytk->wop);
+        LocPluginLogInfo(UgrLogger::Lvl4, fname, "got op:" << mytk->wop);
     }
 
     return mytk;
@@ -310,7 +321,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
     boost::posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
-    LocPluginLogInfoThr(Logger::Lvl2, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
+    LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
 
     // Now put the results
     if (op) {
@@ -366,7 +377,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
 
     }
 
-    LocPluginLogInfoThr(Logger::Lvl2, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
+    LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Finished op: " << op->wop << "fn: " << op->fi->name);
 }
 
 
@@ -384,7 +395,7 @@ void LocationPlugin::run_Check(int myidx){
 int LocationPlugin::do_Stat(UgrFileInfo* fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_Stat";
   
-  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
+  LocPluginLogInfo(UgrLogger::Lvl4, fname, "Entering");
   
   
   // We may have to multiply this query, to search inside multiple prefixes for this plugin
@@ -443,7 +454,7 @@ int LocationPlugin::do_waitStat(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_Locate";
   
-  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
+  LocPluginLogInfo(UgrLogger::Lvl4, fname, "Entering");
   
   
   // We may have to multiply this query, to search inside multiple prefixes for this plugin
@@ -477,7 +488,7 @@ int LocationPlugin::do_Locate(UgrFileInfo *fi, LocationInfoHandler *handler) {
 int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationInfoHandler *handler) {
     const char *fname = "LocationPlugin::do_CheckReplica";
 
-    LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
+    LocPluginLogInfo(UgrLogger::Lvl4, fname, "Entering");
 
     // We immediately notify that this plugin is starting a search for this info
     // Depending on the plugin, the symmetric notifyNotPending() will be done
@@ -504,7 +515,7 @@ int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
 int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
   const char *fname = "LocationPlugin::do_List";
   
-  LocPluginLogInfo(Logger::Logger::Lvl4, fname, "Entering");
+  LocPluginLogInfo(UgrLogger::Lvl4, fname, "Entering");
   
   
   
@@ -535,34 +546,42 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
 
 bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx){
     const char* fname = "LocationPlugin::doParentQueryCheck";
+    bool doitemsnotify = false;
+    // Loop through the xlatepfx alternatives
     for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
+      
+	// IF we are querying for a substring of any of the xlatepfx
+	//  AND this substring is followed by '/'
         if( it->size() > from.size()
            && it->compare(0, from.size(), from) == 0
-           && ( it->at(from.size()) == '/' || from.size() == 1)){ // if query on parent translated dir
-            UgrFileItem item;
-            const size_t pos = it->find(it->size(), '/');
-            item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
-
+           && ( it->at(from.size()) == '/' || from.size() == 1)) {
+	    // if query on parent translated dir
+            
             switch(wtk->wop){
                 case LocationPlugin::wop_List :{
+		  
+		    UgrFileItem item;
+		    const size_t pos = it->find('/', from.size()+1);
+		    item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
+
                     wtk->fi->setPluginID(getID());
 
-                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting prefix item  " << item.name);
+                    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting prefix item  " << item.name);
                     wtk->fi->subdirs.insert(item);
 
                     wtk->fi->status_items = UgrFileInfo::Ok;
-                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Listdir");
-                    wtk->fi->notifyItemsNotPending();
-                    return true;
+		    doitemsnotify = true;
+		    continue;
                 }
                 case LocationPlugin::wop_Stat:{
                     wtk->fi->setPluginID(getID());
                     struct stat st = {};
                     st.st_nlink = 1;
                     st.st_mode |= S_IFDIR;
+		    st.st_mode |= ACCESSPERMS;
                     wtk->fi->takeStat(st);
 
-                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
+                    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Stat");
                     wtk->fi->notifyStatNotPending();
                     return true;
                 }
@@ -574,6 +593,13 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
         }
 
     }
+
+    if (doitemsnotify) {
+      LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Listdir");
+      wtk->fi->notifyItemsNotPending();
+      return true;
+    }
+
     return false;
 }
 
@@ -617,11 +643,11 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
       if (r) to = from;
     }
 
-    LocPluginLogInfo(Logger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(UgrLogger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
 
     // If r is nonzero then a xlatepfx translation was specified, AND no matching prefix was found
     if (r) {
-      LocPluginLogInfo(Logger::Lvl3, fname, "No match on xlated pfx: " << from);
+      LocPluginLogInfo(UgrLogger::Lvl3, fname, "No match on xlated pfx: " << from);
       return r;
     }
     
@@ -634,7 +660,7 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
       to.insert(0, altpfx);
     }
     
-    LocPluginLogInfo(Logger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
+    LocPluginLogInfo(UgrLogger::Lvl3, fname, "xlated pfx: " << from << "->" << to);
     
     return 0;
 }
@@ -722,7 +748,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
     // Set state, log the status change
     // A status change in an endpoint is logged at level kLOW
     // A status setting is logged at level kHIGHEST
-    short lvl = Logger::Lvl3;
+    short lvl = UgrLogger::Lvl3;
     const char *online = "ONLINE";
     const char *offline = "OFFLINE";
     const char *s = online;
@@ -734,7 +760,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
         // Reject the status if it is older than the one that we already have
         if (st.lastcheck > status.lastcheck) {
             if (st.state != PLUGIN_ENDPOINT_ONLINE) s = offline;
-            if (st.state != status.state) lvl = Logger::Lvl1;
+            if (st.state != status.state) lvl = UgrLogger::Lvl1;
             status = st;
             if (setdirty) status_dirty = true;
             reject = false;
@@ -742,7 +768,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
     }
 
     if (reject) {
-        Info(Logger::Logger::Lvl4, "PluginAvailabilityInfo::setStatus",
+        Info(UgrLogger::Lvl4, "PluginAvailabilityInfo::setStatus",
                 " Status of " << logname <<
                 " checked: " << s << " was rejected.");
     } else {
@@ -808,35 +834,35 @@ PluginInterface *GetPluginInterfaceClass(char *pluginPath, GetPluginInterfaceArg
 
     // If we have no plugin path then return NULL
     if (!pluginPath || !strlen(pluginPath)) {
-        Info(Logger::Lvl2, fname, "No plugin to load.");
+        Info(UgrLogger::Lvl2, fname, "No plugin to load.");
         return NULL;
     }
 
     // Create a plugin object (we will throw this away without deletion because
     // the library must stay open but we never want to reference it again).
     if (!myLib) {
-        Info(Logger::Lvl2, fname, "Loading plugin " << pluginPath);
+        Info(UgrLogger::Lvl2, fname, "Loading plugin " << pluginPath);
         if (!(myLib = new PluginLoader(pluginPath))) {
-            Info(Logger::Lvl1, fname, "Failed loading plugin " << pluginPath);
+            Info(UgrLogger::Lvl1, fname, "Failed loading plugin " << pluginPath);
             return NULL;
         }
     } else {
-        Info(Logger::Lvl2, fname, "Plugin " << pluginPath << "already loaded.");
+        Info(UgrLogger::Lvl2, fname, "Plugin " << pluginPath << "already loaded.");
     }
 
     // Now get the entry point of the object creator
-    Info(Logger::Lvl2, fname, "Getting entry point for plugin " << pluginPath);
+    Info(UgrLogger::Lvl2, fname, "Getting entry point for plugin " << pluginPath);
     ep = (PluginInterface * (*)(GetPluginInterfaceArgs))(myLib->getPlugin("GetPluginInterface"));
     if (!ep) {
-        Info(Logger::Lvl1, fname, "Could not get entry point for plugin " << pluginPath);
+        Info(UgrLogger::Lvl1, fname, "Could not get entry point for plugin " << pluginPath);
         return NULL;
     }
 
     // Get the Object now
-    Info(Logger::Lvl2, fname, "Getting class instance for plugin " << pluginPath);
+    Info(UgrLogger::Lvl2, fname, "Getting class instance for plugin " << pluginPath);
     PluginInterface *p = ep(c, parms);
     if (!p)
-        Info(Logger::Lvl1, fname, "Could not get class instance for plugin " << pluginPath);
+        Info(UgrLogger::Lvl1, fname, "Could not get class instance for plugin " << pluginPath);
     return p;
 
 }

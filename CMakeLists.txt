@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (dynafed)
+project (ugr)
 
 # build type
 set(CMAKE_BUILD_TYPE "RelWithDebInfo"

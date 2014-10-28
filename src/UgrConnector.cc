@@ -58,7 +58,7 @@ void ugr_load_plugin(UgrConnector & c,
            }
             try{
 
-                Info(Logger::Lvl1, fname, "Attempting to load plugin "<< typeid(T).name() << plugin_path.string());
+                Info(UgrLogger::Lvl1, fname, "Attempting to load plugin "<< typeid(T).name() << plugin_path.string());
                 PluginInterface *prod = static_cast<PluginInterface*>(GetPluginInterfaceClass((char *) plugin_path.string().c_str(),
                         c,
                         parms));
@@ -92,12 +92,12 @@ void ugr_unload_plugin(std::vector<T*> & v_plugin){
 void UgrConnector::tick(int parm) {
 
     const char *fname = "UgrConnector::tick";
-    Info(Logger::Lvl1, fname, "Ticker started");
+    Info(UgrLogger::Lvl1, fname, "Ticker started");
 
     //ticker->detach();
 
     while (!ticker->interruption_requested()) {
-        Info(Logger::Logger::Lvl4, fname, "Tick.");
+        Info(UgrLogger::Lvl4, fname, "Tick.");
         time_t timenow = time(0);
 
         sleep(ticktime);
@@ -111,23 +111,23 @@ void UgrConnector::tick(int parm) {
         }
     }
 
-    Info(Logger::Lvl1, fname, "Ticker exiting");
+    Info(UgrLogger::Lvl1, fname, "Ticker exiting");
 }
 
 UgrConnector::~UgrConnector() {
     const char *fname = "UgrConnector::~UgrConnector";
 
-    Info(Logger::Lvl1, fname, "Stopping ticker.");
+    Info(UgrLogger::Lvl1, fname, "Stopping ticker.");
     if (ticker) {
-        Info(Logger::Lvl1, fname, "Joining ticker");
+        Info(UgrLogger::Lvl1, fname, "Joining ticker");
         ticker->interrupt();
         ticker->join();
         delete ticker;
         ticker = 0;
-        Info(Logger::Lvl1, fname, "Joined.");
+        Info(UgrLogger::Lvl1, fname, "Joined.");
     }
 
-    Info(Logger::Lvl1, fname, "Destroying plugins");
+    Info(UgrLogger::Lvl1, fname, "Destroying plugins");
     int cnt = locPlugins.size();
 
     for (int i = 0; i < cnt; i++)
@@ -136,7 +136,7 @@ UgrConnector::~UgrConnector() {
     ugr_unload_plugin<LocationPlugin>(locPlugins);
     ugr_unload_plugin<FilterPlugin>(filterPlugins);
 
-    Info(Logger::Lvl1, fname, "Exiting.");
+    Info(UgrLogger::Lvl1, fname, "Exiting.");
 
 }
 
@@ -144,8 +144,8 @@ Config & UgrConnector::getConfig() const{
     return *Config::GetInstance();
 }
 
-Logger & UgrConnector::getLogger() const{
-    return *Logger::get();
+UgrLogger & UgrConnector::getLogger() const{
+    return *UgrLogger::get();
 }
 
 int UgrConnector::init(char *cfgfile) {
@@ -155,7 +155,7 @@ int UgrConnector::init(char *cfgfile) {
         if (initdone) return -1;
 
         // Process the config file
-        Info(Logger::Lvl1, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
+        Info(UgrLogger::Lvl1, "MsgProd_Init_cfgfile", "Starting. Config: " << cfgfile);
 
         if (!cfgfile || !strlen(cfgfile)) {
             Error(fname, "No config file given." << cfgfile << std::endl);
@@ -167,18 +167,26 @@ int UgrConnector::init(char *cfgfile) {
             return 1;
         }
 
-        DebugSetLevel((Logger::Level)CFG->GetLong("glb.debug", 1));
         bool debug_stderr = CFG->GetBool("glb.log_stderr", true);
         long debuglevel = CFG->GetLong("glb.debug", 1);
-
         DebugSetLevel(debuglevel);
         //SimpleDebug::Instance()->SetStderrPrint(debug_stderr);
+	
+	// Now enable the logging of the components that have been explicitely requested
+	int i = 0;
+	do {
+	  char buf[1024];
+	  CFG->ArrayGetString("glb.debug.components", buf, i);
+	  if (!buf[0]) break;
+	  UgrLogger::get()->setLogged(buf, true);
+	  ++i;
+	} while (1);
 
         // setup plugin directory
         plugin_dir = CFG->GetString("glb.plugin_dir", (char *) UGR_PLUGIN_DIR_DEFAULT);
         try {
             if (is_directory(plugin_dir)) {
-                Info(Logger::Lvl2, fname, "Define Ugr plugin directory to: " << plugin_dir);
+                Info(UgrLogger::Lvl2, fname, "Define Ugr plugin directory to: " << plugin_dir);
             } else {
                 throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, get_generic_category()));
             }
@@ -197,7 +205,7 @@ int UgrConnector::init(char *cfgfile) {
         ugr_load_plugin<LocationPlugin>(*this, fname, plugin_dir,
                                                "glb.locplugin", locPlugins);
 
-        Info(Logger::Lvl1, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
+        Info(UgrLogger::Lvl1, fname, "Loaded " << locPlugins.size() << " location plugins." << cfgfile);
 
         if (!locPlugins.size()) {
             std::vector<std::string> parms;
@@ -206,13 +214,13 @@ int UgrConnector::init(char *cfgfile) {
             parms.push_back("Unnamed");
             parms.push_back("1");
 
-            Info(Logger::Lvl1, fname, "No location plugins available. Using the default one.");
+            Info(UgrLogger::Lvl1, fname, "No location plugins available. Using the default one.");
             LocationPlugin *prod = new LocationPlugin(*this, parms);
             if (prod) locPlugins.push_back(prod);
         }
 
         if (!locPlugins.size())
-            Info(Logger::Lvl1, fname, "Still no location plugins available. A disaster.");
+            Info(UgrLogger::Lvl1, fname, "Still no location plugins available. A disaster.");
 
         // load Filter plugins
         ugr_load_plugin<FilterPlugin>(*this, fname, plugin_dir,
@@ -223,16 +231,16 @@ int UgrConnector::init(char *cfgfile) {
         n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
         UgrFileInfo::trimpath(n2n_pfx);
         UgrFileInfo::trimpath(n2n_newpfx);
-        Info(Logger::Lvl1, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
+        Info(UgrLogger::Lvl1, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
 
 
-        Info(Logger::Lvl3, fname, "Starting the plugins.");
+        Info(UgrLogger::Lvl3, fname, "Starting the plugins.");
         for (unsigned int i = 0; i < locPlugins.size(); i++) {
             if (locPlugins[i]->start(&extCache))
                 Error(fname, "Could not start plugin " << i);
         }
 
-        Info(Logger::Lvl1, fname, locPlugins.size() << " plugins started.");
+        Info(UgrLogger::Lvl1, fname, locPlugins.size() << " plugins started.");
 
 
         // Start the ticker
@@ -243,7 +251,7 @@ int UgrConnector::init(char *cfgfile) {
 
     }
 
-    Info(Logger::Lvl1, fname, "Initialization complete.");
+    Info(UgrLogger::Lvl1, fname, "Initialization complete.");
 
     return 0;
 }
@@ -252,7 +260,7 @@ bool UgrConnector::isEndpointOK(int pluginID) {
     const size_t id = static_cast<size_t>(pluginID);
 
     if ( id >= locPlugins.size()){
-        Info(Logger::Lvl1, "isEndpointOK", "Invalid plugin ID BUG !");
+        Info(UgrLogger::Lvl1, "isEndpointOK", "Invalid plugin ID BUG !");
         return false;
     }
 
@@ -289,7 +297,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
     if (fi->getStatStatus() != UgrFileInfo::InProgress) return 0;
 
-    Info(Logger::Lvl3, "UgrConnector::do_waitStat", "Going to wait for " << fi->name);
+    Info(UgrLogger::Lvl3, "UgrConnector::do_waitStat", "Going to wait for " << fi->name);
     {
         unique_lock<mutex> lck(*fi);
 
@@ -307,7 +315,7 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
-    Info(Logger::Lvl2, fname, "Stating " << lfn);
+    Info(UgrLogger::Lvl2, fname, "Stating " << lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -340,18 +348,18 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
-    Info(Logger::Lvl2, fname, "Stat-ed " << lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
+    Info(UgrLogger::Lvl2, fname, "Stat-ed " << lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
 
 bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (c->isEndpointOK(r.pluginID)) {
-        Info(Logger::Lvl3, "UgrConnector::filter", "not a replica offline" << r.name << " ");
+        Info(UgrLogger::Lvl3, "UgrConnector::filter", "not a replica offline" << r.name << " ");
         return false;
     }
     
-    Info(Logger::Lvl3, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID << " ");
+    Info(UgrLogger::Lvl3, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID << " ");
     return true;
 }
 
@@ -397,11 +405,11 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
 
     // if it's not a dir then exit
     if (!(fi->unixflags & S_IFDIR)) {
-        Info(Logger::Lvl2, fname, "Try to sub-stat a file that is not a directory !! " << fi->name);
+        Info(UgrLogger::Lvl2, fname, "Try to sub-stat a file that is not a directory !! " << fi->name);
         return;
     }
 
-    Info(Logger::Lvl2, fname, "Stat-ing all the subdirs of " << fi->name);
+    Info(UgrLogger::Lvl2, fname, "Stat-ing all the subdirs of " << fi->name);
 
     // Cycle through all the subdirs (fi is locked)
     for (std::set<UgrFileItem>::iterator i = fi->subdirs.begin();
@@ -438,7 +446,7 @@ int UgrConnector::do_waitLocate(UgrFileInfo *fi, int tmout) {
 
     if (fi->getLocationStatus() != UgrFileInfo::InProgress) return 0;
 
-    Info(Logger::Lvl3, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
+    Info(UgrLogger::Lvl3, "UgrConnector::do_waitLocate", "Going to wait for " << fi->name);
     {
         unique_lock<mutex> lck(*fi);
 
@@ -469,7 +477,7 @@ int UgrConnector::do_checkreplica(UgrFileInfo *fi, std::string rep) {
     // Touch the item anyway, it has been referenced
     fi->touch();
 
-    Info(Logger::Lvl1, "UgrConnector::do_checkreplica", "Checking " << fi->name << "rep:" << rep << " Status: " << fi->getLocationStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::do_checkreplica", "Checking " << fi->name << "rep:" << rep << " Status: " << fi->getLocationStatus() <<
             " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
 
     return 0;
@@ -482,7 +490,7 @@ int UgrConnector::locate(std::string &lfn, UgrFileInfo **nfo) {
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
-    Info(Logger::Lvl2, "UgrConnector::locate", "Locating " << lfn);
+    Info(UgrLogger::Lvl2, "UgrConnector::locate", "Locating " << lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -514,7 +522,7 @@ int UgrConnector::locate(std::string &lfn, UgrFileInfo **nfo) {
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(Logger::Lvl1, "UgrConnector::locate", "Located " << lfn << " repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::locate", "Located " << lfn << " repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
             " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
 
     return 0;
@@ -536,7 +544,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 
     if (fi->getItemsStatus() != UgrFileInfo::InProgress) return 0;
 
-    Info(Logger::Lvl3, "UgrConnector::do_waitList", "Going to wait for " << fi->name);
+    Info(UgrLogger::Lvl3, "UgrConnector::do_waitList", "Going to wait for " << fi->name);
     {
         unique_lock<mutex> lck(*fi);
 
@@ -554,7 +562,7 @@ int UgrConnector::list(std::string &lfn, UgrFileInfo **nfo, int nitemswait) {
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
 
-    Info(Logger::Lvl2, "UgrConnector::list", "Listing " << lfn);
+    Info(UgrLogger::Lvl2, "UgrConnector::list", "Listing " << lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
@@ -593,7 +601,7 @@ int UgrConnector::list(std::string &lfn, UgrFileInfo **nfo, int nitemswait) {
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(Logger::Lvl1, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;

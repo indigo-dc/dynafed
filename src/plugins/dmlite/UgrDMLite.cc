@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include "dmlite/cpp/utils/urls.h"
-#include "dmlite/cpp/utils/logger.h"
 
 using namespace dmlite;
 
@@ -20,7 +19,7 @@ UgrConnector *UgrCatalog::conn = 0;
 UgrFactory::UgrFactory() throw (DmException) {
   
     ugrlogmask = Logger::get()->getMask(ugrlogname);
-    Log(Logger::Lvl4, ugrlogmask, ugrlogname, " UgrFactory starting");
+    Log(UgrLogger::Lvl4, ugrlogmask, ugrlogname, " UgrFactory starting");
   
     // Make sure that there is an UgrConnector ready to be used
     // NOTE: calls to this ctor MUST be serialized
@@ -34,7 +33,7 @@ UgrFactory::~UgrFactory()  {
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
     if (!key.compare("Ugr_cfgfile")) {
         cfgfile = value;
-	Log(Logger::Lvl2, ugrlogmask, 0, "Getting config file: " << value);
+	Log(UgrLogger::Lvl2, ugrlogmask, 0, "Getting config file: " << value);
         UgrCatalog::getUgrConnector()->resetinit();
     }
 }
@@ -42,7 +41,7 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
 Catalog* UgrFactory::createCatalog(CatalogFactory* factory,
         PluginManager* pm) throw (DmException) {
 
-    Log(Logger::Lvl2, ugrlogmask, 0, "Creating catalog instance. cfg: " << cfgfile.c_str());
+    Log(UgrLogger::Lvl2, ugrlogmask, 0, "Creating catalog instance. cfg: " << cfgfile.c_str());
     int r = UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
     if (r > 0)
         throw DmException(DMLITE_CFGERR(DMLITE_NO_CATALOG), "UgrConnector initialization failed.");
@@ -54,7 +53,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     UgrFactory *f = new UgrFactory();
 
     try {
-	Log(Logger::Lvl4, ugrlogmask, 0, "Registering Ugr Catalog Factory");
+	Log(UgrLogger::Lvl4, ugrlogmask, 0, "Registering Ugr Catalog Factory");
         pm->registerCatalogFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
@@ -63,7 +62,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     }
 
     try {
-	Log(Logger::Lvl4, ugrlogmask, 0, "Registering Ugr Authn Factory");
+	Log(UgrLogger::Lvl4, ugrlogmask, 0, "Registering Ugr Authn Factory");
         pm->registerAuthnFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
@@ -106,7 +105,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
 
         UgrClientInfo info(secCredentials.remoteAddress);
-        Info(Logger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
+        Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
         std::deque<UgrFileItem_replica> reps;
         nfo->getReplicaList(reps);
         getUgrConnector()->filter(reps, info);
@@ -125,14 +124,14 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
             // Look for ://, then for the subsequent / or :
             size_t p1;
             p1 = i->name.find("://");
-            //Info(Logger::Lvl3, "UgrCatalog::getReplicas000", p1 << " " <<  i->name.npos);
+            //Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas000", p1 << " " <<  i->name.npos);
             if (p1 != i->name.npos) {
-                //Info(Logger::Lvl3, "UgrCatalog::getReplicas00", r.server);
+                //Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas00", r.server);
                 // get the name of the server
                 size_t p2 = i->name.find_first_of(":/", p1 + 3);
                 if (p2 != std::string::npos) {
                     r.server = i->name.substr(p1 + 3, p2 - p1 - 3);
-                    //Info(Logger::Lvl3, "UgrCatalog::getReplicas0", r.server);
+                    //Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas0", r.server);
                 }
 
 
@@ -145,27 +144,27 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 //            for (pslh = 10; pslh < r.rfn.size() - 1; pslh++) {
 //
 //                if ((r.rfn[pslh] == '/') && (r.rfn[pslh + 1] == '/')) {
-//                    Info(Logger::Lvl3, "UgrCatalog::getReplicas1", r.rfn << "-" << r.server << "-" << pslh);
+//                    Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas1", r.rfn << "-" << r.server << "-" << pslh);
 //                    r.rfn.erase(pslh + 1, 1);
-//                    Info(Logger::Lvl3, "UgrCatalog::getReplicas2", r.rfn << " " << r.server << " " << pslh);
+//                    Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas2", r.rfn << " " << r.server << " " << pslh);
 //                }
 //
 //
 //
 //            };
             
-            Info(Logger::Lvl3, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
+            Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
             replicas.push_back(r);
         }
 
 
     } else {
-        Info(Logger::Lvl1, "UgrCatalog::getReplicas", "Failure in get location. " << path);
+        Info(UgrLogger::Lvl1, "UgrCatalog::getReplicas", "Failure in get location. " << path);
     }
 
     // Return
     if (replicas.size() == 0) {
-        Info(Logger::Lvl3, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
+        Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
         throw DmException(DMLITE_NO_REPLICAS, "No active endpoints have replicas of this file now. " + path);
     }
     
@@ -367,7 +366,7 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentia
     
     
     
-    Info(Logger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
+    Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
 
 
     return new dmlite::SecurityContext(c, userinfo, groupinfo);
@@ -375,3 +374,96 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentia
 }
 
 
+
+
+UserInfo UgrAuthn::getUser(const std::string& userName) throw (DmException)
+{
+  UserInfo   user;
+  
+  
+  
+    user.name      = userName;
+    user["ca"]     = std::string();
+    user["banned"] = 0;
+    user["uid"]    = 0u;
+    
+  Info(UgrLogger::Lvl3, "UgrAuthn::getUser", "usr:" << userName);
+  
+  return user;
+}
+
+
+
+
+
+GroupInfo UgrAuthn::getGroup(const std::string& groupName) throw (DmException)
+{
+  GroupInfo group;
+  
+  
+  Info(UgrLogger::Lvl3, "UgrAuthn::getGroup", "group:" << groupName);
+    
+  group.name      = groupName;
+  group["gid"]    = 0;
+  group["banned"] = 0;
+    
+  Info(UgrLogger::Lvl3, "UgrAuthn::getGroup", "Exiting. group:" << groupName);
+  
+  return group;
+}
+
+
+
+void UgrAuthn::getIdMap(const std::string& userName,
+                          const std::vector<std::string>& groupNames,
+                          UserInfo* user,
+                          std::vector<GroupInfo>* groups) throw (DmException)
+{
+  std::string vo;
+  GroupInfo   group;
+  
+  Info(UgrLogger::Lvl3, "UgrAuthn::getIdMap", "usr:" << userName);
+  
+  // Clear
+  groups->clear();
+
+  // User mapping
+  *user = this->getUser(userName);
+
+  // No VO information, so use the mapping file to get the group
+  if (groupNames.empty()) {   
+    group = this->getGroup("dummy");
+    groups->push_back(group);
+  }
+  else {
+    // Get group info
+    std::vector<std::string>::const_iterator i;
+    for (i = groupNames.begin(); i != groupNames.end(); ++i) {
+      group = this->getGroup(*i);
+      groups->push_back(group);
+    }
+  }
+  
+  Info(UgrLogger::Lvl3, "UgrAuthn::getIdMap", "Exiting. usr:" << userName);
+}
+
+
+
+dmlite::SecurityContext* UgrAuthn::createSecurityContext(void) throw (DmException) {
+  Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", "Creating dummy");
+    
+  UserInfo user;
+  std::vector<GroupInfo> groups;
+  GroupInfo group;
+
+  user.name    = "root";
+  user["uid"]  = 0;
+  group.name   = "root";
+  group["gid"] = 0;
+  groups.push_back(group);
+  
+  SecurityContext* sec = new SecurityContext(SecurityCredentials(), user, groups);
+  Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", SecurityCredentials().clientName << " " << SecurityCredentials().remoteAddress);
+  
+  return sec;
+}

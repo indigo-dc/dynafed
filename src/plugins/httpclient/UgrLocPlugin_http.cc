@@ -86,12 +86,12 @@ static void configureSSLParams(const std::string & plugin_name,
 
     // get ssl check
     const bool ssl_check = pluginGetParam<bool>(prefix, "ssl_check", true);
-    Info(Logger::Lvl1, plugin_name, "SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
+    Info(UgrLogger::Lvl1, plugin_name, "SSL CA check for davix is set to  " + std::string((ssl_check) ? "TRUE" : "FALSE"));
     params.setSSLCAcheck(ssl_check);
     // ca check
     const std::string ca_path = pluginGetParam<std::string>(prefix, "ca_path");
     if( ca_path.size() > 0){
-        Info(Logger::Lvl1, plugin_name, "CA Path added :  " << ca_path);
+        Info(UgrLogger::Lvl1, plugin_name, "CA Path added :  " << ca_path);
         params.addCertificateAuthorityPath(ca_path);
     }
 
@@ -100,19 +100,19 @@ static void configureSSLParams(const std::string & plugin_name,
     const std::string credential_type_str = pluginGetParam<std::string>(prefix, "cli_type", "pkcs12");
     sec.type = parseCredType(credential_type_str);
     if(sec.type != Pkcs12Cred)
-        Info(Logger::Lvl1, plugin_name, " CLI cert type defined to " << sec.type);
+        Info(UgrLogger::Lvl1, plugin_name, " CLI cert type defined to " << sec.type);
     // setup private key
     sec.key_path = pluginGetParam<std::string>(prefix, "cli_private_key");
     if (sec.key_path.size() > 0)
-        Info(Logger::Lvl1, plugin_name, " CLI priv key defined");
+        Info(UgrLogger::Lvl1, plugin_name, " CLI priv key defined");
     // setup credential
     sec.cred_path = pluginGetParam<std::string>(prefix, "cli_certificate");
     if (sec.cred_path.size() > 0)
-        Info(Logger::Lvl1, plugin_name, " CLI CERT path is set to " + sec.cred_path);
+        Info(UgrLogger::Lvl1, plugin_name, " CLI CERT path is set to " + sec.cred_path);
     // setup credential password
     sec.key_passwd = pluginGetParam<std::string>(prefix, "cli_password");
     if (sec.key_passwd.size() > 0)
-        Info(Logger::Lvl1, plugin_name, " CLI CERT password defined");
+        Info(UgrLogger::Lvl1, plugin_name, " CLI CERT password defined");
 
     if (sec.key_path.size() > 0) {
         using namespace boost;
@@ -130,7 +130,7 @@ static void configureHttpAuth(const std::string & plugin_name,
     // auth password
     const std::string password = pluginGetParam<std::string>(prefix, "auth_passwd");
     if (password.size() > 0 && login.size() > 0) {
-        Info(Logger::Lvl1, plugin_name, "login and password setup for authentication");
+        Info(UgrLogger::Lvl1, plugin_name, "login and password setup for authentication");
         params.setClientLoginPassword(login, password);
     }
 }
@@ -143,7 +143,7 @@ static void configureHttpTimeout(const std::string & plugin_name,
     long timeout;
     struct timespec spec_timeout;
     if ((timeout =pluginGetParam<long>(prefix, "conn_timeout", 15)) != 0) {
-        Info(Logger::Lvl1, plugin_name, "Connection timeout is set to : " << timeout);
+        Info(UgrLogger::Lvl1, plugin_name, "Connection timeout is set to : " << timeout);
         spec_timeout.tv_sec = timeout;
         spec_timeout.tv_nsec =0;
         params.setConnectionTimeout(&spec_timeout);
@@ -152,7 +152,7 @@ static void configureHttpTimeout(const std::string & plugin_name,
         spec_timeout.tv_sec = timeout;
         spec_timeout.tv_nsec = 0;
         params.setOperationTimeout(&spec_timeout);
-        Info(Logger::Lvl1, plugin_name, "Operation timeout is set to : " << timeout);
+        Info(UgrLogger::Lvl1, plugin_name, "Operation timeout is set to : " << timeout);
     }
 }
 
@@ -168,7 +168,7 @@ static void configureFlags(const std::string & plugin_name,
         flags &= ~(UGR_HTTP_FLAG_METALINK);
         params.setMetalinkMode(Davix::MetalinkMode::Disable);
     }
-    Info(Logger::Lvl1, plugin_name, " Metalink support " << metalink_support);
+    Info(UgrLogger::Lvl1, plugin_name, " Metalink support " << metalink_support);
 }
 
 static void configureHeader(const std::string & plugin_name,
@@ -182,7 +182,7 @@ static void configureHeader(const std::string & plugin_name,
         ss << prefix << "." << "custom_header";
         CFG->ArrayGetString(ss.str().c_str(), s, p++);
         if (s) {
-            Info(Logger::Lvl1, plugin_name, " Configuring additional headers #" << p << ":" << s);
+            Info(UgrLogger::Lvl1, plugin_name, " Configuring additional headers #" << p << ":" << s);
             vector<string> vs = tokenize(s, ":");
             if (vs.size() > 1) params.addHeader(vs[0], vs[1]);
         }
@@ -195,11 +195,11 @@ static void configureHeader(const std::string & plugin_name,
 
 UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms) :
     LocationPlugin(c, parms), flags(0), dav_core(), pos(&dav_core) {
-    Info(Logger::Lvl1, "UgrLocPlugin_[http/dav]", "Creating instance named " << name);
+    Info(UgrLogger::Lvl1, "UgrLocPlugin_[http/dav]", "Creating instance named " << name);
     // try to get config
     const int params_size = parms.size();
     if (params_size > 3) {
-        Info(Logger::Lvl1, "UgrLocPlugin_[http/dav]", "Try to bind UgrLocPlugin_[http/dav] with " << parms[3]);
+        Info(UgrLogger::Lvl1, "UgrLocPlugin_[http/dav]", "Try to bind UgrLocPlugin_[http/dav] with " << parms[3]);
         base_url_endpoint = Davix::Uri(parms[3]);
 
     } else {
@@ -268,17 +268,17 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             unique_lock<mutex> l(*(op->fi));
             switch (op->wop) {
                 case LocationPlugin::wop_Stat:
-		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Stat() " << canonical_name << ")");
+		    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Short-circuit on Stat() " << canonical_name << ")");
                     op->fi->notifyStatNotPending();
                     break;
 
                 case LocationPlugin::wop_Locate:
-		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on Locate() " << canonical_name << ")");
+		    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Short-circuit on Locate() " << canonical_name << ")");
                     op->fi->notifyLocationNotPending();
                     break;
 
                 case LocationPlugin::wop_List:
-		    LocPluginLogInfoThr(Logger::Lvl3, fname, "Short-circuit on List() " << canonical_name << ")");
+		    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Short-circuit on List() " << canonical_name << ")");
                     op->fi->notifyItemsNotPending();
                     break;
 
@@ -300,7 +300,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     switch (op->wop) {
 
         case LocationPlugin::wop_Stat:
-            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking davix_Stat(" << canonical_name << ")");
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "invoking davix_Stat(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             // force path finishing with '/' like a directory, impossible to get the type of a file in plain http
             if (canonical_name.at(canonical_name.length() - 1) == '/') {
@@ -309,13 +309,13 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             break;
 
         case LocationPlugin::wop_Locate:
-            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Locate(" << canonical_name << ")");
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "invoking Locate(" << canonical_name << ")");
             if(flags & UGR_HTTP_FLAG_METALINK){
-                LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking Locate with metalink support");
+                LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "invoking Locate with metalink support");
                 Davix::File f(dav_core, canonical_name);
                 replica_vec = f.getReplicas(&params, &tmp_err);
                 if(tmp_err){
-                    LocPluginLogInfoThr(Logger::Lvl3, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
+                    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Impossible to use Metalink, code " << ((int)tmp_err->getStatus()) << " error "<< tmp_err->getErrMsg());
                 }
             }
 
@@ -327,7 +327,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
             break;
 
         case LocationPlugin::wop_CheckReplica:
-            LocPluginLogInfoThr(Logger::Lvl3, fname, "invoking CheckReplica(" << canonical_name << ")");
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "invoking CheckReplica(" << canonical_name << ")");
             pos.stat(&params, canonical_name, &st, &tmp_err);
             break;
 
@@ -338,20 +338,20 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
     if (!tmp_err) {
         bad_answer = false; // reach here -> request complete
     } else {
-        LocPluginLogInfoThr(Logger::Lvl3, fname, " UgrHttp plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, " UgrHttp plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
     }
 
 
     op->fi->lastupdtime = time(0);
 
     if (bad_answer == false) {
-        LocPluginLogInfoThr(Logger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
+        LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Worker: inserting data for " << op->fi->name);
         op->fi->setPluginID(getID());
 
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
+                LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: stat info:" << st.st_size << " " << st.st_mode);
                 op->fi->takeStat(st);
                 break;
 
@@ -362,7 +362,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                     itr.name = HttpUtils::protocolHttpNormalize(it->getUri().getString());
                     HttpUtils::pathHttpNomalize(itr.name);
                     itr.pluginID = getID();
-                    LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
+                    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                     // We have modified the data, hence set the dirty flag
                     op->fi->dirtyitems = true;
@@ -378,7 +378,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
                 itr.name = canonical_name;
 
                 itr.pluginID = getID();
-                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
+                LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting replicas " << itr.name);
 
                 // We have modified the data, hence set the dirty flag
                 op->fi->dirtyitems = true;
@@ -394,7 +394,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
 
         if (tmp_err) {
-            LocPluginLogInfoThr(Logger::Lvl3, fname, " UgrHttp plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, " UgrHttp plugin request Error : " << ((int) tmp_err->getStatus()) << " errMsg: " << tmp_err->getErrMsg());
         }
     }
 
@@ -407,13 +407,13 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
         switch (op->wop) {
 
             case LocationPlugin::wop_Stat:
-                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Stat");
+                LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Stat");
                 op->fi->notifyStatNotPending();
                 break;
 
             case LocationPlugin::wop_Locate:
             case LocationPlugin::wop_CheckReplica:
-                LocPluginLogInfoThr(Logger::Logger::Lvl4, fname, "Notify End Locate");
+                LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Locate");
                 op->fi->status_locations = UgrFileInfo::Ok;
                 op->fi->notifyLocationNotPending();
                 break;
@@ -438,7 +438,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
     PluginEndpointStatus st;
     st.errcode = 404;
 
-    LocPluginLogInfo(Logger::Lvl3, fname, "Start checker for " << base_url_endpoint << " with time " << availInfo.time_interval_ms);
+    LocPluginLogInfo(UgrLogger::Lvl3, fname, "Start checker for " << base_url_endpoint << " with time " << availInfo.time_interval_ms);
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
@@ -506,7 +506,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
         extCache->putEndpointStatus(&st, name);
 
 
-    LocPluginLogInfo(Logger::Logger::Lvl4, fname, " End checker for " << base_url_endpoint);
+    LocPluginLogInfo(UgrLogger::Lvl4, fname, " End checker for " << base_url_endpoint);
 
 }
 

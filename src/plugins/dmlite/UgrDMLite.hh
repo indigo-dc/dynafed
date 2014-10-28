@@ -93,7 +93,7 @@ namespace dmlite {
         /// Create a security context from the credentials.
         /// @param cred The security credentials.
         virtual SecurityContext* createSecurityContext(const SecurityCredentials& cred) throw (DmException);
-
+	virtual SecurityContext* createSecurityContext() throw (DmException);
 
         /// Create a new group.
         /// @param gname The new group name.
@@ -102,14 +102,8 @@ namespace dmlite {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual dmlite::GroupInfo getGroup(const std::string&) throw (DmException) {
-            throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
-        };
-
-        virtual GroupInfo getGroup(const std::string& g, const boost::any& a) throw (DmException) {
-            throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
-        };
-
+	virtual GroupInfo getGroup(const std::string& groupName) throw (DmException);
+	
         virtual std::vector<dmlite::GroupInfo> getGroups() throw (DmException) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
@@ -126,13 +120,7 @@ namespace dmlite {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual dmlite::UserInfo getUser(const std::string&) throw (DmException) {
-            throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
-        };
-
-        virtual UserInfo getUser(const std::string& u, const boost::any& a) throw (DmException) {
-            throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
-        };
+        virtual dmlite::UserInfo getUser(const std::string&) throw (DmException);
 
         virtual std::vector<dmlite::UserInfo> getUsers() throw (DmException) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
@@ -149,10 +137,7 @@ namespace dmlite {
         virtual void getIdMap(const std::string& userName,
                 const std::vector<std::string>& groupNames,
                 UserInfo* user,
-                std::vector<GroupInfo>* groups) throw (DmException) {
-
-            throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
-        };
+                std::vector<GroupInfo>* groups) throw (DmException);
 
     protected:
         SecurityCredentials cred;

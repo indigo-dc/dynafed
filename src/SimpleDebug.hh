@@ -7,10 +7,10 @@
 #ifndef SIMPLEDEBUG_HH
 #define SIMPLEDEBUG_HH
 
-#include "dmlite/cpp/utils/logger.h"
+#include "UgrLogger.hh"
 
-extern Logger::bitmask ugrlogmask;
-extern Logger::component ugrlogname;
+extern UgrLogger::bitmask ugrlogmask;
+extern UgrLogger::component ugrlogname;
 
 
 // -------------------------------------------------------
@@ -23,8 +23,8 @@ extern Logger::component ugrlogname;
 // The log level is a short integer, representing an increasing importance
 //  of the message to log.
 
-#define DebugLevel() Logger::get()->getLevel()
-#define DebugSetLevel(l) Logger::get()->setLevel((Logger::Level)l)
+#define DebugLevel() UgrLogger::get()->getLevel()
+#define DebugSetLevel(l) UgrLogger::get()->setLevel((UgrLogger::Level)l)
 
 // Information logging
 // The output of these strings is subject to the log level that was set
@@ -35,12 +35,23 @@ extern Logger::component ugrlogname;
 //    when requesting the logging
 //  what is a string that describes the info to log.
 //
-#define Info(lvl, where, what) Log(lvl, ugrlogmask, where, what)
-
+#define Info(lvl, where, what) do {                                											\
+	if (UgrLogger::get()->getLevel() >= lvl && UgrLogger::get()->isLogged(ugrlogmask)) 	\
+	{    																	\
+		std::ostringstream outs;                                   			\
+		outs << "dmlite " << where << " " << __func__ << " : " << what;                      			\
+		UgrLogger::get()->log((UgrLogger::Level)lvl, outs.str());    				\
+	}                                                             			\
+}while(0)
 
 // Error logging
 // These error messages are printed regardless of the current local logging level
-#define Error(where, what) Err(where, what)
+#define Error(where, what) do{                                											\
+		std::ostringstream outs;                                   			\
+		outs << "dmlite " << where << " !! " << __func__ << " : " << what;                      			\
+		UgrLogger::get()->log((UgrLogger::Level)0, outs.str());    				\
+}while(0)
+
 
 
 #endif

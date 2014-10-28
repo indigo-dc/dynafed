@@ -45,7 +45,7 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // then we recheck...
     time_t timelimit = time(0) + sectmout;
 
-    Info(Logger::Logger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getStatStatus() <<
+    Info(UgrLogger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getStatStatus() <<
             " status_statinfo: " << status_statinfo << " pending_statinfo: " << pending_statinfo);
 
     while (getStatStatus() == InProgress) {
@@ -53,12 +53,12 @@ int UgrFileInfo::waitStat(boost::unique_lock<boost::mutex> &l, int sectmout) {
         waitForSomeUpdate(l, 1);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(Logger::Lvl3, fname, "Timeout. Name:" << name);
+            Info(UgrLogger::Lvl3, fname, "Timeout. Name:" << name);
             break;
         }
     }
 
-    Info(Logger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getStatStatus() <<
+    Info(UgrLogger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getStatStatus() <<
             " status_statinfo: " << status_statinfo << " pending_statinfo: " << pending_statinfo);
 
     // We are here if the plugins have finished OR in the case of timeout
@@ -76,7 +76,7 @@ int UgrFileInfo::waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout
     // then we recheck...
     time_t timelimit = time(0) + sectmout;
 
-    Info(Logger::Logger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getLocationStatus() <<
+    Info(UgrLogger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getLocationStatus() <<
             " status_locations: " << status_locations << " pending_locations: " << pending_locations);
 
     while (getLocationStatus() == InProgress) {
@@ -84,12 +84,12 @@ int UgrFileInfo::waitLocations(boost::unique_lock<boost::mutex> &l, int sectmout
         waitForSomeUpdate(l, 1);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(Logger::Lvl3, fname, "Timeout. Name:" << name);
+            Info(UgrLogger::Lvl3, fname, "Timeout. Name:" << name);
             break;
         }
     }
 
-    Info(Logger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getLocationStatus() <<
+    Info(UgrLogger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getLocationStatus() <<
             " status_locations: " << status_locations << " pending_locations: " << pending_locations);
 
     // We are here if the plugins have finished OR in the case of timeout
@@ -107,7 +107,7 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
     // then we recheck...
     time_t timelimit = time(0) + sectmout;
 
-    Info(Logger::Logger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getItemsStatus() <<
+    Info(UgrLogger::Lvl4, fname, "Starting check-wait. Name: " << name << " Status: " << getItemsStatus() <<
             " status_items: " << status_items << " pending_items: " << pending_items);
 
     while (getItemsStatus() == UgrFileInfo::InProgress) {
@@ -115,12 +115,12 @@ int UgrFileInfo::waitItems(boost::unique_lock<boost::mutex> &l, int sectmout) {
         waitForSomeUpdate(l, 2);
         // On global timeout... stop waiting
         if (time(0) > timelimit) {
-            Info(Logger::Lvl3, fname, "Timeout. Name:" << name);
+            Info(UgrLogger::Lvl3, fname, "Timeout. Name:" << name);
             break;
         }
     }
 
-    Info(Logger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getItemsStatus()
+    Info(UgrLogger::Lvl3, fname, "Finished check-wait. Name: " << name << " Status: " << getItemsStatus()
             << " status_items: " << status_items << " pending_items: " << pending_items);
 
     // We are here if the plugins have finished OR in the case of timeout
@@ -331,7 +331,7 @@ void UgrFileInfo::setPluginID(const short pluginID) {
 
 void UgrFileInfo::takeStat(const struct stat &st) {
     const char *fname = "UgrFileInfo::takeStat";
-    Info(Logger::Logger::Lvl4, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
+    Info(UgrLogger::Lvl4, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
     
     unique_lock<mutex> l2(*this);
     size = st.st_size;
@@ -344,7 +344,7 @@ void UgrFileInfo::takeStat(const struct stat &st) {
     status_statinfo = UgrFileInfo::Ok;
 
     if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
-        Info(Logger::Lvl2, fname, "Setting " << name << " as non listable. nlink=" << st.st_nlink);
+        Info(UgrLogger::Lvl2, fname, "Setting " << name << " as non listable. nlink=" << st.st_nlink);
         subdirs.clear();
         status_items = UgrFileInfo::Error;
     }
@@ -354,7 +354,7 @@ void UgrFileInfo::takeStat(const struct stat &st) {
 
 void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
     const char *fname = "UgrFileInfo::addReplica";
-    Info(Logger::Logger::Lvl4, fname, "UgrFileInfo:" << this->name << " add replicas: " << replica.name);
+    Info(UgrLogger::Lvl4, fname, "UgrFileInfo:" << this->name << " add replicas: " << replica.name);
     unique_lock<mutex> l2(*this);
     this->replicas.insert(replica);
 

@@ -78,7 +78,7 @@ public:
         maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
        
         if (CFG->GetBool("infohandler.useextcache", true)) {
-            Info(Logger::Lvl1, "LocationInfoHandler::Init", "Setting the ExtCacheHandler");
+            Info(UgrLogger::Lvl1, "LocationInfoHandler::Init", "Setting the ExtCacheHandler");
             extcache = cache;
         }
 

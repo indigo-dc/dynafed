@@ -6,6 +6,5 @@
 
 #include "SimpleDebug.hh"
 
-
-Logger::bitmask ugrlogmask = 0;
-Logger::component ugrlogname = "UGR";
+UgrLogger::bitmask ugrlogmask = 0;
+UgrLogger::component ugrlogname = "UGR";
