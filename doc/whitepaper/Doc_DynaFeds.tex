@@ -71,7 +71,7 @@
 
 \center % Center everything on the page
 
-\textsc{\LARGE CERN IT-GT}\\[1.5cm] % Name of your university/college
+\textsc{\LARGE CERN IT-SDC}\\[1.5cm] % Name of your university/college
 %\textsc{\Large Major Heading}\\[0.5cm] % Major heading such as course name
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
@@ -412,6 +412,22 @@ Load all the configuration files that are contained in \lstinline"/etc/ugr.conf.
  NOTE: UGR internally uses \lstinline"syslog" to log its activity, in the \lstinline"user" class. We refer to the \lstinline"syslog" documentation for the platform in use in order to configure its behavior, e.g. to output the log to a logfile.\\
  
  NOTE: a debug level higher than 1 severely affects the performance of UGR. Never set it to a value higher than 1 in a production server.\\
+
+
+
+\subsubsection{glb.debug.components[]}
+
+ Allows selecting the internal components that produce log lines. By default all the internal components produce log activity. The presence of this directive in the configuration file allows only the named components to produce log lines.\\
+ Individual plugins are selectable under the name \lstinline"locplugin.<plugin_name>"
+ Every \lstinline"glb.debug.components[]" line that appears in the configuration is considered as an individual component to enable log production for.
+
+ Syntax:\\
+
+\lstinline"glb.debug.components[]: <log_component>"\\
+
+ Example:\\
+\lstinline"glb.debug.components[]: <locplugin.MYSITE>"\\
+\lstinline"glb.debug.components[]: <locplugin.MYOTHERSITE>"\\
 
 \subsubsection{\label{glb.locplugin}glb.locplugin}
 
@@ -907,24 +923,6 @@ ISBN 978-90-444-1067-9
 
 \end{thebibliography}
 
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
-
-\emph{DRAFT}\\
 
 
 \end{document}
