@@ -170,7 +170,7 @@ int UgrConnector::init(char *cfgfile) {
         bool debug_stderr = CFG->GetBool("glb.log_stderr", true);
         long debuglevel = CFG->GetLong("glb.debug", 1);
         DebugSetLevel(debuglevel);
-        //SimpleDebug::Instance()->SetStderrPrint(debug_stderr);
+        UgrLogger::get()->SetStderrPrint(debug_stderr);
 	
 	// Now enable the logging of the components that have been explicitely requested
 	int i = 0;

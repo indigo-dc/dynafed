@@ -90,6 +90,13 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
         nthreads = 10000;
     }
 
+    
+    // Private logging... refer to the component name locplugin.<name>
+    pluglogname = "locplugin.";
+    pluglogname += name;
+    pluglogmask = UgrLogger::get()->getMask(pluglogname);
+    
+    
     // Now get from the config any item built as:
     // locplugin.<name>.variablename
     // or

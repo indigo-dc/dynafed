@@ -39,7 +39,7 @@ extern UgrLogger::component ugrlogname;
 	if (UgrLogger::get()->getLevel() >= lvl && UgrLogger::get()->isLogged(ugrlogmask)) 	\
 	{    																	\
 		std::ostringstream outs;                                   			\
-		outs << "dmlite " << where << " " << __func__ << " : " << what;                      			\
+		outs << ugrlogname << " " << where << " " << __func__ << " : " << what;                      			\
 		UgrLogger::get()->log((UgrLogger::Level)lvl, outs.str());    				\
 	}                                                             			\
 }while(0)
@@ -48,7 +48,7 @@ extern UgrLogger::component ugrlogname;
 // These error messages are printed regardless of the current local logging level
 #define Error(where, what) do{                                											\
 		std::ostringstream outs;                                   			\
-		outs << "dmlite " << where << " !! " << __func__ << " : " << what;                      			\
+		outs << ugrlogname << " " << where << " !! " << __func__ << " : " << what;                      			\
 		UgrLogger::get()->log((UgrLogger::Level)0, outs.str());    				\
 }while(0)
 

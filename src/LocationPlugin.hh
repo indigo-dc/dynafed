@@ -21,10 +21,30 @@
 class LocationInfoHandler;
 class UgrConnector;
 
+#define LocPluginLogInfo(lvl, where, what) do {                                											\
+	if (UgrLogger::get()->getLevel() >= lvl && UgrLogger::get()->isLogged(pluglogmask)) 	\
+	{    																	\
+		std::ostringstream outs;                                   			\
+		outs << "UGR " << pluglogname << " " << where << " " << __func__ << " : " << what;                      			\
+		UgrLogger::get()->log((UgrLogger::Level)lvl, outs.str());    				\
+	}                                                             			\
+}while(0)
 
-#define LocPluginLogInfo(l, n, c) Info(l, n, "LocPlugin: " << this->name << " " << c);
-#define LocPluginLogInfoThr(l, n, c) Info(l, n, "LocPlugin: " << this->name << myidx << " " << c);
-#define LocPluginLogErr(n, c) Error(n, "LocPlugin: " << this->name << myidx << " " << c);
+#define LocPluginLogInfoThr(lvl, where, what) do {                                											\
+	if (UgrLogger::get()->getLevel() >= lvl && UgrLogger::get()->isLogged(pluglogmask)) 	\
+	{    																	\
+		std::ostringstream outs;                                   			\
+		outs << "UGR " << pluglogname << "[" << myidx << "] " << where << " " << __func__ << " : " << what;                      			\
+		UgrLogger::get()->log((UgrLogger::Level)lvl, outs.str());    				\
+	}                                                             			\
+}while(0)
+
+#define LocPluginLogErr(where, what) do {                                											\
+		std::ostringstream outs;                                   			\
+		outs << "UGR " << pluglogname << "[" << myidx << "] " << where << " !! " << __func__ << " : " << what;                      			\
+		UgrLogger::get()->log((UgrLogger::Level)0, outs.str());    				\
+}while(0)
+
 
 enum PluginEndpointState {
     PLUGIN_ENDPOINT_UNKNOWN = 0,
@@ -125,6 +145,7 @@ private:
     int nthreads;
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
+    
 
 public:
 
@@ -183,6 +204,9 @@ protected:
     /// Mutex for protecting the queue
     boost::mutex workmutex;
 
+    UgrLogger::bitmask pluglogmask;
+    UgrLogger::component pluglogname;
+    
     /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
     void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop = wop_Nop, char *newpfx = 0);
     void pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handler, std::string &rep);
