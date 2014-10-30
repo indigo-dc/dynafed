@@ -254,7 +254,7 @@ int LocationPlugin::run_findNewLocation(std::string new_lfn, std::shared_ptr<New
 
     LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No findNewLocation support for this plugin, default behavior");
     // do nothing
-
+    return 1;
 }
 
 
@@ -537,6 +537,7 @@ int LocationPlugin::async_findNewLocation(const string &new_lfn, const std::shar
     run_findNewLocation(new_lfn, handler);
     handler->decWorker();
     }
+    return 0;
 }
 
 

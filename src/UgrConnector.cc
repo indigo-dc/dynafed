@@ -374,11 +374,12 @@ int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientIn
 
 
     if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
-         Info(UgrLogger::Lvl2, fname, new_locations.size() << " Timeout triggered during findNewLocation for " << l_lfn);
+         Info(UgrLogger::Lvl2, fname, " Timeout triggered during findNewLocation for " << l_lfn);
     }
 
     new_locations.clear();
     new_locations = response_handler->takeAll();
+    Info(UgrLogger::Lvl2, fname, new_locations.size() << " NewLocations found for " << l_lfn);
 
     // sort all answer geographically
     filter(new_locations, client);

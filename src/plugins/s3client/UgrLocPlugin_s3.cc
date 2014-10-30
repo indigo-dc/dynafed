@@ -321,6 +321,57 @@ int UgrLocPlugin_s3::do_List(UgrFileInfo *fi, LocationInfoHandler *handler){
     return LocationPlugin::do_List(fi, handler);
 }
 
+int UgrLocPlugin_s3::run_findNewLocation(string new_lfn, std::shared_ptr<NewLoctationHandler> handler){
+    static const char * fname = "UgrLocPlugin_s3::run_findNewLocation";
+    int myidx =0;
+    std::string canonical_name(base_url_endpoint.getString());
+    std::string xname;
+    std::string alt_prefix;
+
+    // do name translation
+    if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+          LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+          return 1;
+    }
+
+
+    // s3 does not support //
+    std::string::iterator it = xname.begin();
+    while(*it == '/' && it < xname.end())
+        it++;
+    if(it == xname.end()){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "bucket name, ignore " << new_lfn << " ->  " << xname);
+        return 1;
+    }
+
+    canonical_name.append("/");
+    canonical_name.append(it, xname.end());
+
+    try{
+
+        time_t expiration_time = time(NULL) +3600;
+        Davix::HeaderVec vec;
+        std::string new_Location;
+
+        Davix::Uri tokenized_location = Davix::S3::tokenizeRequest(params, "PUT", canonical_name, vec, expiration_time);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain tokenized newLocation " << tokenized_location);
+
+        new_Location = HttpUtils::protocolHttpNormalize(tokenized_location.getString());
+        HttpUtils::pathHttpNomalize(new_Location);
+
+        handler->addLocation(new_Location, getID());
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << tokenized_location);
+        return 0;
+
+    }catch(Davix::DavixException & e){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Error on newLocation: " << e.what());
+    }catch(...){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Unknown Error on newLocation");
+    }
+
+    return -1;
+}
+
 
 
 void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){

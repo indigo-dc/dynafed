@@ -128,10 +128,14 @@ public:
     // wait for the completion handler
     inline bool wait(unsigned int duration){
         using namespace boost;
-        system_time const deadline = get_system_time() + posix_time::seconds(duration);
+        if(counter_.load() > 0){
 
-        unique_lock<mutex> l(mut_sig_);
-        return sig_.timed_wait(l, deadline);
+            system_time const deadline = get_system_time() + posix_time::seconds(duration);
+
+            unique_lock<mutex> l(mut_sig_);
+            return sig_.timed_wait(l, deadline);
+        }
+        return true;
     }
 
 private:
@@ -150,8 +154,9 @@ private:
 class NewLoctationHandler : public HandlerTraits, public boost::noncopyable{
 public:
 
-    void addLocation(const std::string & str){
+    void addLocation(const std::string & str, int pluginID){
         UgrFileItem_replica r;
+        r.pluginID = pluginID;
         r.name = str;
         {
             boost::lock_guard<boost::mutex> l(mu_);
