@@ -82,7 +82,7 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
     return 0;
 }
 
-int UgrGeoPlugin_GeoIP::filterReplicaList(std::deque<UgrFileItem_replica> &replica, const UgrClientInfo &cli_info){
+int UgrGeoPlugin_GeoIP::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     float cli_lattitude=0, cli_longittude=0;
 
     if(gi == NULL)

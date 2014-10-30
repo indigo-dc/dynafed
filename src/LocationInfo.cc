@@ -360,7 +360,7 @@ void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
 
 }
 
-void UgrFileInfo::getReplicaList(std::deque<UgrFileItem_replica> & reps){
+void UgrFileInfo::getReplicaList(UgrReplicaVec& reps){
     unique_lock<mutex> l2(*this);
     reps.assign(replicas.begin(), replicas.end());
 }

@@ -22,10 +22,10 @@ FilterPlugin::FilterPlugin(UgrConnector &c, std::vector<std::string> &parms) :
 
 }
 
-int FilterPlugin::filterReplicaList(std::deque<UgrFileItem_replica> & list_raw){
+int FilterPlugin::filterReplicaList(UgrReplicaVec& list_raw){
     return 0;
 }
 
-int FilterPlugin::filterReplicaList(std::deque<UgrFileItem_replica> &replica, const UgrClientInfo &cli_info){
+int FilterPlugin::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     return 0;
 }

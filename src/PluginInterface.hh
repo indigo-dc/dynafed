@@ -8,9 +8,7 @@
 #include <boost/noncopyable.hpp>
 
 
-class UgrConnector;
-class UgrFileItem_replica;
-class UgrClientInfo;
+#include "UgrTypes.hh"
 
 
 class PluginInterface : protected boost::noncopyable
@@ -63,9 +61,9 @@ public:
     //
     // Note: All these functions, in sequence are invoked for each request
     //
-    virtual int filterReplicaList(std::deque<UgrFileItem_replica> & list_raw);
+    virtual int filterReplicaList(UgrReplicaVec& list_raw);
 
-    virtual int filterReplicaList(std::deque<UgrFileItem_replica> & replica, const UgrClientInfo & cli_info);
+    virtual int filterReplicaList(UgrReplicaVec& replica, const UgrClientInfo & cli_info);
 
 };
 

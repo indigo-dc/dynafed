@@ -106,11 +106,11 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 
         UgrClientInfo info(secCredentials.remoteAddress);
         Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
-        std::deque<UgrFileItem_replica> reps;
+        UgrReplicaVec reps;
         nfo->getReplicaList(reps);
         getUgrConnector()->filter(reps, info);
 
-        for (std::deque<UgrFileItem_replica>::iterator i = reps.begin(); i != reps.end(); ++i) {
+        for (UgrReplicaVec::iterator i = reps.begin(); i != reps.end(); ++i) {
             // Populate the vector
             Replica r;
 

@@ -353,6 +353,18 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
     return 0;
 }
 
+
+int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
+    const char *fname = "UgrConnector::findNewLocation";
+    std::string url(new_lfn);
+    UgrFileInfo::trimpath(url);
+
+    Info(UgrLogger::Lvl2, fname,  "Find new location for " << url);
+
+
+
+}
+
 bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (c->isEndpointOK(r.pluginID)) {
         Info(UgrLogger::Lvl3, "UgrConnector::filter", "not a replica offline" << r.name << " ");
@@ -364,7 +376,7 @@ bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
 }
 
 
-void filter_offline_replica(UgrConnector & c, std::deque<UgrFileItem_replica> & replicas){
+void filter_offline_replica(UgrConnector & c, UgrReplicaVec & replicas){
 
     // remove from the list the dead endpoints
     // Filter out the replicas that belong to dead endpoints
@@ -375,7 +387,7 @@ void filter_offline_replica(UgrConnector & c, std::deque<UgrFileItem_replica> & 
 
 ///
 /// Apply configured filters on the replica list
-int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
+int UgrConnector::filter(UgrReplicaVec & replicas){
 
     
     for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
@@ -387,7 +399,7 @@ int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas){
     return 0;
 }
 
-int UgrConnector::filter(std::deque<UgrFileItem_replica> & replicas, const UgrClientInfo & cli_info){
+int UgrConnector::filter(UgrReplicaVec & replicas, const UgrClientInfo & cli_info){
     // apply generic filters
     filter(replicas);
 

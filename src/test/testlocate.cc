@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
             std::cout << "Raw Replicas :  " << it->name << std::endl;
         }
 
-        std::deque<UgrFileItem_replica> repls;
+        UgrReplicaVec repls;
         file_infos->getReplicaList(repls);
         ugr.filter(repls, cli_info);
 

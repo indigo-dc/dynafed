@@ -12,6 +12,7 @@
 #include <string>
 #include <set>
 #include <boost/thread.hpp>
+#include "UgrTypes.hh"
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sys/stat.h>
@@ -72,6 +73,9 @@ public:
     /// The index of the plugin that inserted this replica
     short pluginID;
 };
+
+
+
 
 
 /// Instances of UgrFileItem may be kept in a quasi-sorted way.
@@ -404,7 +408,7 @@ public:
     void addReplica( const UgrFileItem_replica & replica);
 
     /// Get All replicas into a list
-    void getReplicaList( std::deque<UgrFileItem_replica> & reps);
+    void getReplicaList( UgrReplicaVec& reps);
 };
 
 

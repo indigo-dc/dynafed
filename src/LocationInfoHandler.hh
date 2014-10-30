@@ -7,7 +7,7 @@
 #ifndef LOCATIONINFOHANDLER_HH
 #define LOCATIONINFOHANDLER_HH
 
-
+#include "UgrTypes.hh"
 #include "Config.hh"
 #include "LocationInfo.hh"
 
@@ -16,7 +16,6 @@
 #include <boost/thread.hpp>
 #include <boost/bimap.hpp>
 
-class ExtCacheHandler;
 
 
 /// This class acts like a repository of file locations/information that has to

@@ -27,8 +27,6 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
         struct LocationPlugin::worktoken *op = pl->getOp();
 
-
-
         // Check if a ping has to be performed
         if (op && (op->wop == LocationPlugin::wop_Check)) {
 

@@ -23,7 +23,7 @@ public:
     UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrGeoPlugin_GeoIP();
 
-    virtual int filterReplicaList(std::deque<UgrFileItem_replica> & replica, const UgrClientInfo & cli_info);
+    virtual int filterReplicaList(UgrReplicaVec& replica, const UgrClientInfo & cli_info);
 
 protected:
     /// Perform initialization

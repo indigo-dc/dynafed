@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
             if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
             else{
                 ugr.locate(fn, &fi);
-                std::deque<UgrFileItem_replica> repls;
+                UgrReplicaVec repls;
                 fi->getReplicaList(repls);
                 ugr.filter(repls);
                 ugr.filter(repls, cli_info);

@@ -11,6 +11,7 @@
 #include <functional>
 #include <boost/filesystem.hpp>
 
+#include "UgrTypes.hh"
 #include "SimpleDebug.hh"
 #include "Config.hh"
 #include "UgrConfig.h"
@@ -22,8 +23,7 @@
 
 
 
-class LocationPlugin;
-class ExtCacheHandler;
+
 
 /// The main class that allows to interact with the system
 class UgrConnector{
@@ -89,6 +89,7 @@ protected:
     /// Waits max a number of seconds for a list process to be complete
     int do_waitList(UgrFileInfo *fi, int tmout = 30);
 
+
    
     /// Invoked by the ticker thread, gives life to the object
     virtual void tick(int parm);
@@ -151,14 +152,26 @@ public:
     /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
     virtual int stat(std::string &lfn, UgrFileInfo **nfo);
 
+
+    /// Return a list of prefered locations for a new resource
+    /// The location is select based on client credential, client location, endpoints configuration
+    /// @param new_lfn : lfn of the new resource
+    /// @param client: client informations
+    /// @param new_locations: vector of possible replicas
+    virtual int findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
+
     /// Start an async process that finds the endpoint that has the given replica
     /// There is no wait primitive associated to this, as the normal do_waitLocate will do
     int do_checkreplica(UgrFileInfo *fi, std::string rep);
 
-    ///
+    /// filter functions, can be used to sort / filter items based on a set of configured plugins
     /// Apply configured filters on the replica list
-    int filter(std::deque<UgrFileItem_replica> & replica);
-    int filter(std::deque<UgrFileItem_replica> & replica, const UgrClientInfo & cli_info);
+    ///
+
+    /// Replicas filtering: filter a set of resource replicas by configured criterias
+    /// The criterias can be geographical position (GeoPlugin), loopDetection (noLoop), replicas Status (Checker)
+    int filter(UgrReplicaVec & replica);
+    int filter(UgrReplicaVec & replica, const UgrClientInfo & cli_info);
     
 protected:
     // non copyable

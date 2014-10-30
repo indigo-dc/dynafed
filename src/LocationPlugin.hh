@@ -7,7 +7,6 @@
 #define LOCATIONPLUGIN_HH
 
 
-
 #include "Config.hh"
 #include "SimpleDebug.hh"
 #include "LocationInfoHandler.hh"
@@ -142,6 +141,7 @@ private:
  */
 class LocationPlugin : public PluginInterface {
 private:
+    std::bitset<64> flags;
     int nthreads;
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
@@ -156,6 +156,12 @@ public:
         wop_List,
         wop_Check,
         wop_CheckReplica
+    };
+
+    enum Flag{
+        Readable=0,
+        Writable=1,
+        Listable=2
     };
     
     /// The description of an operation to be done asynchronously
@@ -264,6 +270,10 @@ public:
 
     bool isReplicaXlator() {
         return replicaXlator;
+    }
+
+    bool getFlag(Flag flag_value){
+        return flags[static_cast<unsigned int>(flag_value)];
     }
 
     ///

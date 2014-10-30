@@ -46,7 +46,7 @@ static bool is_matching_address(const std::vector< std::vector<Asio_ip::address>
 }
 
 
-static int filter_internal_list(std::deque<UgrFileItem_replica> &replica, const std::vector< std::vector<Asio_ip::address> > & rep_vec,
+static int filter_internal_list(UgrReplicaVec&replica, const std::vector< std::vector<Asio_ip::address> > & rep_vec,
                                 const std::vector<Asio_ip::address> & cli_vec){
     int i=0;
     Info(UgrLogger::Lvl1, "FilterNoLoopPlugin::is_matching_address", " size of replicas " << replica.size() << " size of rep vec" << rep_vec.size() << " size of cli_vec" << cli_vec.size());
@@ -55,7 +55,7 @@ static int filter_internal_list(std::deque<UgrFileItem_replica> &replica, const 
 }
 
 
-int FilterNoLoopPlugin::filterReplicaList(std::deque<UgrFileItem_replica> &replica, const UgrClientInfo &cli_info){
+int FilterNoLoopPlugin::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     boost::asio::io_service ios;
     Resolver res(ios);
     ResolverQuery q_cli(cli_info.ip, "http");
