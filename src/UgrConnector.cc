@@ -365,10 +365,12 @@ int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientIn
     Info(UgrLogger::Lvl2, fname,  "Find new location for " << l_lfn);
 
     // Ask all the non slave plugins that are online
-    for (size_t i = 0; i < locPlugins.size(); ++i) {
-        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())){
+    for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
+        if ( (!(*it)->isSlave()) && ((*it)->isOK())
+             && (*it)->getFlag(LocationPlugin::Writable)){
+
             response_handler->addWorker(1);
-            locPlugins[i]->async_findNewLocation(l_lfn, response_handler);
+            (*it)->async_findNewLocation(l_lfn, response_handler);
         }
     }
 
