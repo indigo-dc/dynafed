@@ -186,6 +186,14 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
     Info(UgrLogger::Lvl1, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
+    // get readable / writable / listable capability
+    setFlag(Readable, CFG->GetBool(pfx + ".readable", true));
+    setFlag(Listable, CFG->GetBool(pfx + ".listable", true));
+    setFlag(Writable, CFG->GetBool(pfx + ".writable", false));
+    Info(UgrLogger::Lvl1, fname, "configured as " <<  (getFlag(Readable)?"Readable":"")
+                    << " " << (getFlag(Writable)?"Writable":"")
+                    << " " << (getFlag(Listable)?"Listable":""));
+
     exiting = false;
 
 
@@ -237,6 +245,18 @@ int LocationPlugin::start(ExtCacheHandler *c) {
 LocationPlugin::~LocationPlugin() {
 
 }
+
+
+// implement new location finder
+// default behavior : notify completion and quit
+int LocationPlugin::run_findNewLocation(std::string new_lfn, std::shared_ptr<NewLoctationHandler> handler){
+    const char *fname = "LocationPlugin::do_findNewLocation";
+
+    LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No findNewLocation support for this plugin, default behavior");
+    // do nothing
+
+}
+
 
 // Pushes a new op in the queue
 
@@ -507,6 +527,20 @@ int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationI
 
 
 
+
+int LocationPlugin::async_findNewLocation(const string &new_lfn, const std::shared_ptr<NewLoctationHandler> & handler){
+    // run find new location
+    // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
+    // handler is the completion handler of the operation
+
+    {
+    run_findNewLocation(new_lfn, handler);
+    handler->decWorker();
+    }
+}
+
+
+
 // Waits max a number of seconds for a locate process to be complete
 
 int LocationPlugin::do_waitLocate(UgrFileInfo *fi, int tmout) {
@@ -548,6 +582,7 @@ int LocationPlugin::do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
   
   return 0;
 }
+
 
 bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wtk, int myidx){
     const char* fname = "LocationPlugin::doParentQueryCheck";

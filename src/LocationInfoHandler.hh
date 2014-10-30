@@ -101,6 +101,78 @@ public:
     void tick();
 };
 
+///
+/// \brief The HandlerTraits class
+///
+/// Traits for asynchronous completion handler
+///
+class HandlerTraits{
+public:
+    HandlerTraits(): counter_(0){}
+
+
+    // add N worker for completion
+    inline void addWorker(int n){
+        counter_ += n;
+    }
+
+
+    // remove one worker from the completion
+    inline void decWorker(){
+        --counter_;
+        if(counter_.load() <=0){
+            sig_.notify_one();
+        }
+    }
+
+    // wait for the completion handler
+    inline bool wait(unsigned int duration){
+        using namespace boost;
+        system_time const deadline = get_system_time() + posix_time::seconds(duration);
+
+        unique_lock<mutex> l(mut_sig_);
+        return sig_.timed_wait(l, deadline);
+    }
+
+private:
+    boost::atomic<int> counter_;
+    boost::condition_variable sig_;
+    boost::mutex mut_sig_;
+
+};
+
+
+///
+/// @brief NewLoctationHandler class
+///
+/// Contain the proposed location for new resource
+///
+class NewLoctationHandler : public HandlerTraits, public boost::noncopyable{
+public:
+
+    void addLocation(const std::string & str){
+        UgrFileItem_replica r;
+        r.name = str;
+        {
+            boost::lock_guard<boost::mutex> l(mu_);
+            new_locations_vec_.push_back(r);
+        }
+    }
+
+    UgrReplicaVec takeAll(){
+        UgrReplicaVec res;
+        boost::lock_guard<boost::mutex> l(mu_);
+        res.swap(new_locations_vec_);
+        return res;
+    }
+
+
+private:
+    boost::mutex mu_;
+    UgrReplicaVec new_locations_vec_;
+
+};
+
 
 
 #endif

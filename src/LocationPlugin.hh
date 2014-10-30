@@ -227,6 +227,11 @@ protected:
     ///
     virtual void run_Check(int myidx);
 
+    /// Start the async listing process
+    /// @param fi UgrFileInfo instance to populate
+    /// @param handler the location info handler to write into
+    virtual int run_findNewLocation(std::string new_lfn, std::shared_ptr<NewLoctationHandler> handler);
+
 
 
     // The simple, default global name translation
@@ -272,8 +277,12 @@ public:
         return replicaXlator;
     }
 
-    bool getFlag(Flag flag_value){
-        return flags[static_cast<unsigned int>(flag_value)];
+    bool getFlag(Flag flag_type){
+        return flags[static_cast<size_t>(flag_type)];
+    }
+
+    void setFlag(Flag flag_type, bool value){
+        flags[static_cast<size_t>(flag_type)] = value;
     }
 
     ///
@@ -323,6 +332,18 @@ public:
     /// @param fi UgrFileInfo instance to wait for
     /// @param tmout Timeout for waiting
     virtual int do_waitList(UgrFileInfo *fi, int tmout = 5);
+
+    ///
+    /// \brief async_findNewLocation
+    /// \param new_lfn
+    /// \param handler
+    /// \return 0 if success, negative if plugin error
+    ///
+    /// Execute a findNewLocation query on this plugin asynchronously. this call run_findNewLocation internally
+    ///
+    int async_findNewLocation(const std::string & new_lfn, const std::shared_ptr<NewLoctationHandler> & handler);
+
+
 
     /// Asynchronously check if this plugin knows about the given replica
     /// Eventually add the replica

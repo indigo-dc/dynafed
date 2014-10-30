@@ -356,12 +356,35 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 
 int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
-    std::string url(new_lfn);
-    UgrFileInfo::trimpath(url);
+    std::string l_lfn(new_lfn);
+    std::shared_ptr<NewLoctationHandler> response_handler= std::make_shared<NewLoctationHandler>();
 
-    Info(UgrLogger::Lvl2, fname,  "Find new location for " << url);
+    UgrFileInfo::trimpath(l_lfn);
+    do_n2n(l_lfn);
+
+    Info(UgrLogger::Lvl2, fname,  "Find new location for " << l_lfn);
+
+    // Ask all the non slave plugins that are online
+    for (size_t i = 0; i < locPlugins.size(); ++i) {
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())){
+            response_handler->addWorker(1);
+            locPlugins[i]->async_findNewLocation(l_lfn, response_handler);
+        }
+    }
 
 
+    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+         Info(UgrLogger::Lvl2, fname, new_locations.size() << " Timeout triggered during findNewLocation for " << l_lfn);
+    }
+
+    new_locations.clear();
+    new_locations = response_handler->takeAll();
+
+    // sort all answer geographically
+    filter(new_locations, client);
+
+    Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
+    return 0;
 
 }
 
