@@ -153,7 +153,7 @@ make DESTDIR=%{buildroot} install
 %defattr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dav.so
 %{_libdir}/ugr/libugrlocplugin_http.so
-%{_libdir}/ugr/libugrlocplugin_s3_bucket.so
+%{_libdir}/ugr/libugrlocplugin_s3.so
 %{_libdir}/ugr/libugrlocplugin_davrucio.so
 
 

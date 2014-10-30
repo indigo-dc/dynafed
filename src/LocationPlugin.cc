@@ -534,8 +534,8 @@ int LocationPlugin::async_findNewLocation(const string &new_lfn, const std::shar
     // handler is the completion handler of the operation
 
     {
-    run_findNewLocation(new_lfn, handler);
-    handler->decWorker();
+        run_findNewLocation(new_lfn, handler);
+        handler->decWorker();
     }
     return 0;
 }
