@@ -21,6 +21,12 @@ set_target_properties(testlocate PROPERTIES COMPILE_FLAGS "-I../")
 target_link_libraries (testlocate ugrconnector ${DMLITE_LIBRARY})
 
 
+add_executable(testnewlocation "testnewlocation.cc")
+set_target_properties(testnewlocation PROPERTIES COMPILE_FLAGS "-I../")
+
+target_link_libraries (testnewlocation ugrconnector ${DMLITE_LIBRARY})
+
+
 # How to install. This is part of the Core component
 #install(TARGETS teststat
 #  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
