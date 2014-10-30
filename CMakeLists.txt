@@ -25,26 +25,11 @@ set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
 set (UGR_VERSION_PATCH 8)
 
-execute_process( COMMAND date +%d%m%y%H%M%S
-  OUTPUT_VARIABLE UGR_VERSION_CHECKOUTTAG
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-execute_process( COMMAND uname -m
-  OUTPUT_VARIABLE ARCH
-  OUTPUT_STRIP_TRAILING_WHITESPACE)
-
 
 # Build the Doxygen cfg
 configure_file (
 	       "${PROJECT_SOURCE_DIR}/Doxyfile.in"
 	       "${PROJECT_BINARY_DIR}/Doxyfile.cfg"
-)
-
-# create the specfile
-configure_file (
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec.in"
-               "${PROJECT_SOURCE_DIR}/packaging/rpm/specs/dynafed.spec"
-               @ONLY
 )
 
 message(STATUS "Checkout tag: ${UGR_VERSION_CHECKOUTTAG}")
@@ -58,11 +43,10 @@ include(DefineInstallationPaths REQUIRED)
 include(DefineApachePaths REQUIRED)
 include(ReleaseDebugAutoFlags REQUIRED)
 include(CMakeGeneratePkgConfig REQUIRED)
+include(MacroOutOfSourceBuild)
 #enable testing
 INCLUDE(CTest)
  
-# Force the build dorectory to be different from the source directory
-include(MacroOutOfSourceBuild)
 macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source build.")
 
 # enable 64 bits off_t on 32 bits plateforms
@@ -73,9 +57,6 @@ add_definitions( -std=c++0x)
 
 
 
-
-
-# -----------------------
 # Look for the external packages that are needed, for both the core and the plugins
 set (Boost_NO_BOOST_CMAKE ON) # fix boost problem on EL6
 find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread REQUIRED)
@@ -85,11 +66,9 @@ find_package(LFC 1.8.0)
 
 # Look for libDMlite
 find_package(DMLite 0.3)
-# ----------------------
 
 # generic pkgconfig module for Davix & co
 find_package(PkgConfig REQUIRED)
-
 
 #MaxMind GeoIP
 find_package(GeoIP)
@@ -101,6 +80,7 @@ find_package(LibMemCached REQUIRED)
 find_package(Protobuf REQUIRED)
 
 add_subdirectory(src)
+add_subdirectory(packaging)
 add_subdirectory(dist)
 add_subdirectory(test)
 
