@@ -13,7 +13,7 @@ import pycurl
 TIMEOUT = 5
 
 def main(argv):
-    flags, args = getopt.getopt(argv, "e:p:", ["exclude=","proxy="])
+    flags, args = getopt.getopt(argv, "e:p:t:", ["exclude=","proxy=","threads="])
     option = {}
     for flag, arg in flags:
         flag = flag[flag.rfind('-')+1:]
@@ -21,10 +21,16 @@ def main(argv):
             flag = "exclude"
         elif flag == "p":
             flag = "proxy"
+        elif flag == "t":
+            flag = "threads"
         option[flag] = arg
     exclude = None
     if "exclude" in option:
-        exclude = flags[0][1].split(',')
+        exclude = option["exclude"].split(',')
+    if "threads" in option:
+        threads = str(option["threads"])
+    else:
+        threads = "5"
 
     req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/get_se_services/?json&flavour=HTTP", None)
     opener = urllib2.build_opener()
@@ -62,7 +68,7 @@ def main(argv):
             out = """###########
 ## Talk to a %s instance in %s
 ##
-glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s 1 %s""" % (impl, s["rc_site"], s["rc_site"], url)
+glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, s["rc_site"], s["rc_site"], threads, url)
             if len(protocols) > 1:
                 out += "\nlocplugin.%s.pfxmultiply:%s" % (s["rc_site"], pro)
             output.append(out)
@@ -77,8 +83,8 @@ def request(url, proxy):
     curl.setopt(pycurl.URL, url)
     curl.setopt(pycurl.CONNECTTIMEOUT, TIMEOUT)
     curl.setopt(pycurl.TIMEOUT, TIMEOUT)
-    curl.setopt(pycurl.SSL_VERIFYPEER, 1)
-    curl.setopt(pycurl.SSL_VERIFYHOST, 2)
+    #curl.setopt(pycurl.SSL_VERIFYPEER, 1)
+    #curl.setopt(pycurl.SSL_VERIFYHOST, 2)
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
     curl.setopt(pycurl.WRITEFUNCTION, lambda x: None)
     if proxy:
