@@ -26,14 +26,6 @@ set (UGR_VERSION_MINOR 0)
 set (UGR_VERSION_PATCH 8)
 
 
-# Build the Doxygen cfg
-configure_file (
-	       "${PROJECT_SOURCE_DIR}/Doxyfile.in"
-	       "${PROJECT_BINARY_DIR}/Doxyfile.cfg"
-)
-
-message(STATUS "Checkout tag: ${UGR_VERSION_CHECKOUTTAG}")
-
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
 # directories of additional CMake modules (eg MacroOutOfSourceBuild.cmake):
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
@@ -79,21 +71,13 @@ find_package(LibMemCached REQUIRED)
 #Protobuf
 find_package(Protobuf REQUIRED)
 
-add_subdirectory(src)
 add_subdirectory(packaging)
+add_subdirectory(doc)
+add_subdirectory(src)
 add_subdirectory(dist)
 add_subdirectory(test)
 
 enable_testing()
-
-
-# creat doc dir, add doc target, add install doc
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/html")
-ADD_CUSTOM_TARGET(doc
-  doxygen "${PROJECT_BINARY_DIR}/Doxyfile.cfg")
-SET( l_doc "${CMAKE_CURRENT_BINARY_DIR}/doc/html/")
-install(DIRECTORY ${l_doc}
-		DESTINATION ${DOC_INSTALL_DIR}/html) # install examples   
 
 #######################################################
 # Configure an 'uninstall' target
