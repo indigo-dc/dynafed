@@ -45,7 +45,7 @@ public:
 
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
 
-    virtual int run_findNewLocation(std::string new_lfn, std::shared_ptr<NewLoctationHandler> handler);
+    virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler);
 
 protected:
     void configure_S3_parameter(const std::string & str);

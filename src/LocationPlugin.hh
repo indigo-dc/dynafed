@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <functional>
 #include <bitset>
 #include <boost/thread.hpp>
 
@@ -178,6 +179,10 @@ public:
         std::string repl;
 	/// Alternative prefix to locally prepend to the string being searched
         std::string altpfx;
+
+       /// alternative execution task
+       ///  if operation is valid, execute only operation
+       std::function<void (void)> operation;
     };
 
 protected:
@@ -216,6 +221,9 @@ protected:
     
     /// Push into the queue a new op to be performed, relative to an instance of UgrFileInfo
     void pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop = wop_Nop, char *newpfx = 0);
+    /// Push generic operation to be performed
+    void pushOp(const std::function<void (void)> & operation);
+
     void pushRepCheckOp(UgrFileInfo *fi, LocationInfoHandler *handler, std::string &rep);
     /// Gets the next op to perform
     struct worktoken *getOp();
@@ -231,7 +239,7 @@ protected:
     /// Start the async listing process
     /// @param fi UgrFileInfo instance to populate
     /// @param handler the location info handler to write into
-    virtual int run_findNewLocation(std::string new_lfn, std::shared_ptr<NewLoctationHandler> handler);
+    virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler);
 
 
 

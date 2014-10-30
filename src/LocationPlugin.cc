@@ -11,8 +11,6 @@
 #include <time.h>
 #include <sys/stat.h>
 
-using namespace boost;
-using namespace std;
 
 
 const std::string location_config_prefix = "locplugin.";
@@ -26,6 +24,11 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
 
         struct LocationPlugin::worktoken *op = pl->getOp();
+
+        if(op && op->operation){
+            op->operation();
+            continue;
+        }
 
         // Check if a ping has to be performed
         if (op && (op->wop == LocationPlugin::wop_Check)) {
@@ -54,7 +57,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
 
 // Sort Container by descending len function
-bool sortStringsByDescLen(const string &a, const string &b) { return a.size() > b.size(); }
+bool sortStringsByDescLen(const std::string &a, const std::string &b) { return a.size() > b.size(); }
 
 
 LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms) :
@@ -116,7 +119,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     if (v.size() > 0) {
 
 
-        vector<string> parms = tokenize(v, " ");
+        std::vector<std::string> parms = tokenize(v, " ");
         if (parms.size() < 2) {
             Error(fname, "Bad xlatepfx: '" << v << "'");
         } else {
@@ -135,7 +138,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     }
     
     // Very important... the xlatepfx_from vector must be sorted by descending string length
-    sort(xlatepfx_from.begin(), xlatepfx_from.end(), sortStringsByDescLen);
+    std::sort(xlatepfx_from.begin(), xlatepfx_from.end(), sortStringsByDescLen);
 
     // Now get the content of pfxmultiply
     pfx = "locplugin.";
@@ -149,7 +152,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     if (v.size() > 0) {
 
 
-        vector<string> parms = tokenize(v, " ");
+        std::vector<std::string> parms = tokenize(v, " ");
         if (parms.size() < 2) {
             Error(fname, "Bad pfxmultiply: '" << v << "'");
         } else {
@@ -165,7 +168,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     }
     
     // Very important... the pfxmultiply vector must be sorted by descending string length
-    sort(pfxmultiply.begin(), pfxmultiply.end(), sortStringsByDescLen);
+    std::sort(pfxmultiply.begin(), pfxmultiply.end(), sortStringsByDescLen);
     
     // get state checker
     availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
@@ -249,7 +252,7 @@ LocationPlugin::~LocationPlugin() {
 
 // implement new location finder
 // default behavior : notify completion and quit
-int LocationPlugin::run_findNewLocation(std::string new_lfn, std::shared_ptr<NewLoctationHandler> handler){
+int LocationPlugin::run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler){
     const char *fname = "LocationPlugin::do_findNewLocation";
 
     LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No findNewLocation support for this plugin, default behavior");
@@ -275,6 +278,24 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
     }
 
     LocPluginLogInfo(UgrLogger::Lvl4, fname, "pushed op:" << wop << " " << (fi ? fi->name : "") << " newpfx:" << newpfx);
+
+    workcondvar.notify_one();
+
+}
+
+void LocationPlugin::pushOp(const std::function<void ()> & operation){
+    const char *fname = "LocationPlugin::pushOp";
+
+    {
+        boost::lock_guard< boost::mutex > l(workmutex);
+
+        worktoken *tk = new(worktoken);
+        tk->wop = wop_Nop;
+        tk->operation = operation;
+        workqueue.push_back(tk);
+    }
+
+    LocPluginLogInfo(UgrLogger::Lvl4, fname, "push generic task");
 
     workcondvar.notify_one();
 
@@ -313,10 +334,11 @@ void LocationPlugin::req_checkreplica(UgrFileInfo *fi, std::string &repl) {
 // Gets an op from the queue, or timeout
 
 struct LocationPlugin::worktoken *LocationPlugin::getOp() {
+    using namespace boost;
     struct worktoken *mytk = 0;
     const char *fname = "LocationPlugin::getOp";
 
-    boost::unique_lock< boost::mutex > l(workmutex);
+    unique_lock< mutex > l(workmutex);
 
     system_time const timeout = get_system_time() + posix_time::seconds(10);
 
@@ -340,10 +362,11 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
 }
 
 void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
+    using namespace boost;
     const char *fname = "LocationPlugin::runsearch";
 
     // Pretend to do something useful...
-    boost::posix_time::seconds workTime(1);
+    posix_time::seconds workTime(1);
     boost::this_thread::sleep(workTime);
 
     LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Starting op: " << op->wop << "fn: " << op->fi->name);
@@ -528,15 +551,21 @@ int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationI
 
 
 
-int LocationPlugin::async_findNewLocation(const string &new_lfn, const std::shared_ptr<NewLoctationHandler> & handler){
+int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std::shared_ptr<NewLoctationHandler> & handler){
     // run find new location
     // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
     // handler is the completion handler of the operation
 
-    {
-        run_findNewLocation(new_lfn, handler);
-        handler->decWorker();
-    }
+   struct Functor{
+        void operator()(LocationPlugin* p, std::string str, std::shared_ptr<NewLoctationHandler> h){
+            p->run_findNewLocation(str, h);
+            h->decWorker();
+        }
+    } func;
+
+    using namespace std;
+    pushOp(bind(func, this, new_lfn, handler));
+
     return 0;
 }
 
