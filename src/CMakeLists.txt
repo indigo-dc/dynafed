@@ -1,10 +1,19 @@
 cmake_minimum_required (VERSION 2.6)
 
+
+include(CheckIncludeFileCXX)
+
 # include the directory itself as a path to include directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Configure a header file to pass some of the CMake settings to the source code
 # This is useful in order to handle the various system-related defines.
+set(CMAKE_REQUIRED_FLAGS_OLD "${CMAKE_REQUIRED_FLAGS}")
+set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS} -std=c++0x")
+CHECK_INCLUDE_FILE_CXX(atomic HAVE_ATOMIC)
+CHECK_INCLUDE_FILE_CXX(cstdatomic HAVE_CSTDATOMIC)
+set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS_OLD}")
+
 configure_file (
 	       "${PROJECT_SOURCE_DIR}/src/UgrConfig.h.in"
 	       "${PROJECT_BINARY_DIR}/src/UgrConfig.h"

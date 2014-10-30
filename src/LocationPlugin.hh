@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <bitset>
 #include <boost/thread.hpp>
 
 class LocationInfoHandler;

@@ -13,6 +13,22 @@
 
 #include <string>
 #include <map>
+
+
+#ifdef HAVE_ATOMIC
+#include <atomic>
+
+typedef std::atomic<int> IntAtomic;
+#endif
+
+#ifdef HAVE_CSTDATOMIC
+#include <cstdatomic>
+
+typedef atomic<int> IntAtomic;
+#endif
+
+
+
 #include <boost/thread.hpp>
 #include <boost/bimap.hpp>
 
@@ -139,7 +155,7 @@ public:
     }
 
 private:
-    boost::atomic<int> counter_;
+    IntAtomic counter_;
     boost::condition_variable sig_;
     boost::mutex mut_sig_;
 

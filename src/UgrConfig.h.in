@@ -15,4 +15,11 @@
 #define UGR_VERSION_PATCH "@UGR_VERSION_PATCH@"
 
 
+// check headers
+
+// check atomic operation support
+#cmakedefine HAVE_ATOMIC 1
+#cmakedefine HAVE_CSTDATOMIC 1
+
+
 #endif

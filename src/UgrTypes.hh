@@ -7,6 +7,8 @@
 
 #include <deque>
 
+#include "UgrConfig.h"
+
 class UgrConnector;
 class LocationPlugin;
 class ExtCacheHandler;
@@ -17,6 +19,9 @@ class UgrClientInfo;
 
 /// Vector of Replicas
 typedef std::deque<UgrFileItem_replica> UgrReplicaVec;
+
+
+
 
 
 #endif // UGRTYPES_HH
