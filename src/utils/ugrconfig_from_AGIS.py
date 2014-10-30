@@ -48,7 +48,8 @@ def main(argv):
                             skip = True
                     if skip:
                         continue
-                protocols.append(p[2])
+                if p[2].endswith("/rucio/"):
+                    protocols.append(p[2][:-6])
         prefix = os.path.commonprefix(protocols)
         prefix = prefix[:prefix.rfind("/")]
         pro = ""
@@ -83,8 +84,8 @@ def request(url, proxy):
     curl.setopt(pycurl.URL, url)
     curl.setopt(pycurl.CONNECTTIMEOUT, TIMEOUT)
     curl.setopt(pycurl.TIMEOUT, TIMEOUT)
-    #curl.setopt(pycurl.SSL_VERIFYPEER, 1)
-    #curl.setopt(pycurl.SSL_VERIFYHOST, 2)
+    curl.setopt(pycurl.SSL_VERIFYPEER, 1)
+    curl.setopt(pycurl.SSL_VERIFYHOST, 9)
     curl.setopt(pycurl.FOLLOWLOCATION, 1)
     curl.setopt(pycurl.WRITEFUNCTION, lambda x: None)
     if proxy:
