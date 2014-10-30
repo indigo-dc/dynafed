@@ -287,7 +287,10 @@ int UgrConnector::do_Stat(UgrFileInfo *fi) {
 
     // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())) locPlugins[i]->do_Stat(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())
+             && (locPlugins[i]->getFlag(LocationPlugin::Readable))){
+            locPlugins[i]->do_Stat(fi, &locHandler);
+        }
     }
 
     return 0;
@@ -474,7 +477,10 @@ int UgrConnector::do_Locate(UgrFileInfo *fi) {
 
     // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK()) ) locPlugins[i]->do_Locate(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())
+             &&  (locPlugins[i]->getFlag(LocationPlugin::Readable))){
+            locPlugins[i]->do_Locate(fi, &locHandler);
+        }
     }
 
     return 0;
@@ -571,7 +577,10 @@ int UgrConnector::do_List(UgrFileInfo *fi) {
 
     // Ask all the non slave plugins that are online
     for (unsigned int i = 0; i < locPlugins.size(); i++) {
-        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK()) ) locPlugins[i]->do_List(fi, &locHandler);
+        if ( (!locPlugins[i]->isSlave()) && (locPlugins[i]->isOK())
+             && (locPlugins[i]->getFlag(LocationPlugin::Listable))){
+            locPlugins[i]->do_List(fi, &locHandler);
+        }
     }
 
 
