@@ -77,6 +77,7 @@ add_definitions( -std=c++0x)
 
 # -----------------------
 # Look for the external packages that are needed, for both the core and the plugins
+set (Boost_NO_BOOST_CMAKE ON) # fix boost problem on EL6
 find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread REQUIRED)
 
 # Look for the LFC client
