@@ -843,7 +843,7 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
 	    
             if (st.state != status.state) {
 	      lvl = UgrLogger::Lvl1;
-	      lastchange = st.lastcheck;
+	      if (status.state != PLUGIN_ENDPOINT_UNKNOWN) lastchange = st.lastcheck;
 	    }
             status = st;
             if (setdirty) status_dirty = true;
