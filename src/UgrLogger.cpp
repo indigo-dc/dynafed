@@ -17,11 +17,18 @@ UgrLogger::bitmask UgrLogger::unregistered = ~0;
 
 
 
+UgrLogger* UgrLogger::get()
+    {
+    	if (instance == 0)
+	  instance = new UgrLogger();
+    	return instance;
+    }
 
-
-
-
-
+void UgrLogger::set(UgrLogger *inst) {
+      UgrLogger *old = instance;
+      instance = inst;
+      if (old && (old != inst)) delete old;
+    }
 
 // Build a printable stacktrace. Useful e.g. inside exceptions, to understand
 // where they come from.

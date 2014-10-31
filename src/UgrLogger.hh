@@ -39,21 +39,12 @@ public:
     /// Destructor
     ~UgrLogger();
 
-    static UgrLogger *instance;
     
     /// @return the singleton instance
-    static UgrLogger *get()
-    {
-    	if (instance == 0)
-	  instance = new UgrLogger();
-    	return instance;
-    }
+    static UgrLogger *get();
 
-    static void set(UgrLogger *inst) {
-      UgrLogger *old = instance;
-      instance = inst;
-      if (old && (old != inst)) delete old;
-    }
+    static void set(UgrLogger *inst);
+    
     /// @return the current debug level
     short getLevel() const
     {
@@ -148,7 +139,8 @@ private:
     bitmask mask;
     /// component name to bitmask mapping
     std::map<component, bitmask> mapping;
-
+    
+    static UgrLogger *instance;
 
 
 };

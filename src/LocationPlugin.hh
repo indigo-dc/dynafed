@@ -100,7 +100,9 @@ public:
     int max_latency_ms;
 
     virtual bool isOK() {
-        return (status.state <= PLUGIN_ENDPOINT_ONLINE);
+        // A plugin can be used if it's ONLINE since 10 checks
+        return ((status.state <= PLUGIN_ENDPOINT_ONLINE) &&
+	  (time(0)-lastchange > time_interval_ms/100));
     }
 
     bool getCheckRunning();
@@ -130,6 +132,9 @@ private:
     /// The current status
     PluginEndpointStatus status;
     bool status_dirty;
+    
+    /// when the status changed last time
+    time_t lastchange;
 
 
 };
@@ -236,7 +241,7 @@ protected:
     ///
     virtual void run_Check(int myidx);
 
-    /// Start the async listing process
+    /// Start the async findNewLocation process
     /// @param fi UgrFileInfo instance to populate
     /// @param handler the location info handler to write into
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler);

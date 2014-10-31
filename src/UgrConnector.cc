@@ -93,6 +93,7 @@ void UgrConnector::tick(int parm) {
 
     const char *fname = "UgrConnector::tick";
     Info(UgrLogger::Lvl1, fname, "Ticker started");
+    time_t timesummary = 0;
 
     //ticker->detach();
 
@@ -106,9 +107,31 @@ void UgrConnector::tick(int parm) {
         locHandler.tick();
 
         // Tick the plugins
+	int nonline =0;
+	int noffline = 0;
+	std::string off;
         for (unsigned int i = 0; i < locPlugins.size(); i++) {
             locPlugins[i]->Tick(timenow);
+	    if (locPlugins[i]->isOK()) {
+	      nonline++;
+	    }
+	    else {
+	      noffline++;
+	      off += locPlugins[i]->get_Name();
+	      off += ", ";
+	    }
         }
+        
+        // Print a summary of the plugin status
+        if (time(0) - timesummary > 60) {
+	  Info(UgrLogger::Lvl1, fname, "Plugins status. Online:" << nonline << " Offline:" << noffline);
+	  if (noffline > 0) {
+	    Info(UgrLogger::Lvl1, fname, " Offline plugins:" << off);
+	  }
+	  
+	  timesummary = time(0);
+	}
+	
     }
 
     Info(UgrLogger::Lvl1, fname, "Ticker exiting");

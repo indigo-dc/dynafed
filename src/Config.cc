@@ -83,7 +83,7 @@ void DoSubst(string &s) {
 }
 
 int Config::ProcessFile(char *filename) {
-  char fn[1024];
+  char fn[10240];
 
   // Do the parsing
   if (!filename || (strlen(filename) == 0)) {
@@ -127,7 +127,7 @@ int Config::ProcessFile(char *filename) {
 
           int pos = p-line.c_str();
           if (pos > 0) {
-        char buf[1024];
+        char buf[10240];
 
         strncpy(buf, line.c_str(), pos);
         buf[pos] = 0;
@@ -143,7 +143,7 @@ int Config::ProcessFile(char *filename) {
 
           if (token.length() > 0) {
               char *p2 = strstr((char *)token.c_str(), "[]");
-              char buf2[1024];
+              char buf2[10240];
               int pos2 = p2-token.c_str();
               if (p2 && (pos2 > 0)) {
             // it's a string to be added to an array

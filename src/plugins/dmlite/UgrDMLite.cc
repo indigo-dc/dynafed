@@ -18,8 +18,8 @@ UgrConnector *UgrCatalog::conn = 0;
 
 UgrFactory::UgrFactory() throw (DmException) {
   
-    ugrlogmask = Logger::get()->getMask(ugrlogname);
-    Log(UgrLogger::Lvl4, ugrlogmask, ugrlogname, " UgrFactory starting");
+    ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
+    Info(UgrLogger::Lvl3, "UgrFactory::UgrFactory", "UgrFactory starting");
   
     // Make sure that there is an UgrConnector ready to be used
     // NOTE: calls to this ctor MUST be serialized
@@ -33,7 +33,7 @@ UgrFactory::~UgrFactory()  {
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
     if (!key.compare("Ugr_cfgfile")) {
         cfgfile = value;
-	Log(UgrLogger::Lvl2, ugrlogmask, 0, "Getting config file: " << value);
+	Info(UgrLogger::Lvl2, "UgrFactory::configure", "Getting config file: " << value);
         UgrCatalog::getUgrConnector()->resetinit();
     }
 }
@@ -41,7 +41,7 @@ void UgrFactory::configure(const std::string& key, const std::string& value) thr
 Catalog* UgrFactory::createCatalog(CatalogFactory* factory,
         PluginManager* pm) throw (DmException) {
 
-    Log(UgrLogger::Lvl2, ugrlogmask, 0, "Creating catalog instance. cfg: " << cfgfile.c_str());
+    Info(UgrLogger::Lvl2, "UgrFactory::createCatalog", "Creating catalog instance. cfg: " << cfgfile.c_str());
     int r = UgrCatalog::getUgrConnector()->init((char *) cfgfile.c_str());
     if (r > 0)
         throw DmException(DMLITE_CFGERR(DMLITE_NO_CATALOG), "UgrConnector initialization failed.");
@@ -53,7 +53,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     UgrFactory *f = new UgrFactory();
 
     try {
-	Log(UgrLogger::Lvl4, ugrlogmask, 0, "Registering Ugr Catalog Factory");
+	Info(UgrLogger::Lvl0, "registerPluginUgr", "Registering Ugr Catalog Factory");
         pm->registerCatalogFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)
@@ -62,7 +62,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
     }
 
     try {
-	Log(UgrLogger::Lvl4, ugrlogmask, 0, "Registering Ugr Authn Factory");
+	Info(UgrLogger::Lvl0, "registerPluginUgr", "Registering Ugr Authn Factory");
         pm->registerAuthnFactory(f);
     } catch (DmException e) {
         //        if (e.code() == DM_NO_FACTORY)

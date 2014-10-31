@@ -104,6 +104,7 @@ public:
 
     UgrConnector() : ticker(0), ticktime(10), initdone(false) {
         const char *fname = "UgrConnector::ctor";
+	ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
         Info(UgrLogger::Lvl1, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
     };
 

@@ -632,7 +632,15 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 		  
 		    UgrFileItem item;
 		    const size_t pos = it->find('/', from.size()+1);
-		    item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
+		    
+		    if (from.size() == 1) {
+		      // Particular case, we are querying the root dir
+		      item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
+		    }
+		    else {
+		      item.name = it->substr(from.size()+1, (pos == std::string::npos)?std::string::npos: pos - from.size()-1);
+		    }
+		    
 
                     wtk->fi->setPluginID(getID());
 
@@ -784,6 +792,7 @@ PluginAvailabilityInfo::PluginAvailabilityInfo(int interval_ms, int latency_ms) 
     status_dirty = false;
     time_interval_ms = interval_ms;
     max_latency_ms = latency_ms;
+    lastchange = 0;
 }
 
 bool PluginAvailabilityInfo::getCheckRunning() {
@@ -830,7 +839,12 @@ void PluginAvailabilityInfo::setStatus(PluginEndpointStatus &st, bool setdirty, 
         // Reject the status if it is older than the one that we already have
         if (st.lastcheck > status.lastcheck) {
             if (st.state != PLUGIN_ENDPOINT_ONLINE) s = offline;
-            if (st.state != status.state) lvl = UgrLogger::Lvl1;
+	    
+	    
+            if (st.state != status.state) {
+	      lvl = UgrLogger::Lvl1;
+	      lastchange = st.lastcheck;
+	    }
             status = st;
             if (setdirty) status_dirty = true;
             reject = false;
