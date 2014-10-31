@@ -550,21 +550,17 @@ int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationI
 
 
 
+void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLoctationHandler>  handler){
+    p->run_findNewLocation(new_lfn, handler);
+    handler->decWorker();
+}
 
 int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std::shared_ptr<NewLoctationHandler> & handler){
     // run find new location
     // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
     // handler is the completion handler of the operation
 
-   struct Functor{
-        void operator()(LocationPlugin* p, std::string str, std::shared_ptr<NewLoctationHandler> h){
-            p->run_findNewLocation(str, h);
-            h->decWorker();
-        }
-    } func;
-
-    using namespace std;
-    pushOp(bind(func, this, new_lfn, handler));
+    pushOp(std::bind(&executor_findNewLocation, this, new_lfn, handler));
 
     return 0;
 }
