@@ -153,7 +153,7 @@ private:
     int nthreads;
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
-    friend void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLoctationHandler>  handler);
+    friend void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLocationHandler>  handler);
 
 public:
 

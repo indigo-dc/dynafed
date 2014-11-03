@@ -550,7 +550,7 @@ int LocationPlugin::do_CheckReplica(UgrFileInfo *fi, std::string &rep, LocationI
 
 
 
-void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLoctationHandler>  handler){
+void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLocationHandler>  handler){
     p->run_findNewLocation(new_lfn, handler);
     handler->decWorker();
 }
