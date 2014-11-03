@@ -12,7 +12,7 @@
 #include <string>
 #include <set>
 #include <boost/thread.hpp>
-#include "UgrTypes.hh"
+
 #include "SimpleDebug.hh"
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <sys/stat.h>
@@ -74,6 +74,9 @@ public:
     short pluginID;
 };
 
+
+/// Vector of Replicas
+typedef std::deque<UgrFileItem_replica> UgrReplicaVec;
 
 
 

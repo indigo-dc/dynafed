@@ -139,6 +139,7 @@ private:
 
 };
 
+class NewLocationHandler;
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
  * is made about what source is this.
@@ -244,9 +245,7 @@ protected:
     /// Start the async findNewLocation process
     /// @param fi UgrFileInfo instance to populate
     /// @param handler the location info handler to write into
-    virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler);
-
-
+    virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
     // The simple, default global name translation
     std::vector<std::string> xlatepfx_from;
@@ -355,7 +354,7 @@ public:
     ///
     /// Execute a findNewLocation query on this plugin asynchronously. this call run_findNewLocation internally
     ///
-    int async_findNewLocation(const std::string & new_lfn, const std::shared_ptr<NewLoctationHandler> & handler);
+    int async_findNewLocation(const std::string & new_lfn, const std::shared_ptr<NewLocationHandler> & handler);
 
 
 

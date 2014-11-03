@@ -9,6 +9,7 @@
 #include <dmlite/cpp/dmlite.h>
 #include <dmlite/cpp/inode.h>
 #include <dmlite/cpp/dummy/DummyCatalog.h>
+#include <dmlite/cpp/poolmanager.h>
 #include <dmlite/cpp/catalog.h>
 #include <set>
 #include <boost/thread.hpp>
@@ -147,15 +148,40 @@ namespace dmlite {
     };
 
 
+  class UgrFactory;
+  
+  class UgrPoolManager: public PoolManager {
+  public:
+    UgrPoolManager(UgrFactory* factory) throw (DmException);
+    ~UgrPoolManager();
 
+    std::string getImplId() const throw ();
 
+    void setStackInstance(StackInstance* si) throw (DmException);
+    void setSecurityContext(const SecurityContext*) throw (DmException);
+
+    std::vector<Pool> getPools(PoolAvailability availability = kAny) throw (DmException);
+    Pool getPool(const std::string&) throw (DmException);
+
+    Location whereToRead (const std::string& path) throw (DmException);
+    Location whereToRead (ino_t inode)             throw (DmException);
+    Location whereToWrite(const std::string& path) throw (DmException);
+
+  private:
+    
+    StackInstance* si_;
+
+    /// The corresponding factory.
+    UgrFactory* factory_;
+    const SecurityContext* secCtx_;
+  };
 
 
 
 
     /// Concrete factory for the Librarian plugin.
 
-    class UgrFactory : public CatalogFactory, public AuthnFactory {
+    class UgrFactory : public CatalogFactory, public AuthnFactory, public PoolManagerFactory {
     public:
         /// Constructor
         UgrFactory() throw (DmException);
@@ -173,6 +199,12 @@ namespace dmlite {
         Authn* createAuthn(PluginManager* pm) throw (DmException) {
             return new UgrAuthn();
         };
+	
+	PoolManager* createPoolManager(PluginManager*) throw (DmException) {
+	  return new UgrPoolManager(this);
+	  
+	}
+	
 
     private:
         std::string cfgfile;

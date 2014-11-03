@@ -511,3 +511,39 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
 }
 
 
+int UgrLocPlugin_http::run_findNewLocation(const std::string & lfn, std::shared_ptr<NewLocationHandler> handler){
+  std::string new_lfn(lfn);
+  static const char * fname = "UgrLocPlugin_http::run_findNewLocation";
+  int myidx =0;
+  std::string canonical_name(base_url_endpoint.getString());
+  std::string xname;
+  std::string alt_prefix;
+  
+  // do name translation
+  if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+    return 1;
+  }
+  
+  
+  // s3 does not support //
+  std::string::iterator it = xname.begin();
+  while(*it == '/' && it < xname.end())
+    it++;
+  if(it == xname.end()){
+    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "bucket name, ignore " << new_lfn << " ->  " << xname);
+    return 1;
+  }
+  
+  canonical_name.append("/");
+  canonical_name.append(it, xname.end());
+  
+  std::string new_Location = HttpUtils::protocolHttpNormalize(canonical_name);
+  HttpUtils::pathHttpNomalize(new_Location);
+  
+  handler->addLocation(new_Location, getID());
+  LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << new_Location);
+  return 0;
+  
+}
+

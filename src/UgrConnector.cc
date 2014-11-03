@@ -383,7 +383,7 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);
-    std::shared_ptr<NewLoctationHandler> response_handler= std::make_shared<NewLoctationHandler>();
+    std::shared_ptr<NewLocationHandler> response_handler= std::make_shared<NewLocationHandler>();
 
     UgrFileInfo::trimpath(l_lfn);
     do_n2n(l_lfn);

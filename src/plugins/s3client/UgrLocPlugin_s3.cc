@@ -321,7 +321,7 @@ int UgrLocPlugin_s3::do_List(UgrFileInfo *fi, LocationInfoHandler *handler){
     return LocationPlugin::do_List(fi, handler);
 }
 
-int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_ptr<NewLoctationHandler> handler){
+int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_ptr<NewLocationHandler> handler){
     std::string new_lfn(lfn);
     static const char * fname = "UgrLocPlugin_s3::run_findNewLocation";
     int myidx =0;

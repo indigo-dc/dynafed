@@ -54,6 +54,10 @@ public:
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
         return 0;
     }
+    
+    
+    virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
+
 protected:
     int flags;
     Davix::Uri base_url_endpoint;

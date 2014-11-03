@@ -8,7 +8,13 @@
 #include <boost/noncopyable.hpp>
 
 
-#include "UgrTypes.hh"
+#include "LocationInfo.hh"
+
+class UgrConnector;
+class LocationPlugin;
+class ExtCacheHandler;
+class UgrFileItem_replica;
+class UgrClientInfo;
 
 
 class PluginInterface : protected boost::noncopyable

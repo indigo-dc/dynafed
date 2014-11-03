@@ -6,6 +6,9 @@
 
 
 #include "ExtCacheHandler.hh"
+#include "LocationInfoHandler.hh"
+#include "LocationPlugin.hh"
+
 #include <libmemcached/memcached.h>
 #include <queue>
 

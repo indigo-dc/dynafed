@@ -11,7 +11,7 @@
 #include <functional>
 #include <boost/filesystem.hpp>
 
-#include "UgrTypes.hh"
+
 #include "SimpleDebug.hh"
 #include "Config.hh"
 #include "UgrConfig.h"
@@ -155,7 +155,7 @@ public:
 
 
     /// Return a list of prefered locations for a new resource
-    /// The location is select based on client credential, client location, endpoints configuration
+    /// The location is selected based on client credential, client location, endpoints configuration
     /// @param new_lfn : lfn of the new resource
     /// @param client: client informations
     /// @param new_locations: vector of possible replicas

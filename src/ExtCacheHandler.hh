@@ -10,10 +10,13 @@
 
 #include "Config.hh"
 #include "LocationInfo.hh"
-#include "LocationPlugin.hh"
+
 #include <libmemcached/memcached.h>
 #include <string>
 #include <queue>
+
+
+
 
 /// This class implement basic functions that retrieve or store
 /// FileInfo objects in an external cache, that is shared by multiple

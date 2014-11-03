@@ -7,8 +7,8 @@
 #ifndef LOCATIONINFOHANDLER_HH
 #define LOCATIONINFOHANDLER_HH
 
-#include "UgrTypes.hh"
-#include "Config.hh"
+#include "UgrConfig.h"
+#include "ExtCacheHandler.hh"
 #include "LocationInfo.hh"
 
 #include <string>
@@ -26,8 +26,6 @@ typedef std::atomic<int> IntAtomic;
 
 typedef atomic<int> IntAtomic;
 #endif
-
-
 
 #include <boost/thread.hpp>
 #include <boost/bimap.hpp>
@@ -167,7 +165,7 @@ private:
 ///
 /// Contain the proposed location for new resource
 ///
-class NewLoctationHandler : public HandlerTraits, public boost::noncopyable{
+class NewLocationHandler : public HandlerTraits, public boost::noncopyable{
 public:
 
     void addLocation(const std::string & str, int pluginID){

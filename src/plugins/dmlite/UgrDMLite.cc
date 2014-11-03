@@ -69,6 +69,16 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
         //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
         //        throw;
     }
+    
+    try {
+	Info(UgrLogger::Lvl0, "registerPluginUgr", "Registering Ugr PoolManager Factory");
+        pm->registerPoolManagerFactory(f);
+    } catch (DmException e) {
+        //        if (e.code() == DM_NO_FACTORY)
+        //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
+        //        throw;
+    }
+    
 }
 
 
@@ -164,7 +174,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 
     // Return
     if (replicas.size() == 0) {
-        Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
+        Info(UgrLogger::Lvl1, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
         throw DmException(DMLITE_NO_REPLICAS, "No active endpoints have replicas of this file now. " + path);
     }
     
@@ -467,3 +477,128 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(void) throw (DmExceptio
   
   return sec;
 }
+
+
+
+// --------------------- PoolManager
+
+
+UgrPoolManager::UgrPoolManager(UgrFactory* factory) throw (DmException):
+  si_(NULL), factory_(factory), secCtx_(NULL)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::UgrPoolManager", "Ctor");
+  
+
+}
+
+
+UgrPoolManager::~UgrPoolManager()
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::~UgrPoolManager", "Dtor");
+}
+
+
+std::string UgrPoolManager::getImplId() const throw()
+{
+  return std::string("Ugr");
+}
+
+
+void UgrPoolManager::setStackInstance(StackInstance* si) throw (DmException)
+{
+  // Nothing
+  this->si_ = si;
+}
+
+
+void UgrPoolManager::setSecurityContext(const SecurityContext* ctx) throw (DmException)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::setSecurityContext", "Entering");
+    
+  if (!ctx) {
+    Info(UgrLogger::Lvl4, "UgrPoolManager::setSecurityContext", "Context is null. Exiting.");
+    return;
+  }
+  
+  this->secCtx_ = ctx;
+  
+  Info(UgrLogger::Lvl3, "UgrPoolManager::setSecurityContext", "Exiting.");
+}
+
+
+std::vector<Pool> UgrPoolManager::getPools(PoolAvailability availability) throw (DmException)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::getPools", " PoolAvailability: " << availability);
+  
+  std::vector<Pool> pools;
+  return pools;
+}
+
+
+Pool UgrPoolManager::getPool(const std::string& poolname) throw (DmException)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::getPool", " PoolName: " << poolname);
+  Pool p;
+  p.name = poolname;
+  return p;
+}
+
+
+
+Location UgrPoolManager::whereToRead(const std::string& path) throw (DmException)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::whereToRead", " Path: " << path);
+  
+  // This will throw an exception if no file
+  std::vector<Replica> r = si_->getCatalog()->getReplicas(path);
+  
+  Chunk single( r[0].rfn, 0, 1234);
+  
+    
+  Info(UgrLogger::Lvl3, "UgrPoolManager::whereToRead", " Path: " << path << " --> " << single.toString());
+  return Location(1, single);          
+ 
+}
+
+
+
+Location UgrPoolManager::whereToRead(ino_t) throw (DmException)
+{
+  throw DmException(DMLITE_SYSERR(ENOSYS),
+                    "UgrPoolManager: Access by inode not supported");
+}
+
+
+
+Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmException)
+{
+  Info(UgrLogger::Lvl4, "UgrPoolManager::whereToWrite", " path:" << path);
+  UgrReplicaVec vl;
+  
+  UgrCatalog::getUgrConnector()->findNewLocation(
+    path,
+    UgrClientInfo(secCtx_->credentials.remoteAddress),
+						 vl );
+  
+  if (vl.size() > 0) {
+    Chunk ck( vl[0].name, 0, 1234);
+    
+    // Done!
+    Info(UgrLogger::Lvl3, "UgrPoolManager::whereToWrite", "Exiting. loc:" << ck.toString());
+    return Location(1, ck);
+  }
+  
+  Error("UgrPoolManager::whereToWrite", " Didn't get a destination from writing : " << path);
+  throw DmException(DMLITE_SYSERR(ENOENT),
+		    "Didn't get a destination for writing : %s", path.c_str());
+}
+
+
+
+
+
+
+
+
+
+

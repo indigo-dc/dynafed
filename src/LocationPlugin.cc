@@ -252,7 +252,7 @@ LocationPlugin::~LocationPlugin() {
 
 // implement new location finder
 // default behavior : notify completion and quit
-int LocationPlugin::run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLoctationHandler> handler){
+int LocationPlugin::run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler){
     const char *fname = "LocationPlugin::do_findNewLocation";
 
     LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No findNewLocation support for this plugin, default behavior");
@@ -555,12 +555,17 @@ void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::share
     handler->decWorker();
 }
 
-int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std::shared_ptr<NewLoctationHandler> & handler){
+int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std::shared_ptr<NewLocationHandler> & handler){
     // run find new location
     // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
     // handler is the completion handler of the operation
 
-    pushOp(std::bind(&executor_findNewLocation, this, new_lfn, handler));
+   struct Functor{
+        void operator()(LocationPlugin* p, std::string str, std::shared_ptr<NewLocationHandler> h){
+            p->run_findNewLocation(str, h);
+            h->decWorker();
+        }
+    } func;
 
     return 0;
 }
