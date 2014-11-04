@@ -560,13 +560,7 @@ int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std:
     // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
     // handler is the completion handler of the operation
 
-   struct Functor{
-        void operator()(LocationPlugin* p, std::string str, std::shared_ptr<NewLocationHandler> h){
-            p->run_findNewLocation(str, h);
-            h->decWorker();
-        }
-    } func;
-
+    pushOp(std::bind(&executor_findNewLocation, this, new_lfn, handler));
     return 0;
 }
 
