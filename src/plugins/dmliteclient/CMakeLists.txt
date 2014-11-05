@@ -23,7 +23,7 @@ if(DMLITE_FOUND)
   add_library(ugrlocplugin_dmliteclient SHARED ${UgrLocPlugin_dmliteclient_SOURCES})
 
 set_target_properties(ugrlocplugin_dmliteclient PROPERTIES LINK_FLAGS "-rdynamic"
-                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
   target_link_libraries(ugrlocplugin_dmliteclient dl ${DMLITE_LIBRARIES} ugrconnector rt)
 

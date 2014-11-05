@@ -15,7 +15,7 @@ if(GEOIP_PLUGIN AND GEOIP_LIB)
   add_library(ugrgeoplugin_geoip SHARED ${UgrGeoPlugin_GeoIP_SOURCES})
 
 set_target_properties(ugrgeoplugin_geoip        PROPERTIES LINK_FLAGS "-rdynamic"
-                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
   target_link_libraries(ugrgeoplugin_geoip "dl" ugrconnector ${GEOIP_LIB})
 

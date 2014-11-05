@@ -14,7 +14,7 @@ include_directories(${DAVIX_PKG_INCLUDE_DIRS})
 add_library(ugrnoloopplugin SHARED ${src_noloop})
 
 set_target_properties(ugrnoloopplugin        PROPERTIES LINK_FLAGS "-rdynamic"
-                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+                                                LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
 target_link_libraries(ugrnoloopplugin "dl" ugrconnector ${DAVIX_PKG_LIBRARIES})
 

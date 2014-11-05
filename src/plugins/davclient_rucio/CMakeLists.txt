@@ -17,7 +17,7 @@ include_directories(${DAVIX_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
 add_library(ugrlocplugin_davrucio SHARED ${src_http_plugin} ${src_dav_plugin} ${src_davrucio_plugin})
 set_target_properties(ugrlocplugin_davrucio PROPERTIES LINK_FLAGS "-rdynamic"
-                                       LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+                                       LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
 target_link_libraries(ugrlocplugin_davrucio ugrconnector ${DAVIX_PKG_LIBRARIES} rt)
 

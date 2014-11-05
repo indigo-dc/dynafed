@@ -15,7 +15,7 @@ include_directories(${GFAL2_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
 add_library(ugrlocplugin_lfc SHARED ${src_lfc_plugin})
 set_target_properties(ugrlocplugin_lfc PROPERTIES LINK_FLAGS "-rdynamic"
-                                       LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/plugins)
+                                       LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
 target_link_libraries(ugrlocplugin_lfc ugrconnector ${GFAL2_PKG_LIBRARIES} )
 
