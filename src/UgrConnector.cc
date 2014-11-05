@@ -181,6 +181,24 @@ UgrLogger & UgrConnector::getLogger() const{
     return *UgrLogger::get();
 }
 
+static boost::filesystem::path getPluginDirectory(){
+     const char *fname = "UgrConnector::init::getPluginDirectory";
+     boost::filesystem::path plugin_dir(getUgrLibPath());
+     plugin_dir = plugin_dir.parent_path();
+     plugin_dir /= "ugr";
+
+     try {
+         if (is_directory(plugin_dir)) {
+             Info(UgrLogger::Lvl2, fname, "Define Ugr plugin directory to: " << plugin_dir);
+         } else {
+             throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, get_generic_category()));
+         }
+     } catch (filesystem_error & e) {
+         Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
+     }
+    return plugin_dir;
+}
+
 int UgrConnector::init(char *cfgfile) {
     const char *fname = "UgrConnector::init";
     {
@@ -216,16 +234,7 @@ int UgrConnector::init(char *cfgfile) {
 	} while (1);
 
         // setup plugin directory
-        plugin_dir = CFG->GetString("glb.plugin_dir", (char *) UGR_PLUGIN_DIR_DEFAULT);
-        try {
-            if (is_directory(plugin_dir)) {
-                Info(UgrLogger::Lvl2, fname, "Define Ugr plugin directory to: " << plugin_dir);
-            } else {
-                throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, get_generic_category()));
-            }
-        } catch (filesystem_error & e) {
-            Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
-        }
+        plugin_dir = getPluginDirectory();
 
         // Get the tick pace from the config
         ticktime = CFG->GetLong("glb.tick", 10);
