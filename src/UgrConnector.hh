@@ -22,7 +22,8 @@
 #include "ExtCacheHandler.hh"
 
 
-
+/// return the path of the UgrConnector shared library
+const std::string & getUgrLibPath();
 
 
 /// The main class that allows to interact with the system
@@ -102,11 +103,7 @@ protected:
     bool initdone;
 public:
 
-    UgrConnector() : ticker(0), ticktime(10), initdone(false) {
-        const char *fname = "UgrConnector::ctor";
-	ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
-        Info(UgrLogger::Lvl1, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
-    };
+    UgrConnector();
 
     virtual ~UgrConnector();
 

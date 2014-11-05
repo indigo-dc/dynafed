@@ -17,6 +17,8 @@
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
 
+#include <dlfcn.h>
+
 
 
 using namespace boost;
@@ -135,6 +137,14 @@ void UgrConnector::tick(int parm) {
     }
 
     Info(UgrLogger::Lvl1, fname, "Ticker exiting");
+}
+
+
+UgrConnector::UgrConnector(): ticker(0), ticktime(10), initdone(false) {
+    const char *fname = "UgrConnector::ctor";
+    ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
+    Info(UgrLogger::Lvl1, fname, "Ctor " << UGR_VERSION_MAJOR <<"." << UGR_VERSION_MINOR << "." << UGR_VERSION_PATCH);
+    Info(UgrLogger::Lvl3, fname, "LibUgrConnector path:" << getUgrLibPath());
 }
 
 UgrConnector::~UgrConnector() {
@@ -675,4 +685,26 @@ int UgrConnector::list(std::string &lfn, UgrFileInfo **nfo, int nitemswait) {
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
+}
+
+
+const std::string & getUgrLibPath(){
+// path of the ugr shared object
+static std::unique_ptr<std::string> lib_path;
+static boost::mutex mu_lib_path;
+
+if(lib_path.get() == NULL){
+    boost::lock_guard<boost::mutex> l(mu_lib_path);
+    if(lib_path.get() == NULL){
+        Dl_info shared_lib_infos;
+
+        // do an address resolution on a local function
+        // get this resolution to determine davix shared library path at runtime
+        if( dladdr((void*) &getUgrLibPath, &shared_lib_infos) != 0){
+            lib_path = std::unique_ptr<std::string>(new std::string(shared_lib_infos.dli_fname));
+        }
+    }
+}
+
+return *lib_path;
 }
