@@ -9,6 +9,7 @@ import os, sys
 import urllib2,simplejson
 import getopt
 import pycurl
+from subprocess import Popen, PIPE
 
 TIMEOUT = 5
 
@@ -64,7 +65,7 @@ def main(argv):
                 request_url = url + protocols[0][len(prefix):]
                 test = request(request_url,option["proxy"])
                 print "Test for %s: %s" % (url + protocols[0][len(prefix):], test)
-                if not test.startswith("2"):
+                if test != 0:
                     continue
             out = """###########
 ## Talk to a %s instance in %s
@@ -80,30 +81,13 @@ glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % 
 
 def request(url, proxy):
     """ Execute a request defined by the action to test an url"""
-    curl = pycurl.Curl()
-    curl.setopt(pycurl.URL, url)
-    curl.setopt(pycurl.CONNECTTIMEOUT, TIMEOUT)
-    curl.setopt(pycurl.TIMEOUT, TIMEOUT)
-    curl.setopt(pycurl.SSL_VERIFYPEER, 1)
-    curl.setopt(pycurl.SSL_VERIFYHOST, 9)
-    curl.setopt(pycurl.FOLLOWLOCATION, 1)
-    curl.setopt(pycurl.WRITEFUNCTION, lambda x: None)
-    if proxy:
-      curl.setopt(pycurl.CAINFO, proxy)
-      curl.setopt(pycurl.SSLCERT, proxy)
-      curl.setopt(pycurl.CAPATH, "/etc/grid-security/certificates")
-
-    exception = ""
-    try:
-        curl.perform()
-        code = curl.getinfo(pycurl.HTTP_CODE)
-        curl.close()
-    except Exception, e:
-        e = str(e)
-        exception = "Exception " + e[e.find('(')+1:e.rfind(')')]
-        code = 0
-    return str(code)
-
+    if proxy == "grid":
+        proxy = os.environ["X509_USER_PROXY"]
+        process = Popen(["davix-ls", "-P", "grid", "-k", url], stdout=PIPE, stderr=PIPE)
+    else:
+        process = Popen(["davix-ls", "-E", proxy, "-k", url], stdout=PIPE, stderr=PIPE)
+    code = process.wait()
+    return code
 
 if __name__ == "__main__":
     main(sys.argv[1:])
