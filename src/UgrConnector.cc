@@ -399,13 +399,23 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 }
 
 
-int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
+UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);
     std::shared_ptr<NewLocationHandler> response_handler= std::make_shared<NewLocationHandler>();
 
     UgrFileInfo::trimpath(l_lfn);
     do_n2n(l_lfn);
+
+    // check if override
+    if(CFG->GetBool("glb.allow_overwrite", true) == false){
+        UgrFileInfo* fi = NULL;
+        stat(l_lfn, &fi);
+        if(fi && fi->status_items !=  UgrFileInfo::NotFound){
+            return UgrCode(UgrCode::OverwriteNotAllowed, "Ovewrite existing resource is not allowed");
+        }
+    }
+
 
     Info(UgrLogger::Lvl2, fname,  "Find new location for " << l_lfn);
 
@@ -432,7 +442,7 @@ int UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientIn
     filter(new_locations, client);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
-    return 0;
+    return UgrCode();
 
 }
 

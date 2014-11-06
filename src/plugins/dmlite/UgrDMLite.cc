@@ -16,6 +16,23 @@ using namespace dmlite;
 UgrConnector *UgrCatalog::conn = 0;
 
 
+int ugrToDmliteErrCode(const UgrCode & c){
+    switch(c.getCode()){
+        case UgrCode::FileNotFound:
+            return ENOENT;
+        case UgrCode::PermissionDenied:
+        case UgrCode::OverwriteNotAllowed:
+            return EPERM;
+        case UgrCode::Ok:
+            return 0;
+        default:
+            return EFAULT;
+
+
+    }
+}
+
+
 UgrFactory::UgrFactory() throw (DmException) {
   
     ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
@@ -575,11 +592,14 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
   Info(UgrLogger::Lvl4, "UgrPoolManager::whereToWrite", " path:" << path);
   UgrReplicaVec vl;
   
-  UgrCatalog::getUgrConnector()->findNewLocation(
+  UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,
     UgrClientInfo(secCtx_->credentials.remoteAddress),
 						 vl );
   
+  if(!code.isOK()){
+      throw DmException(DMLITE_SYSERR(ugrToDmliteErrCode(code)), code.getString());
+  }
   if (vl.size() > 0) {
     Chunk ck( vl[0].name, 0, 1234);
     

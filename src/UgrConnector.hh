@@ -156,7 +156,7 @@ public:
     /// @param new_lfn : lfn of the new resource
     /// @param client: client informations
     /// @param new_locations: vector of possible replicas
-    virtual int findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
+    virtual UgrCode findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
 
     /// Start an async process that finds the endpoint that has the given replica
     /// There is no wait primitive associated to this, as the normal do_waitLocate will do

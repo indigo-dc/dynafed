@@ -13,6 +13,41 @@ extern UgrLogger::bitmask ugrlogmask;
 extern UgrLogger::component ugrlogname;
 
 
+///
+/// \brief The UgrSCode class
+///
+/// Contain status code and error report
+class UgrCode{
+public:
+    enum Status{
+        Ok=0,
+        FileNotFound,
+        PermissionDenied,
+        OverwriteNotAllowed,
+    };
+
+    UgrCode() : code_(Ok), msg_() {}
+    UgrCode(Status code, const std::string & msg) : code_(code), msg_(msg){}
+
+    inline Status getCode() const{
+        return code_;
+    }
+
+    inline const std::string & getString(){
+        return msg_;
+    }
+
+    bool isOK(){
+        return code_ == Ok;
+    }
+
+private:
+    Status code_;
+    std::string msg_;
+};
+
+
+
 // -------------------------------------------------------
 // Some macros to make the logging more comfortable to use
 // The idea is to use the comfortable cout-like syntax in the
