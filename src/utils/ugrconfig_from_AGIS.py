@@ -1,54 +1,55 @@
 #!/usr/bin/env python
-
-# ugrconfig_from_AGIS extract info that is used to configure an HTTP federation
-# that uses the Dynamic Federations
+##############################################################################
+# Copyright (c) CERN, 2014.
 #
-# Credit to Ilija Vukotic for the original version, used for FAX and XROOTD
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at #
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS
+# OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+##############################################################################
+#
+# NAME :        ugrconfig_from_AGIS.py
+#
+# DESCRIPTION : Extract info that is used to configure an HTTP federation that uses the Dynamic Federations.
+#
+# AUTHORS :     Ivan.Calvet@cern.ch
+#
+##############################################################################
 
-import os, sys
-import urllib2,simplejson
-import getopt
-import pycurl
-from subprocess import Popen, PIPE
+import os
+import sys
+import argparse
+import urllib2, simplejson
+from   subprocess import Popen, PIPE
 
-TIMEOUT = 5
-
-def main(argv):
-    flags, args = getopt.getopt(argv, "e:p:t:", ["exclude=","proxy=","threads="])
-    option = {}
-    for flag, arg in flags:
-        flag = flag[flag.rfind('-')+1:]
-        if flag == "e":
-            flag = "exclude"
-        elif flag == "p":
-            flag = "proxy"
-        elif flag == "t":
-            flag = "threads"
-        option[flag] = arg
-    exclude = None
-    if "exclude" in option:
-        exclude = option["exclude"].split(',')
-    if "threads" in option:
-        threads = str(option["threads"])
-    else:
-        threads = "5"
+def main():
+    parser = argparse.ArgumentParser(description='Extract info that is used to configure an HTTP federation that uses the Dynamic Federations.')
+    parser.add_argument('-p', '--proxy',  required=True, help='specify your proxy path. If your proxy is registered in the X509_USER_PROXY environment variable, just use "-p grid" option. If you don\'t want to check every URL, please use "-p NO_CHECK" option.')
+    parser.add_argument('-e', '--exclude', metavar='KEYWORD', nargs='*', help='exclude the paths containing these keywords (spaces separated).')
+    parser.add_argument('-t', '--threads', metavar='NUMBER', type=int, default="5", help='specify the number of threads at each entry (5 by default).')
+    args = parser.parse_args()
 
     req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/get_se_services/?json&flavour=HTTP", None)
     opener = urllib2.build_opener()
     f = opener.open(req)
-    res=simplejson.load(f)
+    res = simplejson.load(f)
     output = []
+    nb = 0
     for s in res:
+        nb += 1
+        print ">>> Entry %s / %s:" % (nb, len(res))
         protocols = []
         if 'r' in s["aprotocols"]:
             for p in s["aprotocols"]['r']:
-                if exclude:
-                    skip = False
-                    for e in exclude:
-                        if e in p[2]:
-                            skip = True
-                    if skip:
-                        continue
+                if args.exclude and [val for val in args.exclude if val in p[2]]:
+                    continue
                 if p[2].endswith("/rucio/"):
                     protocols.append(p[2][:-6])
         prefix = os.path.commonprefix(protocols)
@@ -61,19 +62,23 @@ def main(argv):
             if not s["impl"]:
                 impl = "???"
             url = s["endpoint"] + prefix
-            if "proxy" in option:
+            if args.proxy != "NO_CHECK":
                 request_url = url + protocols[0][len(prefix):]
-                test = request(request_url,option["proxy"])
-                print "Test for %s: %s" % (url + protocols[0][len(prefix):], test)
-                if test != 0:
+                test = request(request_url,args.proxy)
+                print "Test of %s" % (url + protocols[0][len(prefix):])
+                if test:
+                    print "-> FAILED"
                     continue
+            print "-> OK"
             out = """###########
 ## Talk to a %s instance in %s
 ##
-glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, s["rc_site"], s["rc_site"], threads, url)
+glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, s["rc_site"], s["rc_site"], args.threads, url)
             if len(protocols) > 1:
                 out += "\nlocplugin.%s.pfxmultiply:%s" % (s["rc_site"], pro)
             output.append(out)
+        else:
+            print "-> No path to test."
     file = open('ugr.conf', 'w')
     file.write("\n\n".join(output))
     file.close()
@@ -89,5 +94,6 @@ def request(url, proxy):
     code = process.wait()
     return code
 
+
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
