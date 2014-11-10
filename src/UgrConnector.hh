@@ -151,12 +151,21 @@ public:
     virtual int stat(std::string &lfn, UgrFileInfo **nfo);
 
 
+    /// Remove All replicates of a resource at the given location
+    /// This function tries first to delete all replicate in a sychronous manner.
+    /// in case of the impossibility to delete some replicates, the replicates are added to the replicate_to_delete vector
+    ///
+    virtual UgrCode remove(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicate_to_delete);
+
+
     /// Return a list of prefered locations for a new resource
     /// The location is selected based on client credential, client location, endpoints configuration
     /// @param new_lfn : lfn of the new resource
     /// @param client: client informations
     /// @param new_locations: vector of possible replicas
     virtual UgrCode findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
+
+
 
     /// Start an async process that finds the endpoint that has the given replica
     /// There is no wait primitive associated to this, as the normal do_waitLocate will do

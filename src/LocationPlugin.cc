@@ -261,6 +261,15 @@ int LocationPlugin::run_findNewLocation(const std::string & new_lfn, std::shared
 }
 
 
+int LocationPlugin::run_deleteReplica(const std::string & lfn, std::shared_ptr<DeleteReplicaHandler> handler){
+    const char *fname = "LocationPlugin::run_deleteReplica";
+
+    LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No deleteReplica support for this plugin, default behavior");
+    // do nothing
+    return 1;
+}
+
+
 // Pushes a new op in the queue
 
 void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop, char *newpfx) {
@@ -560,7 +569,20 @@ int LocationPlugin::async_findNewLocation(const std::string &new_lfn, const std:
     // follow pattern setting up by Fab to extend it to fully asynchronous behavior in future with thread launch
     // handler is the completion handler of the operation
 
+    handler->incWorker();
     pushOp(std::bind(&executor_findNewLocation, this, new_lfn, handler));
+    return 0;
+}
+
+
+void executor_deleteReplica(LocationPlugin* p, std::string new_lfn, std::shared_ptr<DeleteReplicaHandler>  handler){
+    p->run_deleteReplica(new_lfn, handler);
+    handler->decWorker();
+}
+
+int LocationPlugin::async_deleteReplica(const std::string &lfn, const std::shared_ptr<DeleteReplicaHandler> & handler){
+    handler->incWorker();
+    pushOp(std::bind(&executor_deleteReplica, this, lfn, handler));
     return 0;
 }
 

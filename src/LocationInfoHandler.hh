@@ -130,6 +130,10 @@ public:
         counter_ += n;
     }
 
+    inline void incWorker(){
+        ++counter_;
+    }
+
 
     // remove one worker from the completion
     inline void decWorker(){
@@ -161,14 +165,14 @@ private:
 
 
 ///
-/// @brief NewLoctationHandler class
+/// @brief ReplicasHandler class
 ///
-/// Contain the proposed location for new resource
+/// Handler for operations on a list of replicas
 ///
-class NewLocationHandler : public HandlerTraits, public boost::noncopyable{
+class ReplicasHandler : public HandlerTraits, public boost::noncopyable{
 public:
 
-    void addLocation(const std::string & str, int pluginID){
+    inline void addLocation(const std::string & str, int pluginID){
         UgrFileItem_replica r;
         r.pluginID = pluginID;
         r.name = str;
@@ -178,7 +182,7 @@ public:
         }
     }
 
-    UgrReplicaVec takeAll(){
+    inline UgrReplicaVec takeAll(){
         UgrReplicaVec res;
         boost::lock_guard<boost::mutex> l(mu_);
         res.swap(new_locations_vec_);
@@ -193,6 +197,17 @@ private:
 };
 
 
+///
+/// \brief NewLocationHandler
+///
+///  Event Handler for a request about new location query (findNewLocation)
+typedef ReplicasHandler NewLocationHandler;
+
+///
+/// \brief DeleteHandler
+///
+///  Even Handler for a request about delete replicats
+typedef ReplicasHandler DeleteReplicaHandler;
 
 #endif
 

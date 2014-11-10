@@ -52,12 +52,22 @@ public:
 
 class UgrFileItem_replica: public UgrFileItem {
 public: 
-    UgrFileItem_replica(): UgrFileItem(), latitude(0.0), longitude(0.0) {
+
+
+    enum Status{
+        Available=0,
+        Deleted,
+        PermissionDenied,
+    };
+
+    UgrFileItem_replica(): UgrFileItem(), status(Available), latitude(0.0), longitude(0.0) {
         pluginID = -1;
     };
 
+
     UgrFileItem_replica(const UgrFileItem_replica & origin) : UgrFileItem(origin),
         location(origin.location),
+        status(origin.status),
         latitude(origin.latitude),
         longitude(origin.longitude),
         pluginID(origin.pluginID)
@@ -65,6 +75,9 @@ public:
 
     // Some info about the location, e.g. galactic coordinates
     std::string location;
+
+    // Status Information
+    Status status;
     
     // Some info about the geographical location
     float latitude;

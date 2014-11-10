@@ -399,6 +399,61 @@ int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
 }
 
 
+static bool predUnAvailableReplica(const UgrFileItem_replica & rep){
+    return (rep.status != UgrFileItem_replica::Available);
+}
+
+UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client, UgrReplicaVec &replicate_to_delete){
+    const char *fname = "UgrConnector::remove";
+    std::string l_lfn(lfn);
+    std::shared_ptr<DeleteReplicaHandler> response_handler= std::make_shared<DeleteReplicaHandler>();
+
+    UgrFileInfo::trimpath(l_lfn);
+
+    Info(UgrLogger::Lvl2, fname,  "Delete all replicas of " << l_lfn);
+
+
+    // Ask all the non slave plugins that are online and writable
+    for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
+        if ( (!(*it)->isSlave()) && ((*it)->isOK())
+             && (*it)->getFlag(LocationPlugin::Writable)){
+            (*it)->async_deleteReplica(l_lfn, response_handler);
+        }
+    }
+
+    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+         Info(UgrLogger::Lvl2, fname, "Timeout triggered during deleteAll for " << l_lfn);
+    }
+
+    replicate_to_delete = response_handler->takeAll();
+
+    // check if no answer: then no resource has been deleted
+    if(replicate_to_delete.size() ==0){
+            return UgrCode(UgrCode::FileNotFound, "Resource not existing");
+    }
+
+
+    // check permission if denied, the user has a right problem somewhere, report it
+    for(auto it = replicate_to_delete.begin(); it < replicate_to_delete.end(); ++it){
+        if((*it).status == UgrFileItem_replica::PermissionDenied){
+            return UgrCode(UgrCode::PermissionDenied, "Impossible to suppress the resource, permission denied");
+        }
+    }
+
+    // remove all replicas that have been that are inconsistents or already deleted
+    size_t deleted_number = replicate_to_delete.size();
+    replicate_to_delete.erase(std::remove_if(replicate_to_delete.begin(), replicate_to_delete.end(), &predUnAvailableReplica), replicate_to_delete.end());
+    deleted_number -= replicate_to_delete.size();
+
+    // apply filters
+    filter(replicate_to_delete, client);
+
+    Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicate_to_delete.size() << " to delete");
+
+    return UgrCode();
+}
+
+
 UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);
@@ -423,15 +478,13 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
         if ( (!(*it)->isSlave()) && ((*it)->isOK())
              && (*it)->getFlag(LocationPlugin::Writable)){
-
-            response_handler->addWorker(1);
             (*it)->async_findNewLocation(l_lfn, response_handler);
         }
     }
 
 
     if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
-         Info(UgrLogger::Lvl2, fname, " Timeout triggered during findNewLocation for " << l_lfn);
+         Info(UgrLogger::Lvl2, fname, "Timeout triggered during findNewLocation for " << l_lfn);
     }
 
     new_locations.clear();

@@ -139,7 +139,6 @@ private:
 
 };
 
-class NewLocationHandler;
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
  * is made about what source is this.
@@ -154,6 +153,7 @@ private:
     /// Easy way to get threaded life
     friend void pluginFunc(LocationPlugin *pl, int myidx);
     friend void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLocationHandler>  handler);
+    friend void executor_deleteReplica(LocationPlugin* p, std::string new_lfn, std::shared_ptr<DeleteReplicaHandler>  handler);
 
 public:
 
@@ -242,10 +242,17 @@ protected:
     ///
     virtual void run_Check(int myidx);
 
-    /// Start the async findNewLocation process
+    /// execute a findNewLocation operation, need to be implemented by the plugin
     /// @param fi UgrFileInfo instance to populate
     /// @param handler the location info handler to write into
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
+
+
+    /// execute a deleteReplica operation, this need to be implemented by the plugin
+    ///
+    virtual int run_deleteReplica(const std::string & lfn, std::shared_ptr<DeleteReplicaHandler> handler);
+
+
 
     // The simple, default global name translation
     std::vector<std::string> xlatepfx_from;
@@ -356,6 +363,15 @@ public:
     ///
     int async_findNewLocation(const std::string & new_lfn, const std::shared_ptr<NewLocationHandler> & handler);
 
+    ///
+    /// \brief async_deleteReplica
+    /// \param lfn
+    /// \param handler
+    /// \return 0 if success, negative if plugin error
+    ///
+    /// Execute a delete operation on this plugin asynchronously. this call run_deleteReplica internally
+    ///
+    int async_deleteReplica(const std::string & lfn, const std::shared_ptr<DeleteReplicaHandler> & handler);
 
 
     /// Asynchronously check if this plugin knows about the given replica
