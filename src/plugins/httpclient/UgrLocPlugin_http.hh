@@ -58,6 +58,7 @@ public:
     
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
+
 protected:
     int flags;
     Davix::Uri base_url_endpoint;

@@ -35,14 +35,14 @@ class UgrConnector;
 	if (UgrLogger::get()->getLevel() >= lvl && UgrLogger::get()->isLogged(pluglogmask)) 	\
 	{    																	\
 		std::ostringstream outs;                                   			\
-		outs << "UGR " << pluglogname << "[" << myidx << "] " << where << " " << __func__ << " : " << what;                      			\
+        outs << "UGR " << pluglogname << "[" << getID() << "] " << where << " " << __func__ << " : " << what;                      			\
 		UgrLogger::get()->log((UgrLogger::Level)lvl, outs.str());    				\
 	}                                                             			\
 }while(0)
 
 #define LocPluginLogErr(where, what) do {                                											\
 		std::ostringstream outs;                                   			\
-		outs << "UGR " << pluglogname << "[" << myidx << "] " << where << " !! " << __func__ << " : " << what;                      			\
+        outs << "UGR " << pluglogname << "[" << getID() << "] " << where << " !! " << __func__ << " : " << what;                      			\
 		UgrLogger::get()->log((UgrLogger::Level)0, outs.str());    				\
 }while(0)
 

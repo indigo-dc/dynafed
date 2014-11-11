@@ -324,7 +324,6 @@ int UgrLocPlugin_s3::do_List(UgrFileInfo *fi, LocationInfoHandler *handler){
 int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_ptr<NewLocationHandler> handler){
     std::string new_lfn(lfn);
     static const char * fname = "UgrLocPlugin_s3::run_findNewLocation";
-    int myidx =0;
     std::string canonical_name(base_url_endpoint.getString());
     std::string xname;
     std::string alt_prefix;
@@ -336,17 +335,9 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
     }
 
 
-    // s3 does not support //
-    std::string::iterator it = xname.begin();
-    while(*it == '/' && it < xname.end())
-        it++;
-    if(it == xname.end()){
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "bucket name, ignore " << new_lfn << " ->  " << xname);
+    if(concat_s3_url_path(canonical_name, xname, canonical_name) == false){
         return 1;
     }
-
-    canonical_name.append("/");
-    canonical_name.append(it, xname.end());
 
     try{
 
@@ -360,7 +351,7 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         new_Location = HttpUtils::protocolHttpNormalize(tokenized_location.getString());
         HttpUtils::pathHttpNomalize(new_Location);
 
-        handler->addLocation(new_Location, getID());
+        handler->addReplica(new_Location, getID());
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << tokenized_location);
         return 0;
 
@@ -374,6 +365,50 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
 }
 
 
+int UgrLocPlugin_s3::run_deleteReplica(const string & lfn, const std::shared_ptr<DeleteReplicaHandler> handler){
+    std::string new_lfn(lfn);
+    static const char * fname = "UgrLocPlugin_s3::run_findNewLocation";
+    std::string canonical_name(base_url_endpoint.getString());
+    std::string xname;
+    std::string alt_prefix;
+
+    // do name translation
+    if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+          LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+          return 1;
+    }
+
+
+
+    if(concat_s3_url_path(canonical_name, xname, canonical_name) == false){
+        return 1;
+    }
+
+
+    try{
+
+        // TODO: ACL check here
+
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try Deletion for  " << canonical_name);
+        Davix::File f(dav_core, canonical_name);
+        f.deletion(&params);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Deletion done with success for  " << canonical_name);
+
+        UgrFileItem_replica rep;
+        rep.name = canonical_name;
+        rep.status = UgrFileItem_replica::Deleted;
+        handler->addReplica(rep, getID());
+        return 0;
+
+    }catch(Davix::DavixException & e){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Error on Deletion: " << e.what());
+    }catch(...){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Unknown Error on Deletion");
+    }
+
+}
+
+
 
 void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
 
@@ -384,6 +419,25 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
     }
     params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
     checker_params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
+}
+
+// concat URI + path, if it correspond to a bucket name, return false -> error
+bool UgrLocPlugin_s3::concat_s3_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
+    static const char * fname = "UgrLocPlugin_s3::concat_s3_url_path";
+    // s3 does not support //
+    auto it = path.begin();
+    while(*it == '/' && it < path.end())
+        it++;
+
+    if(it == path.end()){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "bucket name, ignore " << path);
+        return false;
+    }
+
+    canonical = base_uri;
+    canonical.append("/");
+    canonical.append(it, path.end());
+    return true;
 }
 
 

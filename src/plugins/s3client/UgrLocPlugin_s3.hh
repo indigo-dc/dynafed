@@ -47,8 +47,12 @@ public:
 
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
-protected:
+
+    virtual int run_deleteReplica(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
+
+private:
     void configure_S3_parameter(const std::string & str);
+    bool concat_s3_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
 };
 
 

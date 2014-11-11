@@ -172,7 +172,7 @@ private:
 class ReplicasHandler : public HandlerTraits, public boost::noncopyable{
 public:
 
-    inline void addLocation(const std::string & str, int pluginID){
+    inline void addReplica(const std::string & str, int pluginID){
         UgrFileItem_replica r;
         r.pluginID = pluginID;
         r.name = str;
@@ -180,6 +180,12 @@ public:
             boost::lock_guard<boost::mutex> l(mu_);
             new_locations_vec_.push_back(r);
         }
+    }
+
+    inline void addReplica(const UgrFileItem_replica & rep, int pluginID){
+            boost::lock_guard<boost::mutex> l(mu_);
+            new_locations_vec_.push_back(rep);
+            new_locations_vec_.back().pluginID = pluginID;
     }
 
     inline UgrReplicaVec takeAll(){
