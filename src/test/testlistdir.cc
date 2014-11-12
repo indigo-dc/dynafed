@@ -30,8 +30,9 @@ int main(int argc, char **argv) {
     cout << "Invoking list " << endl;
     string fn = argv[3];
 
-	UgrFileInfo* file_infos=NULL;
-    ugr.list(fn, &file_infos);
+    UgrFileInfo* file_infos=NULL;
+    UgrClientInfo cli;
+    ugr.list(fn, cli, &file_infos);
 
     std::cout << "testlistdir: Start listing: " << std::endl;
     if (file_infos->getItemsStatus() == UgrFileInfo::Ok) {

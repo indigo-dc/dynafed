@@ -354,7 +354,7 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-int UgrConnector::stat(std::string &lfn, UgrFileInfo **nfo) {
+int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo) {
     const char *fname = "UgrConnector::stat";
 
     UgrFileInfo::trimpath(lfn);
@@ -403,7 +403,7 @@ static bool predUnAvailableReplica(const UgrFileItem_replica & rep){
     return (rep.status != UgrFileItem_replica::Available);
 }
 
-UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client, UgrReplicaVec &replicate_to_delete){
+UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client, UgrReplicaVec &replicas_to_delete){
     const char *fname = "UgrConnector::remove";
     std::string l_lfn(lfn);
     std::shared_ptr<DeleteReplicaHandler> response_handler= std::make_shared<DeleteReplicaHandler>();
@@ -425,30 +425,30 @@ UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client
          Info(UgrLogger::Lvl2, fname, "Timeout triggered during deleteAll for " << l_lfn);
     }
 
-    replicate_to_delete = response_handler->takeAll();
+    replicas_to_delete = response_handler->takeAll();
 
     // check if no answer: then no resource has been deleted
-    if(replicate_to_delete.size() ==0){
+    if(replicas_to_delete.size() ==0){
             return UgrCode(UgrCode::FileNotFound, "Resource not existing");
     }
 
 
     // check permission if denied, the user has a right problem somewhere, report it
-    for(auto it = replicate_to_delete.begin(); it < replicate_to_delete.end(); ++it){
+    for(auto it = replicas_to_delete.begin(); it < replicas_to_delete.end(); ++it){
         if((*it).status == UgrFileItem_replica::PermissionDenied){
             return UgrCode(UgrCode::PermissionDenied, "Impossible to suppress the resource, permission denied");
         }
     }
 
     // remove all replicas that have been that are inconsistents or already deleted
-    size_t deleted_number = replicate_to_delete.size();
-    replicate_to_delete.erase(std::remove_if(replicate_to_delete.begin(), replicate_to_delete.end(), &predUnAvailableReplica), replicate_to_delete.end());
-    deleted_number -= replicate_to_delete.size();
+    size_t deleted_number = replicas_to_delete.size();
+    replicas_to_delete.erase(std::remove_if(replicas_to_delete.begin(), replicas_to_delete.end(), &predUnAvailableReplica), replicas_to_delete.end());
+    deleted_number -= replicas_to_delete.size();
 
     // apply filters
-    filter(replicate_to_delete, client);
+    filter(replicas_to_delete, client);
 
-    Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicate_to_delete.size() << " to delete");
+    Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicas_to_delete.size() << " to delete");
 
     return UgrCode();
 }
@@ -465,7 +465,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     // check if override
     if(CFG->GetBool("glb.allow_overwrite", true) == false){
         UgrFileInfo* fi = NULL;
-        stat(l_lfn, &fi);
+        stat(l_lfn, client, &fi);
         if(fi && fi->status_items !=  UgrFileInfo::NotFound){
             return UgrCode(UgrCode::OverwriteNotAllowed, "Ovewrite existing resource is not allowed");
         }
@@ -634,7 +634,7 @@ int UgrConnector::do_checkreplica(UgrFileInfo *fi, std::string rep) {
 
 
 
-int UgrConnector::locate(std::string &lfn, UgrFileInfo **nfo) {
+int UgrConnector::locate(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo) {
 
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);
@@ -709,7 +709,7 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
     return 0;
 }
 
-int UgrConnector::list(std::string &lfn, UgrFileInfo **nfo, int nitemswait) {
+int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo, int nitemswait) {
 
     UgrFileInfo::trimpath(lfn);
     do_n2n(lfn);

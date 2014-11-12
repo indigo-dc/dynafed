@@ -129,7 +129,9 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     UgrFileInfo *nfo = 0;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    if (!getUgrConnector()->locate((std::string&)abspath, &nfo) && nfo) {
+    if (!getUgrConnector()->locate((std::string&)abspath,
+                                   UgrClientInfo(secCredentials.remoteAddress),
+				   &nfo) && nfo) {
 
         UgrClientInfo info(secCredentials.remoteAddress);
         Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
@@ -230,7 +232,10 @@ dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool foll
     dmlite::ExtendedStat st;
     UgrFileInfo *nfo = 0;
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    if (!getUgrConnector()->stat((std::string&)abspath, &nfo) && nfo && (nfo->getStatStatus() == nfo->Ok)) {
+    if (!getUgrConnector()->stat((std::string&)abspath, UgrClientInfo(secCredentials.remoteAddress), &nfo) &&
+        nfo &&
+        (nfo->getStatStatus() == nfo->Ok) ) {
+      
         st.csumtype[0] = '\0';
         st.csumvalue[0] = '\0';
         st.guid[0] = '\0';
@@ -298,7 +303,10 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    if (!getUgrConnector()->list((std::string&)abspath, &fi) && fi) {
+    if (!getUgrConnector()->list((std::string&)abspath,
+				 UgrClientInfo(secCredentials.remoteAddress),
+				 &fi)
+	&& fi) {
 
         if (fi->getItemsStatus() == UgrFileInfo::Ok) {
             boost::lock_guard<UgrFileInfo > l(*fi);

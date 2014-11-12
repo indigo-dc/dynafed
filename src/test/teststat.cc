@@ -34,14 +34,15 @@ int main(int argc, char **argv) {
         return 1;
 
     cout << "Invoking stat" << endl;
+    UgrClientInfo cli;
     string fn = argv[3];
 
-    ugr.stat(fn, &fi);
+    ugr.stat(fn, cli, &fi);
 
     if (fi->getStatStatus() == UgrFileInfo::Ok) {
-            if (fi->unixflags & S_IFDIR) ugr.list(fn, &fi);
+            if (fi->unixflags & S_IFDIR) ugr.list(fn, cli, &fi);
             else{
-                ugr.locate(fn, &fi);
+                ugr.locate(fn, cli, &fi);
                 UgrReplicaVec repls;
                 fi->getReplicaList(repls);
                 ugr.filter(repls);
@@ -61,7 +62,7 @@ int main(int argc, char **argv) {
         //char buf[16];
         //sprintf(buf, "%d", i);
         //string fn1 = fn + buf;
-        ugr.stat(fn, &fi);
+        ugr.stat(fn, cli, &fi);
 
     }
 

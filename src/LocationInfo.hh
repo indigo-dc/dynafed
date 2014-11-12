@@ -24,8 +24,11 @@
 ////
 class UgrClientInfo{
 public:
-    UgrClientInfo(const std::string & ip1) : ip(ip1){}
+    UgrClientInfo() { };
+    UgrClientInfo(const std::string & ip1) : ip(ip1) { }
+    UgrClientInfo(const std::string & ip1, std::vector<std::string> & grps) : groups(grps),  ip(ip1){ }
 
+    std::vector<std::string> groups;
     std::string ip;
 };
 

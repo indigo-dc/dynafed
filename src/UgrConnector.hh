@@ -127,8 +127,9 @@ public:
     /// of copying the values out. The caller
     /// must release it as soon as possible
     /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
     /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
-    virtual int locate(std::string &lfn, UgrFileInfo **nfo);
+    virtual int locate(std::string &lfn, const UgrClientInfo & client, UgrFileInfo **nfo);
 
     /// Returns a pointer to the item with the list of the content of the given lfn (ls).
     /// Waits for some time that at least nitemswait items have arrived, ev returns TIMEOUT
@@ -137,9 +138,10 @@ public:
     /// of copying the values out. The caller
     /// must release it as soon as possible
     /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
     /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
     /// @param nitemswait Wait for at least N items to have arrived. 0 to wait for the whole set
-    virtual int list(std::string &lfn, UgrFileInfo **nfo, int nitemswait = 0);
+    virtual int list(std::string &lfn, const UgrClientInfo & client, UgrFileInfo **nfo, int nitemswait = 0);
 
     /// Returns a pointer to the item, after having made sure that
     /// its stat information was populated. Eventually populate it before returning.
@@ -147,15 +149,20 @@ public:
     /// of copying the values out. The caller
     /// must release it as soon as possible
     /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
     /// @param nfo  Gets a pointer to the updated instance of the UgrfileInfo related to lfn
-    virtual int stat(std::string &lfn, UgrFileInfo **nfo);
+    virtual int stat(std::string &lfn, const UgrClientInfo & client, UgrFileInfo **nfo);
 
 
     /// Remove All replicates of a resource at the given location
     /// This function tries first to delete all replicate in a sychronous manner.
-    /// in case of the impossibility to delete some replicates, the replicates are added to the replicate_to_delete vector
+    /// in case of the impossibility to delete some of the known replicas, these are added
+    /// to the replicas_to_delete vector
     ///
-    virtual UgrCode remove(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicate_to_delete);
+    /// @param lfn  The unique key to the file, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
+    /// @param replicas_to_delete
+    virtual UgrCode remove(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicas_to_delete);
 
 
     /// Return a list of prefered locations for a new resource

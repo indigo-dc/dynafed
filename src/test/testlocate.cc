@@ -33,7 +33,8 @@ int main(int argc, char **argv) {
     cout << "Client info "<< cli_info.ip << endl;
 
     UgrFileInfo* file_infos = NULL;
-    ugr.locate(fn, &file_infos);
+    UgrClientInfo cli;
+    ugr.locate(fn, cli, &file_infos);
 
     if (file_infos->getLocationStatus() == UgrFileInfo::Ok) {
         for (std::set<UgrFileItem_replica, UgrFileItemComp>::iterator it = file_infos->replicas.begin();
