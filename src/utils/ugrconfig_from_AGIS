@@ -44,7 +44,8 @@ def main():
     args = parser.parse_args()
 
     if not (args.profil or args.cert):
-        args.profil = 'NO_CHECK'
+        parser.print_help()
+        sys.exit(1)
     if args.profil != 'NO_CHECK':
         if args.profil == 'grid':
             if not 'X509_USER_PROXY' in os.environ:
@@ -76,31 +77,38 @@ def main():
                     protocols.append(p[2][:-6])
         prefix = os.path.commonprefix(protocols)
         prefix = prefix[:prefix.rfind("/")]
-        pro = ""
-        for p in protocols:
-            pro += " " + p[len(prefix):]
-        if len(protocols) > 0:
+        protocols = [p[len(prefix):] for p in protocols]
+        if protocols:
             impl = s["impl"]
             if not s["impl"]:
                 impl = "???"
+            site = s["rc_site"]
             url = s["endpoint"] + prefix
             if args.profil != "NO_CHECK":
-                request_url = url + protocols[0][len(prefix):]
-                code, stdout, stderr = request(request_url,args)
-                print "Test of %s" % (url + protocols[0][len(prefix):])
-                if code:
-                    print "-> FAILED: " + stderr
-                    continue
-            print "-> OK"
-            out = """###########
+                SSL_Error = False
+                for p in list(protocols):
+                    request_url = url + p
+                    code, stdout, stderr = request(request_url,args)
+                    print "Test of %s" % request_url
+                    if code:
+                        print "-> FAILED: %s\n" % stderr.rstrip()
+                        protocols.remove(p)
+                        if 'Neon error: SSL handshake failed' in stderr:
+                            SSL_Error = True
+                    else:
+                        print "-> OK\n"
+                if SSL_Error:
+                    protocols = []
+            if protocols:
+                out = """###########
 ## Talk to a %s instance in %s
 ##
-glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, s["rc_site"], s["rc_site"], args.threads, url)
-            if len(protocols) > 1:
-                out += "\nlocplugin.%s.pfxmultiply:%s" % (s["rc_site"], pro)
-            output.append(out)
+glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s
+locplugin.%s.pfxmultiply:%s""" % (impl, site, site, args.threads, url, site, ' '.join(protocols))
+                output.append(out)
         else:
-            print "-> No path to test."
+            print "-> No path to test\n"
+        print
     file = open(args.output, 'w')
     file.write("\n\n".join(output))
     file.close()
@@ -117,7 +125,10 @@ def request(url, args):
     if args.capath:
         command.extend(["--capath", args.capath])
     command.append(url)
-    process = Popen(command, stdout=PIPE, stderr=PIPE)
+    try:
+        process = Popen(command, stdout=PIPE, stderr=PIPE)
+    except:
+        sys.exit("Error: Please install davix to be able to check every URL.")
     code = process.wait()
     stdout, stderr = process.communicate()
     return (code, stdout, stderr)
