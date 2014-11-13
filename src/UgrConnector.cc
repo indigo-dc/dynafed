@@ -409,6 +409,7 @@ UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client
     std::shared_ptr<DeleteReplicaHandler> response_handler= std::make_shared<DeleteReplicaHandler>();
 
     UgrFileInfo::trimpath(l_lfn);
+    do_n2n(l_lfn);
 
     Info(UgrLogger::Lvl2, fname,  "Delete all replicas of " << l_lfn);
 
