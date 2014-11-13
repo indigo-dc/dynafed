@@ -318,7 +318,7 @@ vector<string> ReadDirectory(const string& path) {
                 && std::distance(std::search(filename.begin(), filename.end(), conf_file_ext.begin(), conf_file_ext.end()),
                                  filename.end())
                     == std::distance(conf_file_ext.begin(), conf_file_ext.end())){
-                filename_vec.push_back(path + "/" + string(entry->d_name) );
+                filename_vec.push_back(path + "/" + filename );
             }
 
     }
