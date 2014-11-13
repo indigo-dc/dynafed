@@ -310,13 +310,17 @@ vector<string> ReadDirectory(const string& path) {
     }
     
     // find all files inside the directory and push full path to vector
-    while(true) {
-        entry = readdir(dp);
-        if(entry == NULL) break;
-        if((strcmp(entry->d_name, ".")==0) || (strcmp(entry->d_name, "..")==0))
-            continue;
-        // construct full absolute path to file
-        filename_vec.push_back(path + "/" + string(entry->d_name) );
+    while((entry = readdir(dp)) != NULL) {
+            const std::string conf_file_ext(".conf");
+            std::string filename = entry->d_name;
+            if( filename[0] != '.'
+                    /* take only file finishing by .conf */
+                && std::distance(std::search(filename.begin(), filename.end(), conf_file_ext.begin(), conf_file_ext.end()),
+                                 filename.end())
+                    == std::distance(conf_file_ext.begin(), conf_file_ext.end())){
+                filename_vec.push_back(path + "/" + string(entry->d_name) );
+            }
+
     }
     closedir(dp);
     std::sort(filename_vec.begin(), filename_vec.end() );
