@@ -107,7 +107,12 @@ int Config::ProcessFile(char *filename) {
       Info(UgrLogger::Lvl3, "Config::ProcessFile", line);
 
       // Check for INCLUDE 
-      if(line.compare(0, 7, "INCLUDE") == 0) {    
+      string temp = line.substr(0, 7);
+      for(unsigned int i = 0; i < temp.length(); ++i){
+          temp[i] = toupper(temp[i]);  
+      }
+
+      if(temp.compare(0, 7, "INCLUDE") == 0) {    
           // only interested in the path
           line.erase(0, 7);
           TrimSpaces(line);
