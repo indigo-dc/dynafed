@@ -19,6 +19,10 @@
 
 #include <iostream>
 
+
+class UgrConnector;
+
+
 ///
 /// @brief The UgrClientInfo, container about client information
 ////
@@ -125,26 +129,9 @@ public:
 
     /// Ctor
     /// @param lfn The string key that univocally identifies a file or dir
-    UgrFileInfo(std::string &lfn) {
-        status_statinfo = NoInfo;
-        status_locations = NoInfo;
-        status_items = NoInfo;
-        pending_statinfo = 0;
-        pending_locations = 0;
-        pending_items = 0;
-        name = lfn;
-
-        lastupdtime = time(0);
-        lastupdreqtime = time(0);
-        lastreftime = time(0);
-
-        atime = mtime = ctime = 0;
-
-        dirty = false;
-        dirtyitems = false;
-        pinned = 0;
-        
-    }
+    UgrFileInfo(UgrConnector & c, std::string &lfn);
+    /// global content
+    UgrConnector & context;
 
     /// Indicates that this entry was modified since the last time it was
     /// pushed to an eventual external caching thing

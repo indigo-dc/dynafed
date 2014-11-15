@@ -12,7 +12,7 @@ using namespace boost;
 
 // Get a pointer to a FileInfo, or create a new one
 
-UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup, bool docachesubitemslookup) {
+UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(UgrConnector& context, std::string &lfn, bool docachelookup, bool docachesubitemslookup) {
     const char *fname = "LocationInfoHandler::getFileInfoOrCreateNewOne";
     bool dofetch = false;
     UgrFileInfo *fi = 0;
@@ -45,7 +45,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(std::string &lfn, bo
 
 
             // Create a new item
-            fi = new UgrFileInfo(lfn);
+            fi = new UgrFileInfo(context, lfn);
 
             if (docachelookup) {
                 // We want to see if it's available in the external cache

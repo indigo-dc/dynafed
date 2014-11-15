@@ -24,9 +24,8 @@ public:
 
 
 
-    // sort a list of replica
-    // return -1 if error,  0 if ok
-    virtual int filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info);
+
+    virtual int applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info);
 
 private:
 };

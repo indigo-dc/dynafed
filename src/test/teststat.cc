@@ -45,8 +45,7 @@ int main(int argc, char **argv) {
                 ugr.locate(fn, cli, &fi);
                 UgrReplicaVec repls;
                 fi->getReplicaList(repls);
-                ugr.filter(repls);
-                ugr.filter(repls, cli_info);
+                ugr.filterAndSortReplicaList(repls, cli_info);
 
                 if(repls.size() ==0){
                     std::cout << "No replicas for given file"<< std::endl;

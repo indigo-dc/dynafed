@@ -256,7 +256,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
                     LocPluginLogInfoThr(UgrLogger::Lvl4, fname,
                             "Worker: Inserting readdirpp stat info for  " << child <<
                             ", flags " << st.st_mode << " size : " << st.st_size);
-                    UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(child, false);
+                    UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(getConn(), child, false);
 
                     // If the entry was already in cache, don't overwrite
                     // This avoids a massive, potentially useless burst of writes to the 2nd level cache 

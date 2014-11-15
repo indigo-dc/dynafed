@@ -55,7 +55,7 @@ static int filter_internal_list(UgrReplicaVec&replica, const std::vector< std::v
 }
 
 
-int FilterNoLoopPlugin::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
+int FilterNoLoopPlugin::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     boost::asio::io_service ios;
     Resolver res(ios);
     ResolverQuery q_cli(cli_info.ip, "http");
@@ -70,7 +70,7 @@ int FilterNoLoopPlugin::filterReplicaList(UgrReplicaVec&replica, const UgrClient
        rep_vec.resize(rep_vec.size()+1);
        Davix::Uri uri(it->name);
        if(uri.getStatus() != Davix::StatusCode::OK){
-            Info(UgrLogger::Lvl1, "FilterNoLoopPlugin::filterReplicaList", "Invalid replica content " << it->name);
+            Info(UgrLogger::Lvl1, "FilterNoLoopPlugin::applyFilterOnReplicaList", "Invalid replica content " << it->name);
             continue;
        }
        ResolverQuery q_cli(uri.getHost(), "http");

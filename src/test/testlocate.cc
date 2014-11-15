@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 
         UgrReplicaVec repls;
         file_infos->getReplicaList(repls);
-        ugr.filter(repls, cli_info);
+        ugr.filterAndSortReplicaList(repls, cli_info);
 
         for (std::deque<UgrFileItem_replica>::iterator it = repls.begin(); it < repls.end(); it++)
             std::cout << "Sorted Replicas :  " << it->name << " " << it->location << std::endl;

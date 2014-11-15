@@ -137,7 +137,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
         Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", "UgrDmlite Client remote address (" << info.ip << ")");
         UgrReplicaVec reps;
         nfo->getReplicaList(reps);
-        getUgrConnector()->filter(reps, info);
+        getUgrConnector()->filterAndSortReplicaList(reps, info);
 
         for (UgrReplicaVec::iterator i = reps.begin(); i != reps.end(); ++i) {
             // Populate the vector

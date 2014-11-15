@@ -82,7 +82,13 @@ int UgrGeoPlugin_GeoIP::init(std::vector<std::string> &parms) {
     return 0;
 }
 
-int UgrGeoPlugin_GeoIP::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
+
+void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
+    setReplicaLocation(replica);
+
+}
+
+int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     float cli_lattitude=0, cli_longittude=0;
 
     if(gi == NULL)
@@ -90,9 +96,6 @@ int UgrGeoPlugin_GeoIP::filterReplicaList(UgrReplicaVec&replica, const UgrClient
     getAddrLocation(cli_info.ip, cli_lattitude, cli_longittude);
     UgrFileItemGeoComp comp_geo(cli_lattitude, cli_longittude);
 
-    for(std::deque<UgrFileItem_replica>::iterator it = replica.begin(); it != replica.end(); ++it){
-        setReplicaLocation(*it);
-    }
     std::sort(replica.begin(), replica.end(), comp_geo);
 
     return 0;

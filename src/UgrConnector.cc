@@ -181,6 +181,13 @@ UgrLogger & UgrConnector::getLogger() const{
     return *UgrLogger::get();
 }
 
+
+void UgrConnector::applyHooksNewReplica(UgrFileItem_replica & rep){
+    for( auto it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
+        (*it)->hookNewReplica(rep);
+    }
+}
+
 static boost::filesystem::path getPluginDirectory(){
      const char *fname = "UgrConnector::init::getPluginDirectory";
      boost::filesystem::path plugin_dir(getUgrLibPath());
@@ -364,7 +371,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn);
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
         if (fi->getStatStatus() == UgrFileInfo::NoInfo)
@@ -447,7 +454,7 @@ UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client
     deleted_number -= replicas_to_delete.size();
 
     // apply filters
-    filter(replicas_to_delete, client);
+    filterAndSortReplicaList(replicas_to_delete, client);
 
     Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicas_to_delete.size() << " to delete");
 
@@ -492,8 +499,13 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     new_locations = response_handler->takeAll();
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " NewLocations found for " << l_lfn);
 
+    // apply hooks now
+    for(auto it = new_locations.begin(); it < new_locations.end(); ++it){
+        applyHooksNewReplica(*it);
+    }
+
     // sort all answer geographically
-    filter(new_locations, client);
+    filterAndSortReplicaList(new_locations, client);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
     return UgrCode();
@@ -520,30 +532,21 @@ void filter_offline_replica(UgrConnector & c, UgrReplicaVec & replicas){
 
 }
 
-///
-/// Apply configured filters on the replica list
-int UgrConnector::filter(UgrReplicaVec & replicas){
 
-    
-    for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
-        (*it)->filterReplicaList(replicas);
-    }
-
-    filter_offline_replica(*this, replicas);
-    
-    return 0;
-}
-
-int UgrConnector::filter(UgrReplicaVec & replicas, const UgrClientInfo & cli_info){
-    // apply generic filters
-    filter(replicas);
+int UgrConnector::filterAndSortReplicaList(UgrReplicaVec & replicas, const UgrClientInfo & cli_info){
 
     // applys all filters with cli_info
     for(std::vector<FilterPlugin*>::iterator it = filterPlugins.begin(); it != filterPlugins.end(); ++it){
-        (*it)->filterReplicaList(replicas, cli_info);
+        (*it)->applyFilterOnReplicaList(replicas, cli_info);
     }
+
+    filter_offline_replica(*this, replicas);
+
     return 0;
 }
+
+
+
 
 void UgrConnector::statSubdirs(UgrFileInfo *fi) {
     const char *fname = "UgrConnector::statSubdirs";
@@ -567,7 +570,7 @@ void UgrConnector::statSubdirs(UgrFileInfo *fi) {
         cname += "/";
         cname += i->name;
 
-        UgrFileInfo *fi2 = locHandler.getFileInfoOrCreateNewOne(cname);
+        UgrFileInfo *fi2 = locHandler.getFileInfoOrCreateNewOne(*this, cname);
         {
             boost::lock_guard<UgrFileInfo > l(*fi2);
             if (fi2->getStatStatus() == UgrFileInfo::NoInfo)
@@ -644,7 +647,7 @@ int UgrConnector::locate(std::string &lfn, const UgrClientInfo &client, UgrFileI
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn, true, true);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -719,7 +722,7 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(lfn, true, true);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);

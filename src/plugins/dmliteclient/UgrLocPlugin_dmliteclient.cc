@@ -277,7 +277,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                         // We have some info to add to the cache
                         if (op->handler) {
                             string newlfn = op->fi->name + "/" + dent->name;
-                            UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(newlfn, false);
+                            UgrFileInfo *fi = op->handler->getFileInfoOrCreateNewOne(getConn(), newlfn, false);
                             LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting readdirx stat info for  " << dent->name << ", flags " << dent->stat.st_mode << " size : " << dent->stat.st_size);
                             if (fi) fi->takeStat(dent->stat);
                         }

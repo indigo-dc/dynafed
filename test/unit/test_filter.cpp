@@ -43,11 +43,11 @@ TEST(filterTests, filterOnline){
     UgrConnector c;
 
     replicasStatusObj = pass_all;
-    c.filter(vec_rep);
+    c.filterAndSortReplicaList(vec_rep, UgrClientInfo());
     ASSERT_EQ(vec_rep.size(), init_size);
 
     replicasStatusObj = pass_minus_10;
-    c.filter(vec_rep);
+    c.filterAndSortReplicaList(vec_rep, UgrClientInfo());
     ASSERT_EQ(vec_rep.size(), init_size-10);
 
 }

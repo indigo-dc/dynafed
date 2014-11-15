@@ -57,7 +57,7 @@ protected:
     std::vector<LocationPlugin *> locPlugins;
 
     /// The filter plugins that we have loaded
-    /// Each filter plugin is applied in order by the operation filter()
+    /// Each filter plugin is applied in order by the operation filterAndSortReplicaList()
     std::vector<FilterPlugin *> filterPlugins;
 
     /// The main instance of the cache handler
@@ -178,14 +178,19 @@ public:
     /// There is no wait primitive associated to this, as the normal do_waitLocate will do
     int do_checkreplica(UgrFileInfo *fi, std::string rep);
 
-    /// filter functions, can be used to sort / filter items based on a set of configured plugins
-    /// Apply configured filters on the replica list
-    ///
 
-    /// Replicas filtering: filter a set of resource replicas by configured criterias
-    /// The criterias can be geographical position (GeoPlugin), loopDetection (noLoop), replicas Status (Checker)
-    int filter(UgrReplicaVec & replica);
-    int filter(UgrReplicaVec & replica, const UgrClientInfo & cli_info);
+    ///
+    /// Use the FilterPlugin stack to filter and sort a list of Replicas based on arbitrary criteria
+    ///
+    /// The criterias can be geographical position (FilterPlugin: GeoPlugin), loopDetection (FilterPlugin: noLoop),
+    /// replicas Status (Default: Checker)
+    int filterAndSortReplicaList(UgrReplicaVec & replica, const UgrClientInfo & cli_info);
+
+
+
+    //
+    // internal usage only
+    void applyHooksNewReplica(UgrFileItem_replica & rep);
     
 protected:
     // non copyable

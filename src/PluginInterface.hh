@@ -62,14 +62,17 @@ public:
     FilterPlugin( UgrConnector & c, std::vector<std::string> & parms);
     virtual ~FilterPlugin(){}
 
-    // sort a list of replica
-    // return -1 if error,  0 if ok
-    //
-    // Note: All these functions, in sequence are invoked for each request
-    //
-    virtual int filterReplicaList(UgrReplicaVec& list_raw);
 
-    virtual int filterReplicaList(UgrReplicaVec& replica, const UgrClientInfo & cli_info);
+    /// Called as a Hook on each new replica discovery
+    virtual void hookNewReplica(UgrFileItem_replica& replica);
+
+
+    /// Has to be implemented by any filter plugin in order to sort / filter the replicas list
+    ///  based on arbitrary criteria
+    ///
+    ///  This function is called on the replica list of each locate() operation
+    virtual int applyFilterOnReplicaList(UgrReplicaVec& replica, const UgrClientInfo & cli_info);
+
 
 };
 

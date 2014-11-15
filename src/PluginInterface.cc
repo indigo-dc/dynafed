@@ -22,10 +22,11 @@ FilterPlugin::FilterPlugin(UgrConnector &c, std::vector<std::string> &parms) :
 
 }
 
-int FilterPlugin::filterReplicaList(UgrReplicaVec& list_raw){
-    return 0;
+
+void FilterPlugin::hookNewReplica(UgrFileItem_replica &replica){
+
 }
 
-int FilterPlugin::filterReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
+int FilterPlugin::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     return 0;
 }

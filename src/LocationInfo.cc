@@ -4,6 +4,7 @@
  * @date   Jul 2011
  */
 
+#include "UgrConnector.hh"
 #include "LocationInfo.hh"
 #include "UgrMemcached.pb.h"
 #include <iomanip>
@@ -15,6 +16,26 @@ using namespace ugrmemcached;
 
 
 
+UgrFileInfo::UgrFileInfo(UgrConnector & c, std::string &lfn) : context(c){
+    status_statinfo = NoInfo;
+    status_locations = NoInfo;
+    status_items = NoInfo;
+    pending_statinfo = 0;
+    pending_locations = 0;
+    pending_items = 0;
+    name = lfn;
+
+    lastupdtime = time(0);
+    lastupdreqtime = time(0);
+    lastreftime = time(0);
+
+    atime = mtime = ctime = 0;
+
+    dirty = false;
+    dirtyitems = false;
+    pinned = 0;
+
+}
 
 
 int UgrFileInfo::getBestReplicaIdx(std::string &clientlocation) {
@@ -359,8 +380,16 @@ void UgrFileInfo::takeStat(const struct stat &st) {
 void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
     const char *fname = "UgrFileInfo::addReplica";
     Info(UgrLogger::Lvl4, fname, "UgrFileInfo:" << this->name << " add replicas: " << replica.name);
-    unique_lock<mutex> l2(*this);
-    this->replicas.insert(replica);
+    UgrFileItem_replica local_replica = replica;
+
+    // apply filter hook on the replica ( Geolocatisation, etc.... )
+    context.applyHooksNewReplica(local_replica);
+
+
+    {
+        unique_lock<mutex> l2(*this);
+        this->replicas.insert(local_replica);
+    }
 
 }
 

@@ -103,7 +103,7 @@ public:
     //
 
     /// Get a pointer to a FileInfo, or create a new one, marked as pending
-    UgrFileInfo *getFileInfoOrCreateNewOne(std::string &lfn, bool docachelookup=true, bool docachesubitemslookup=false);
+    UgrFileInfo *getFileInfoOrCreateNewOne(UgrConnector & context, std::string &lfn, bool docachelookup=true, bool docachesubitemslookup=false);
 
     // Ext Cache in/out
     int getFileInfoFromCache(UgrFileInfo *fi);
