@@ -178,7 +178,7 @@ public:
         r.name = str;
         {
             boost::lock_guard<boost::mutex> l(mu_);
-            new_locations_vec_.push_back(r);
+            new_locations_vec_.push_back(std::move(r));
         }
     }
 
@@ -190,8 +190,10 @@ public:
 
     inline UgrReplicaVec takeAll(){
         UgrReplicaVec res;
-        boost::lock_guard<boost::mutex> l(mu_);
-        res.swap(new_locations_vec_);
+        {
+            boost::lock_guard<boost::mutex> l(mu_);
+            res.swap(new_locations_vec_);
+        }
         return res;
     }
 

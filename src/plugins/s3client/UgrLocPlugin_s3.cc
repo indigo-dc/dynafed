@@ -405,6 +405,7 @@ int UgrLocPlugin_s3::run_deleteReplica(const string & lfn, const std::shared_ptr
     }catch(...){
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Unknown Error on Deletion");
     }
+    return 0;
 
 }
 

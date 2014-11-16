@@ -388,7 +388,7 @@ void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
 
     {
         unique_lock<mutex> l2(*this);
-        this->replicas.insert(local_replica);
+        this->replicas.insert(std::move(local_replica));
     }
 
 }
