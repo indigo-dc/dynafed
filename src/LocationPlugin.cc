@@ -354,7 +354,7 @@ struct LocationPlugin::worktoken *LocationPlugin::getOp() {
     struct worktoken *mytk = 0;
     const char *fname = "LocationPlugin::getOp";
 
-    unique_lock< mutex > l(workmutex);
+    boost::unique_lock< boost::mutex > l(workmutex);
 
     system_time const timeout = get_system_time() + posix_time::seconds(10);
 
@@ -390,7 +390,7 @@ void LocationPlugin::runsearch(struct worktoken *op, int myidx) {
     // Now put the results
     if (op) {
 
-        unique_lock<mutex> l(*(op->fi));
+        boost::unique_lock<boost::mutex> l(*(op->fi));
 
 
         // This fake plugin happens to gather more information than it's requested
@@ -642,6 +642,10 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
     const char* fname = "LocationPlugin::doParentQueryCheck";
     bool doitemsnotify = false;
     // Loop through the xlatepfx alternatives
+
+    // Lock the file instance
+    boost::unique_lock<boost::mutex> l(*(wtk->fi));
+
     for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
       
 	// IF we are querying for a substring of any of the xlatepfx
@@ -666,7 +670,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 		    }
 		    
 
-                    wtk->fi->setPluginID(getID());
+                    wtk->fi->setPluginID(getID(), false);
 
                     LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting prefix item  " << item.name);
                     wtk->fi->subdirs.insert(item);
@@ -676,7 +680,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 		    continue;
                 }
                 case LocationPlugin::wop_Stat:{
-                    wtk->fi->setPluginID(getID());
+                    wtk->fi->setPluginID(getID(), false);
                     struct stat st = {};
                     st.st_nlink = 1;
                     st.st_mode |= S_IFDIR;
