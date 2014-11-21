@@ -286,7 +286,7 @@ void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workO
 	
 	// Let's ping only if:
 	// - the workqueue is empty
-	if ((workqueue.size() > 1) && wop = wop_Check) {
+	if ((workqueue.size() > 1) && (wop == wop_Check)) {
 	  LocPluginLogInfo(UgrLogger::Lvl4, fname, "skipping check. Queue size: " << workqueue.size() << " isOK:" << isOK());
 	  return;
 	}
