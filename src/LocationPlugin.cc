@@ -643,9 +643,6 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
     bool doitemsnotify = false;
     // Loop through the xlatepfx alternatives
 
-    // Lock the file instance
-    boost::unique_lock<boost::mutex> l(*(wtk->fi));
-
     for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
       
 	// IF we are querying for a substring of any of the xlatepfx
@@ -669,6 +666,8 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 		      item.name = it->substr(from.size()+1, (pos == std::string::npos)?std::string::npos: pos - from.size()-1);
 		    }
 		    
+                    // Lock the file instance
+                    boost::unique_lock<boost::mutex> l(*(wtk->fi));
 
                     wtk->fi->setPluginID(getID(), false);
 
@@ -688,7 +687,11 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                     wtk->fi->takeStat(st);
 
                     LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Stat");
-                    wtk->fi->notifyStatNotPending();
+                    {
+                      // Lock the file instance
+                      boost::unique_lock<boost::mutex> l(*(wtk->fi));
+                      wtk->fi->notifyStatNotPending();
+                    }
                     return true;
                 }
                 default:
@@ -702,7 +705,11 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 
     if (doitemsnotify) {
       LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Listdir");
-      wtk->fi->notifyItemsNotPending();
+      {
+        // Lock the file instance
+        boost::unique_lock<boost::mutex> l(*(wtk->fi));
+        wtk->fi->notifyItemsNotPending();
+      }
       return true;
     }
 
