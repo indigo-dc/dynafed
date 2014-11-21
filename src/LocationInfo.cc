@@ -350,8 +350,11 @@ void UgrFileInfo::trimpath(std::string & s) {
 
 
 void UgrFileInfo::setPluginID(const short pluginID) {
-    if (pluginID >= 0)
-        ownerpluginIDs.insert(pluginID);
+  
+    if (pluginID >= 0) {
+      unique_lock<mutex> l2(*this);
+      ownerpluginIDs.insert(pluginID);
+    }
 }
 
 void UgrFileInfo::takeStat(const struct stat &st) {
