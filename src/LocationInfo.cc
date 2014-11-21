@@ -315,7 +315,7 @@ int UgrFileInfo::decodeSubitems(void *data, int sz) {
             itr.longitude = rep.longitude();
             itr.location = rep.location();
             itr.pluginID = rep.pluginid();
-            setPluginID(itr.pluginID);
+            setPluginID(itr.pluginID, false);
             replicas.insert(itr);
         }
         
@@ -349,11 +349,17 @@ void UgrFileInfo::trimpath(std::string & s) {
 
 
 
-void UgrFileInfo::setPluginID(const short pluginID) {
+void UgrFileInfo::setPluginID(const short pluginID, bool dolock) {
   
     if (pluginID >= 0) {
-      unique_lock<mutex> l2(*this);
-      ownerpluginIDs.insert(pluginID);
+      
+      if (dolock) {
+	unique_lock<mutex> l2(*this);
+	ownerpluginIDs.insert(pluginID);
+      }
+      else
+	ownerpluginIDs.insert(pluginID);
+      
     }
 }
 

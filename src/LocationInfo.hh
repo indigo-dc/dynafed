@@ -339,7 +339,7 @@ public:
     std::set<short> ownerpluginIDs;
     
     /// Helper to notify which plugin(s) this info comes from
-    void setPluginID(const short pluginID);
+    void setPluginID(const short pluginID, bool dolock = true);
     
     /// The last time there was a request to gather info about this entry
     time_t lastupdreqtime;
