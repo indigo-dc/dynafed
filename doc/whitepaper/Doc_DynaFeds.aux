@@ -1,97 +1,104 @@
 \relax 
-\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{4}}
-\@writefile{toc}{\contentsline {section}{\numberline {2}The goal and the available components}{4}}
-\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces How namespaces can be merged to federate three hosts.}}{5}}
-\newlabel{fig_mergenamespace}{{1}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{5}}
+\@writefile{toc}{\contentsline {section}{\numberline {2}The goal and the available components}{5}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces How namespaces can be merged to federate three hosts.}}{6}}
+\newlabel{fig_mergenamespace}{{1}{6}}
 \citation{xrdwan}
 \citation{xrd}
 \citation{dpmfuture}
 \citation{dpmnew}
 \citation{dpmfuture}
 \citation{dpmnew}
-\@writefile{toc}{\contentsline {section}{\numberline {3}Some use cases}{7}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}DPM and dCache via WebDAV}{7}}
+\@writefile{toc}{\contentsline {section}{\numberline {3}Some use cases}{8}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}DPM and dCache via WebDAV}{8}}
 \citation{dpmfuture}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Add third-party storage farms}{8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Create a small local federation of close sites sharing storage}{8}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Add resources managed by one or more replica catalogues}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Add third-party storage farms}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Create a small local federation of close sites sharing storage}{9}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Add resources managed by one or more replica catalogues}{10}}
 \citation{scalableproxycache}
 \citation{geoip}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Federating file caches}{10}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Allow the system to apply geography-aware redirection choices}{10}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Federating file caches}{11}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Allow the system to apply geography-aware redirection choices}{11}}
 \citation{libneon}
-\@writefile{toc}{\contentsline {section}{\numberline {4}The system}{11}}
+\@writefile{toc}{\contentsline {section}{\numberline {4}The system}{12}}
 \citation{dpmnew}
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Exemplification of the system architecture.}}{13}}
-\newlabel{fig_dynafeds1}{{2}{13}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Two clients issue a stat() request}{13}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Clients issuing a Stat() request for the same file.}}{14}}
-\newlabel{fig_collab1}{{3}{14}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Two clients request the full list of the replicas of a file}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Exemplification of the system architecture.}}{14}}
+\newlabel{fig_dynafeds1}{{2}{14}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Two clients issue a stat() request}{14}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Clients issuing a Stat() request for the same file.}}{15}}
+\newlabel{fig_collab1}{{3}{15}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Two clients request the full list of the replicas of a file}{15}}
 \citation{dpmnew}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}In-memory volatile namespace and caching}{15}}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Clients trying to discover all the locations of the same file.}}{16}}
-\newlabel{fig_collab1_loc}{{4}{16}}
-\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces How threads, processes, servers and caches work.}}{17}}
-\newlabel{fig_cache}{{5}{17}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Simple name translations}{17}}
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces How the default name translations work in order to federate storage metadata endpoints.}}{18}}
-\newlabel{fig_n2n}{{6}{18}}
-\@writefile{toc}{\contentsline {section}{\numberline {5}Typical deployment of a Dynamic Federations frontend}{18}}
-\@writefile{toc}{\contentsline {section}{\numberline {6}Configuration parameters reference}{19}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Configuration structure of the typical deployment.}}{20}}
-\newlabel{fig_fullconfig}{{7}{20}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Ugr core configuration}{21}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}INCLUDE}{21}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}glb.debug}{21}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.3}glb.debug.components[]}{22}}
-\newlabel{glb.locplugin}{{6.1.4}{22}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.4}glb.locplugin}{22}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.5}glb.waittimeout}{23}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.6}glb.maxlistitems}{23}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.7}glb.filterplugin}{23}}
-\newlabel{globalxlation}{{6.2}{24}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Global name translation}{24}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{24}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{24}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Slave plugins and replica translators}{24}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Plugin-level filename prefix translation}{25}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}Example: Translate SRM TURLs into HTTP URLs}{26}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.2}locplugin.$<$ID$>$.pfxmultiply}{27}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.3}locplugin.$<$ID$>$.xlatepfx}{27}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Infohandler advanced parameters}{29}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}infohandler.maxitems}{29}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.2}infohandler.itemttl}{29}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.3}infohandler.itemmaxttl}{29}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{30}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.5}infohandler.useextcache}{30}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}extcache.memcached.server[]}{30}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{31}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.2}extcache.memcached.useBinaryProtocol}{31}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}DAV and HTTP plugin}{31}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.1}locplugin.$<$ID$>$.ssl\_check}{32}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.2}locplugin.$<$ID$>$.ca\_path}{32}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.3}locplugin.$<$ID$>$.cli\_type}{33}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.4}locplugin.$<$ID$>$.cli\_private\_key}{33}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.5}locplugin.$<$ID$>$.cli\_certificate}{33}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.6}locplugin.$<$ID$>$.conn\_timeout}{33}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.7}locplugin.$<$ID$>$.custom\_header[]}{34}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.8}locplugin.$<$ID$>$.ops\_timeout}{34}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.9}locplugin.$<$ID$>$.status\_checking}{34}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.10}locplugin.$<$ID$>$.status\_checker\_frequency}{34}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.11}locplugin.$<$ID$>$.auth\_login}{35}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.12}locplugin.$<$ID$>$.auth\_passwd}{35}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.13}locplugin.$<$ID$>$.metalink\_support}{35}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}DAVrucio plugin}{35}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{36}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}In-memory volatile namespace and caching}{16}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Clients trying to discover all the locations of the same file.}}{17}}
+\newlabel{fig_collab1_loc}{{4}{17}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces How threads, processes, servers and caches work.}}{18}}
+\newlabel{fig_cache}{{5}{18}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Simple name translations}{18}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces How the default name translations work in order to federate storage metadata endpoints.}}{19}}
+\newlabel{fig_n2n}{{6}{19}}
+\@writefile{toc}{\contentsline {section}{\numberline {5}Typical deployment of a Dynamic Federations frontend}{19}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Configuration parameters reference}{20}}
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Configuration structure of the typical deployment.}}{21}}
+\newlabel{fig_fullconfig}{{7}{21}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.1}Ugr core configuration}{22}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.1}INCLUDE}{22}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.2}glb.debug}{22}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.3}glb.debug.components[]}{23}}
+\newlabel{glb.locplugin}{{6.1.4}{23}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.4}glb.locplugin}{23}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.5}glb.waittimeout}{24}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.6}glb.maxlistitems}{24}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.1.7}glb.filterplugin}{24}}
+\newlabel{globalxlation}{{6.2}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.2}Global name translation}{25}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.1}glb.n2n\_pfx}{25}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.2.2}glb.n2n\_newpfx}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.3}Slave plugins and replica translators}{25}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.4}Plugin-level filename prefix translation}{26}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.1}Example: Translate SRM TURLs into HTTP URLs}{27}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.2}locplugin.$<$ID$>$.pfxmultiply}{28}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.4.3}locplugin.$<$ID$>$.xlatepfx}{28}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.5}Infohandler advanced parameters}{30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.1}infohandler.maxitems}{30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.2}infohandler.itemttl}{30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.3}infohandler.itemmaxttl}{30}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.4}infohandler.itemttl\_negative}{31}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.5.5}infohandler.useextcache}{31}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.6}extcache.memcached.server[]}{31}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.1}extcache.memcached.ttl}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.6.2}extcache.memcached.useBinaryProtocol}{32}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.7}Location Plugin}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.1}locplugin.$<$ID$>$.listable}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.2}locplugin.$<$ID$>$.readable}{32}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.7.3}locplugin.$<$ID$>$.writable}{33}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.8}DAV and HTTP plugin}{33}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.1}locplugin.$<$ID$>$.ssl\_check}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.2}locplugin.$<$ID$>$.ca\_path}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.3}locplugin.$<$ID$>$.cli\_type}{34}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.4}locplugin.$<$ID$>$.cli\_private\_key}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.5}locplugin.$<$ID$>$.cli\_certificate}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.6}locplugin.$<$ID$>$.conn\_timeout}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.7}locplugin.$<$ID$>$.custom\_header[]}{35}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.8}locplugin.$<$ID$>$.ops\_timeout}{36}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.9}locplugin.$<$ID$>$.status\_checking}{36}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.10}locplugin.$<$ID$>$.status\_checker\_frequency}{36}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.11}locplugin.$<$ID$>$.auth\_login}{36}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.12}locplugin.$<$ID$>$.auth\_passwd}{37}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.8.13}locplugin.$<$ID$>$.metalink\_support}{37}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.9}S3 plugin}{37}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.9.1}locplugin.$<$ID$>$.priv\_key}{37}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.9.2}locplugin.$<$ID$>$.pub\_key}{38}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.10}DAVrucio plugin}{38}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {6.10.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{38}}
 \bibcite{ibmglamour}{1}
+\@writefile{toc}{\contentsline {subsection}{\numberline {6.11}DMLite client plugin}{40}}
 \bibcite{rfc5716}{2}
 \bibcite{gluster}{3}
 \bibcite{glusterwiki}{4}
 \bibcite{fedfs}{5}
 \bibcite{xrdwan}{6}
 \bibcite{xrd}{7}
-\@writefile{toc}{\contentsline {subsection}{\numberline {6.9}DMLite client plugin}{38}}
 \bibcite{datamgmthep}{8}
 \bibcite{dpmnew}{9}
 \bibcite{dpmfuture}{10}

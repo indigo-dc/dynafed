@@ -687,6 +687,30 @@ Syntax:\\
 \lstinline"extcache.memcached.useBinaryProtocol: <true|false>"\\
 Default value: true\\
 
+
+
+\subsection{Location Plugin}
+The Location plugins (dmlite, lfc, DAV, HTTP, etc) have in common a group of parameters.
+
+\subsubsection{locplugin.$<$ID$>$.listable}
+Enable listing operations (e.g PROPFIND) on the collections referenced by the plugin.\\
+Syntax:\\
+\lstinline"locplugin.<ID>.readable: <true|false>"\\
+Default value: true\\
+
+\subsubsection{locplugin.$<$ID$>$.readable}
+Enable read operations (e.g GET, HEAD, PROPFIND) on the resources referenced by the plugin.\\
+Syntax:\\
+\lstinline"locplugin.<ID>.readable: <true|false>"\\
+Default value: true\\
+
+\subsubsection{locplugin.$<$ID$>$.writable}
+Enable write operations (e.g PUT) on the resources referenced by the plugin.\\
+Syntax:\\
+\lstinline"locplugin.<ID>.writable: <true|false>"\\
+Default value: false\\
+
+
 \subsection{DAV and HTTP plugin}
 
 The DAV plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
@@ -783,6 +807,27 @@ Syntax:\\
 \lstinline"locplugin.<ID>.metalink_support: <true|false>"\\
 Default value: false \\
 
+\subsection{S3 plugin}
+The S3 plugin is a location plugin allowing to include a bucket of Simple Storage Service Cloud Storage as part of the namespace. The S3 plugin supports read, write and list operations.
+
+The S3 plugin supports the AWS credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already authenticated via the AWS query string authentication mechanism.
+
+
+Syntax:\\
+\lstinline"glb.locplugin[]: libugrlocplugin_s3.so <ID> <concurrency> <URL prefix>"\\
+
+\subsubsection{locplugin.$<$ID$>$.priv\_key}
+Setup the AWS private key used for the S3 authentication.
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.priv_key: <AWS secret key>"\\
+
+
+\subsubsection{locplugin.$<$ID$>$.pub\_key}
+Setup the AWS access key used for the S3 authentication.
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.pub_key: <AWS access key>"\\
 
 \subsection{DAVrucio plugin}
 The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\

@@ -22,7 +22,6 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
     // Get some work to do
     while (!pl->exiting) {
 
-
         struct LocationPlugin::worktoken *op = pl->getOp();
 
         if(op && op->operation){
