@@ -63,6 +63,7 @@ def main():
 
     output = []
     nb = 0
+    nb_valid = 0
     for s in res:
         nb += 1
         print ">>> Entry %s / %s:" % (nb, len(res))
@@ -75,19 +76,14 @@ def main():
                 # We consider only the paths that finish with "/rucio/" and we remove it
                 if p[2].endswith("/rucio/"):
                     protocols.append(p[2][:-6])
-        prefix = os.path.commonprefix(protocols)
-        prefix = prefix[:prefix.rfind("/")]
-        protocols = [p[len(prefix):] for p in protocols]
         if protocols:
             impl = s["impl"]
             if not s["impl"]:
                 impl = "???"
-            site = s["rc_site"]
-            url = s["endpoint"] + prefix
             if args.profil != "NO_CHECK":
                 SSL_Error = False
                 for p in list(protocols):
-                    request_url = url + p
+                    request_url = s["endpoint"] + p
                     code, stdout, stderr = request(request_url,args)
                     print "Test of %s" % request_url
                     if code:
@@ -97,15 +93,24 @@ def main():
                             SSL_Error = True
                     else:
                         print "-> OK\n"
+                        prefix = os.path.commonprefix(protocols)
                 if SSL_Error:
                     protocols = []
+            prefix = os.path.commonprefix(protocols)
+            prefix = prefix[:prefix.rfind("/")]
+            url = s["endpoint"] + prefix
             if protocols:
+                nb_valid += 1
+                site = str(nb_valid) + '-' + s["rc_site"]
                 out = """###########
 ## Talk to a %s instance in %s
 ##
-glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s
-locplugin.%s.pfxmultiply:%s""" % (impl, site, site, args.threads, url, site, ' '.join(protocols))
+glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, site, site, args.threads, url)
+                if len(protocols) > 1:
+                    protocols = [p[len(prefix):] for p in protocols]
+                    out += """\nlocplugin.%s.pfxmultiply: %s""" % (site, ' '.join(protocols))
                 output.append(out)
+                print out
         else:
             print "-> No path to test\n"
         print
