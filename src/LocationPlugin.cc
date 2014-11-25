@@ -679,7 +679,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
 		    continue;
                 }
                 case LocationPlugin::wop_Stat:{
-                    wtk->fi->setPluginID(getID(), false);
+
                     struct stat st = {};
                     st.st_nlink = 1;
                     st.st_mode |= S_IFDIR;
@@ -690,6 +690,7 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                     {
                       // Lock the file instance
                       boost::unique_lock<boost::mutex> l(*(wtk->fi));
+		      wtk->fi->setPluginID(getID(), false);
                       wtk->fi->notifyStatNotPending();
                     }
                     return true;
