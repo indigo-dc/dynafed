@@ -17,7 +17,7 @@
 #
 # NAME :        ugrconfig_from_AGIS.py
 #
-# DESCRIPTION : Extract info that is used to configure an HTTP federation that uses the Dynamic Federations.
+# DESCRIPTION : Extract info from AGIS to generate the configuration for an HTTP federation using the Dynamic Federations.
 #
 # AUTHORS :     Ivan.Calvet@cern.ch
 #
@@ -30,38 +30,18 @@ import urllib2, simplejson
 from   subprocess import Popen, PIPE
 
 def main():
-    # Argument parsing
-    parser = argparse.ArgumentParser(description='Extract info that is used to configure an HTTP federation that uses the Dynamic Federations.')
-    parser.add_argument('-P', '--profil', choices=['NO_CHECK', 'grid'], help='choose between the "grid" profil (which use the X509_USER_PROXY environment variable as proxy) and the "NO_CHECK" profil to not test all the URLs.')
-    parser.add_argument('-E', '--cert', metavar='CRED_PATH', help='client Certificate in PEM format')
-    parser.add_argument('--key', metavar='KEY_PATH', help='private key in PEM format')
-    parser.add_argument('--capath', metavar='CA_PATH', help='add an additional certificate authority directory')
-    parser.add_argument('-k', '--insecure', action="store_true", help='disable SSL credential checks')
-    parser.add_argument('-e', '--exclude', metavar='KEYWORD', nargs='*', help='exclude the paths containing these keywords (spaces separated).')
-    parser.add_argument('-t', '--threads', metavar='NUMBER', type=int, default="5", help='specify the number of threads at each entry (5 by default).')
-    parser.add_argument('-o', '--output', metavar='FILENAME', default="ugr-endpoints.conf", help='change the filename of the output (ugr-endpoints.conf by default).')
-    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.1.0')
-    args = parser.parse_args()
+    args = parsing()
+    res = AGIS()
 
-    if not (args.profil or args.cert):
-        parser.print_help()
-        sys.exit(1)
-    if args.profil != 'NO_CHECK':
-        if args.profil == 'grid':
-            if not 'X509_USER_PROXY' in os.environ:
-                sys.exit("Error: The environment variable X509_USER_PROXY is not defined.")
-        else:
-            os.environ['X509_USER_PROXY'] = args.cert
-        if not os.path.exists(os.environ['X509_USER_PROXY']):
-            sys.exit("Error: Path of the certificate incorrect.")
+    # Output creation
+    dir = os.path.abspath(args.output)
+    if not os.path.isdir(dir):
+        print "Creating directory",dir
+        os.makedirs(dir)
+    if not args.split:
+        File = open(dir + '/ugr-endpoints.conf', 'w')
 
-    # AGIS request
-    req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/get_se_services/?json&flavour=HTTP", None)
-    opener = urllib2.build_opener()
-    f = opener.open(req)
-    res = simplejson.load(f)
-
-    output = []
+    # Generation of the entries
     nb = 0
     nb_valid = 0
     for s in res:
@@ -73,18 +53,18 @@ def main():
                 # Exclusion of some keywords
                 if args.exclude and [val for val in args.exclude if val in p[2]]:
                     continue
-                # We consider only the paths that finish with "/rucio/" and we remove it
+                # Considering only the paths finishing with "/rucio/" and removing it
                 if p[2].endswith("/rucio/"):
                     protocols.append(p[2][:-6])
         if protocols:
             impl = s["impl"]
             if not s["impl"]:
                 impl = "???"
-            if args.profil != "NO_CHECK":
+            if args.profile != "NO_CHECK":
                 SSL_Error = False
                 for p in list(protocols):
                     request_url = s["endpoint"] + p
-                    code, stdout, stderr = request(request_url,args)
+                    code, stderr = request(request_url,args)
                     print "Test of %s" % request_url
                     if code:
                         print "-> FAILED: %s\n" % stderr.rstrip()
@@ -105,19 +85,63 @@ def main():
                 out = """###########
 ## Talk to a %s instance in %s
 ##
-glb.locplugin[]: /usr/local/lib64/ugr/libugrlocplugin_davrucio.so %s %s %s""" % (impl, site, site, args.threads, url)
+glb.locplugin[]: %s %s %s %s
+""" % (impl, site, args.library, site, args.threads, url)
                 if len(protocols) > 1:
                     protocols = [p[len(prefix):] for p in protocols]
-                    out += """\nlocplugin.%s.pfxmultiply: %s""" % (site, ' '.join(protocols))
-                output.append(out)
-                print out
+                    out += """locplugin.%s.pfxmultiply: %s\n""" % (site, ' '.join(protocols))
+                if args.split:
+                    File = open(dir + '/' + site + '.conf', 'w')
+                File.write(out + "\n")
+                if args.split:
+                    File.close()
         else:
             print "-> No path to test\n"
         print
-    file = open(args.output, 'w')
-    file.write("\n\n".join(output))
-    file.close()
+
+    if not args.split:
+        File.close()
     sys.exit(0)
+
+def parsing():
+    # Argument parsing
+    parser = argparse.ArgumentParser(description='Extract info from AGIS to generate the configuration for an HTTP federation using the Dynamic Federations.')
+    parsergroup = parser.add_mutually_exclusive_group(required=True)
+    parsergroup.add_argument('-P', '--profile', choices=['grid', 'NO_CHECK'], help='use the "grid" profile (which takes the X509_USER_PROXY environment variable as proxy certificate) or the "NO_CHECK" profile not testing any URL')
+    parsergroup.add_argument('-E', '--cert', metavar='CRED_PATH', help='use the specified client Certificate in PEM format')
+    parser.add_argument('--key', metavar='KEY_PATH', help='use the private key in PEM format')
+    parser.add_argument('--capath', metavar='CA_PATH', help='add an additional certificate authority directory')
+    parser.add_argument('-k', '--insecure', action="store_true", help='disable SSL credential checks')
+    parser.add_argument('-e', '--exclude', metavar='KEYWORD', nargs='*', help='exclude the paths containing the listed keywords (spaces separated)')
+    parser.add_argument('-t', '--threads', metavar='NUMBER', type=int, default="5", help='change the number of threads at each entry (5 by default)')
+    parser.add_argument('-l', '--library', metavar='LIBRARY_PATH', default="/usr/lib64/ugr/libugrlocplugin_davrucio.so", help='change the library path (/usr/lib64/ugr/libugrlocplugin_davrucio.so by default)')
+    parser.add_argument('-s', '--split', action='store_true', help='split the configuration in one file per entry')
+    parser.add_argument('-o', '--output', metavar='DIR_PATH', default='.', help='change the directory of the output file ugr-endpoints.conf (current directory by default)')
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.2.0')
+    args = parser.parse_args()
+
+    # Option profile or cert is mandatory
+    if not (args.profile or args.cert):
+        parser.print_help()
+        sys.exit(1)
+    # Managing the user proxy certificate
+    if args.profile != 'NO_CHECK':
+        if args.profile == 'grid':
+            if not 'X509_USER_PROXY' in os.environ:
+                sys.exit("Error: The environment variable X509_USER_PROXY is not defined.")
+        else:
+            os.environ['X509_USER_PROXY'] = args.cert
+        if not os.path.exists(os.environ['X509_USER_PROXY']):
+            sys.exit("Error: Path of the certificate incorrect.")
+
+    return args
+
+def AGIS():
+    # AGIS request
+    req = urllib2.Request("http://atlas-agis-api.cern.ch/request/service/query/get_se_services/?json&flavour=HTTP", None)
+    opener = urllib2.build_opener()
+    f = opener.open(req)
+    return simplejson.load(f)
 
 def request(url, args):
     """ Execute a request defined by the action to test an url"""
@@ -135,8 +159,8 @@ def request(url, args):
     except:
         sys.exit("Error: Please install davix to be able to check every URL.")
     code = process.wait()
-    stdout, stderr = process.communicate()
-    return (code, stdout, stderr)
+    stderr = process.communicate()[1]
+    return (code, stderr)
 
 
 if __name__ == "__main__":
