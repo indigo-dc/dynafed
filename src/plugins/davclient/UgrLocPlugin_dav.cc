@@ -159,9 +159,9 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
             st.lastcheck = time(0);
 	    
 	    if (tmp_err->getStatus() == Davix::StatusCode::ConnectionTimeout)  
-	      st.explanation = "Connection timeout";
+	      st.explanation = "Connection timeout: " + tmp_err->getErrMsg();
 	    else
-	      st.explanation = "Operation timeout";
+	      st.explanation = "Operation timeout: " + tmp_err->getErrMsg();
 	    
             st.state = PLUGIN_ENDPOINT_OFFLINE;
             availInfo.setStatus(st, true, (char *) name.c_str());
