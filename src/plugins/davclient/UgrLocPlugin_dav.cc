@@ -153,10 +153,16 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
 
         // Connection problem... it's offline for sure!
         if ((tmp_err->getStatus() == Davix::StatusCode::ConnectionTimeout) ||
-                (tmp_err->getStatus() == Davix::StatusCode::ConnectionTimeout)) {
+                (tmp_err->getStatus() == Davix::StatusCode::OperationTimeout)) {
             PluginEndpointStatus st;
             availInfo.getStatus(st);
             st.lastcheck = time(0);
+	    
+	    if (tmp_err->getStatus() == Davix::StatusCode::ConnectionTimeout)  
+	      st.explanation = "Connection timeout";
+	    else
+	      st.explanation = "Operation timeout";
+	    
             st.state = PLUGIN_ENDPOINT_OFFLINE;
             availInfo.setStatus(st, true, (char *) name.c_str());
             // Propagate this fresh result to the extcache

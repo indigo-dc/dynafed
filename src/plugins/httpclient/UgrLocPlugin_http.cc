@@ -219,7 +219,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
 
     checker_params = params;
     struct timespec spec_timeout;
-    spec_timeout.tv_sec = max(this->availInfo.time_interval_ms / 1000 / 2, 1);
+    spec_timeout.tv_sec = max(this->availInfo.time_interval_ms / 1000, 1);
     spec_timeout.tv_nsec = 0;
     checker_params.setOperationTimeout(&spec_timeout);
     checker_params.setConnectionTimeout(&spec_timeout);
