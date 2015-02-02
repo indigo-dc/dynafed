@@ -9,6 +9,8 @@
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <string.h>
+
 #include "dmlite/cpp/utils/urls.h"
 
 using namespace dmlite;
@@ -100,6 +102,165 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
 
 
 
+
+
+
+
+// Implement a simple authorization scheme
+// glb.userallow[] user /path rwl
+// glb.groupallow[] group /path rwl
+//
+// where:
+//  r = capability of reading information like stat
+//  w = capability of writing
+//  l = capability of listing
+bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresource, char reqmode) {
+  // Simple authorization 
+  // If any of the simple rules matches then we let the request pass
+  int i;
+  bool haddirectives = false;
+  unsigned int l;
+  
+  Info(UgrLogger::Lvl4, fname, "isallowed. res: " << reqresource);
+  
+  // Check usernames
+  i = 0;
+  do {
+    char buf[1024];
+    CFG->ArrayGetString("glb.userallow", buf, i);
+    if (!buf[0]) break;
+    haddirectives = true;
+    
+    
+    // Now tokenize the buffer into user, resource, modes ... space separated
+    char user[256], resource[256], modes[256];
+    user[0] = '\0';
+    resource[0] = '\0';
+    modes[0] = '\0';
+    char *p1, *p2;    
+    
+    if ( (p1=strchr(buf, ' ')) ) {
+      l = (unsigned int)(p1-buf);
+      strncpy(user, buf, l);
+      user[l] = '\0';
+      
+      if ( (p2=strchr(p1+1, ' ')) ) {
+	l = (unsigned int)(p2-p1-1);
+	strncpy(resource, p1+1, l);
+	resource[l] = '\0';
+	
+	strncpy(modes, p2+1, 255);
+      }
+    }
+    
+    if (!user[0] || !resource[0] || !modes[0]) {
+      Error(fname, "UgrDMLite::isallowed Invalid userallow directive: '" << buf << "'");
+    }
+    
+    Info(UgrLogger::Lvl4, fname, "UgrDMLite::isallowed Checking user. clientName:'" << c.clientName << "' user:'" << user <<
+      "' reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
+    if ( !c.clientName.compare(user) && 
+      !strncmp(resource, reqresource, strlen(resource)) &&
+      strchr(modes, reqmode) ) {
+      
+      // This user has been explicitely allowed
+      Info(UgrLogger::Lvl3, fname, "UgrDMLite::isallowed User allowed. clientName:" << c.clientName << " resource:" << resource );
+      return true;
+    
+      }
+      
+      ++i;
+  } while (1);
+  
+  // We are here if no matching userallow directives have been found
+  // Check groups
+  i = 0;
+  do {
+    char buf[1024];
+    CFG->ArrayGetString("glb.groupallow", buf, i);
+    if (!buf[0]) break;  
+    haddirectives = true;
+    
+    // Now tokenize the buffer into user, resource, modes ... space separated
+    char group[256], resource[256], modes[256];
+    group[0] = '\0';
+    resource[0] = '\0';
+    modes[0] = '\0';
+    char *p1, *p2;
+    
+    if ( (p1=strchr(buf, ' ')) ) {
+      l = (unsigned int)(p1-buf);
+      strncpy(group, buf, l);
+      group[l] = '\0';
+      
+      if ( (p2=strchr(p1+1, ' ')) ) {
+	l = (unsigned int)(p2-p1-1);
+	strncpy(resource, p1+1, l);
+	resource[l] = '\0';
+	
+	strncpy(modes, p2+1, 255);
+      }
+    }
+    
+    if (!group[0] || !resource[0] || !modes[0]) {
+      Error("UgrDMLite::isallowed", "invalid groupallow directive: '" << buf << "'");
+    }
+    
+    Info(UgrLogger::Lvl4, "isallowed", "Checking group. reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
+    
+    if ( !strncmp(resource, reqresource, strlen(resource)) &&
+      strchr(modes, reqmode) ) {
+    
+      for (unsigned int j = 0; j < c.fqans.size(); j++ ) {
+	Info(UgrLogger::Lvl4, "isallowed", "Checking group. fqan:'" << c.fqans[j] << "' group:'" << group <<
+	  "' reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
+    
+	if (!c.fqans[j].compare(group))
+	  
+	  Info(UgrLogger::Lvl3, "isallowed", "Group allowed. group:" << group << " resource:" << resource );
+	  return true;
+      }
+      
+      }
+      
+      ++i;
+  } while (1);
+  
+  if (haddirectives) return false;
+  return true;
+}
+
+/// Checks the permissions inside a given func
+/// throws an exception if not allowed
+void checkperm(const char *fname, const SecurityCredentials &c, char *reqresource, char reqmode) throw (DmException) {
+  
+  if ( !isallowed(fname, c, reqresource, reqmode) ) {
+    
+    // Not allowed. Build a decent error string explaining why
+    std::ostringstream ss;
+    ss << "Unauthorized operation " << reqmode << " on " << reqresource;
+    ss << " ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
+    for (unsigned int i = 0; i < c.fqans.size(); i++ ) {
+      ss << c.fqans[i];
+      if (i < c.fqans.size() - 1) ss << ",";
+    }
+    std::vector<std::string> vs = c.getKeys();
+    if (vs.size() > 0) {
+      ss << " Other keys: ";
+      for (unsigned int i = 0; i < vs.size(); i++ ) {
+	ss << vs[i];
+	if (i < vs.size() - 1) ss << ",";
+      }
+    }
+    
+    Error( fname, ss.str());
+    throw DmException(EPERM, ss.str());
+  }
+  
+}
+
+
+
 /// This is what the PluginManager looks for
 PluginIdCard plugin_ugr = {
     API_VERSION,
@@ -129,6 +290,10 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     UgrFileInfo *nfo = 0;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
+    
+        
+    checkperm("UgrCatalog::getReplicas", this->secCredentials, (char *)abspath.c_str(), 'r');
+
     if (!getUgrConnector()->locate((std::string&)abspath,
                                    UgrClientInfo(secCredentials.remoteAddress),
 				   &nfo) && nfo) {
@@ -229,9 +394,14 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
 }
 
 dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
+  
+    
+    
     dmlite::ExtendedStat st;
     UgrFileInfo *nfo = 0;
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
+    checkperm("UgrCatalog::extendedStat", this->secCredentials, (char *)abspath.c_str(), 'r');
+    
     if (!getUgrConnector()->stat((std::string&)abspath, UgrClientInfo(secCredentials.remoteAddress), &nfo) &&
         nfo &&
         (nfo->getStatStatus() == nfo->Ok) ) {
@@ -287,10 +457,12 @@ class myDirectory {
     UgrFileInfo *nfo;
     std::set<UgrFileItem>::iterator idx;
 
+    std::string origpath;
+    
     dmlite::ExtendedStat buf;
     struct dirent direntbuf;
 
-    myDirectory(UgrFileInfo *finfo) : nfo(finfo) {
+    myDirectory(UgrFileInfo *finfo, std::string unxlatedpath) : nfo(finfo), origpath(unxlatedpath) {
         idx = finfo->subdirs.begin();
         buf.clear();
 
@@ -303,6 +475,8 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
     UgrFileInfo *fi;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
+    checkperm("UgrCatalog::openDir", this->secCredentials, (char *)abspath.c_str(), 'l');
+    
     if (!getUgrConnector()->list((std::string&)abspath,
 				 UgrClientInfo(secCredentials.remoteAddress),
 				 &fi)
@@ -312,7 +486,7 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
             boost::lock_guard<UgrFileInfo > l(*fi);
             fi->pin();
             // This is just an opaque pointer, we can store what we want
-            return (Directory *) (new myDirectory(fi));
+            return (Directory *) (new myDirectory(fi, abspath));
         }
     }
 
@@ -371,7 +545,7 @@ dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException
     {
         boost::lock_guard<UgrFileInfo > l(*d->nfo);
         d->nfo->touch();
-        s = d->nfo->name;
+        s = d->origpath;
         if (d->idx == d->nfo->subdirs.end()) return 0;
 
         // Only the name is relevant here, it seems
@@ -414,32 +588,30 @@ std::string UgrCatalog::getAbsPath(std::string &path) {
 // ---------------------------
 
 dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
-
-    std::ostringstream ss;
-    ss << "ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
-    for (unsigned int i = 0; i < c.fqans.size(); i++ ) {
-      ss << c.fqans[i];
-      if (i < c.fqans.size() - 1) ss << ",";
+  
+  std::ostringstream ss;
+  ss << "ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
+  for (unsigned int i = 0; i < c.fqans.size(); i++ ) {
+    ss << c.fqans[i];
+    if (i < c.fqans.size() - 1) ss << ",";
+  }
+  std::vector<std::string> vs = c.getKeys();
+  if (vs.size() > 0) {
+    ss << " Other keys: ";
+    for (unsigned int i = 0; i < vs.size(); i++ ) {
+      ss << vs[i];
+      if (i < vs.size() - 1) ss << ",";
     }
-    std::vector<std::string> vs = c.getKeys();
-    if (vs.size() > 0) {
-      ss << " Other keys: ";
-      for (unsigned int i = 0; i < vs.size(); i++ ) {
-	ss << vs[i];
-	if (i < vs.size() - 1) ss << ",";
-      }
-    }
-    
-    
-    
-    Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
+  }
+  
 
-
-    return new dmlite::SecurityContext(c, userinfo, groupinfo);
-
+  
+  Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
+  
+  
+  return new dmlite::SecurityContext(c, userinfo, groupinfo);
+  
 }
-
-
 
 
 UserInfo UgrAuthn::getUser(const std::string& userName) throw (DmException)
@@ -605,6 +777,7 @@ Location UgrPoolManager::whereToRead(const std::string& path) throw (DmException
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::whereToRead", " Path: " << path);
   
+  
   // This will throw an exception if no file
   std::vector<Replica> r = si_->getCatalog()->getReplicas(path);
   
@@ -630,6 +803,8 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::whereToWrite", " path:" << path);
   UgrReplicaVec vl;
+  
+  checkperm("UgrPoolManager::whereToWrite", secCtx_->credentials, (char *)path.c_str(), 'w');
   
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,

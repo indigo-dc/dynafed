@@ -363,15 +363,15 @@ int UgrConnector::do_waitStat(UgrFileInfo *fi, int tmout) {
 
 int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo) {
     const char *fname = "UgrConnector::stat";
+    std::string l_lfn(lfn);
+    UgrFileInfo::trimpath(l_lfn);
+    do_n2n(l_lfn);
 
-    UgrFileInfo::trimpath(lfn);
-    do_n2n(lfn);
-
-    Info(UgrLogger::Lvl2, fname, "Stating " << lfn);
+    Info(UgrLogger::Lvl2, fname, "Stating " << l_lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, l_lfn);
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
         if (fi->getStatStatus() == UgrFileInfo::NoInfo)
@@ -400,7 +400,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
-    Info(UgrLogger::Lvl2, fname, "Stat-ed " << lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
+    Info(UgrLogger::Lvl2, fname, "Stat-ed " << l_lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
@@ -639,15 +639,17 @@ int UgrConnector::do_checkreplica(UgrFileInfo *fi, std::string rep) {
 
 
 int UgrConnector::locate(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo) {
-
+  
     UgrFileInfo::trimpath(lfn);
-    do_n2n(lfn);
+    
+    std::string l_lfn(lfn);
+    do_n2n(l_lfn);
 
-    Info(UgrLogger::Lvl2, "UgrConnector::locate", "Locating " << lfn);
+    Info(UgrLogger::Lvl2, "UgrConnector::locate", "Locating " << l_lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn, true, true);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, l_lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -675,7 +677,7 @@ int UgrConnector::locate(std::string &lfn, const UgrClientInfo &client, UgrFileI
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(UgrLogger::Lvl1, "UgrConnector::locate", "Located " << lfn << " repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::locate", "Located " << l_lfn << " repls:" << fi->replicas.size() << " Status: " << fi->getLocationStatus() <<
             " status_locations: " << fi->status_locations << " pending_locations: " << fi->pending_locations);
 
     return 0;
@@ -716,13 +718,15 @@ int UgrConnector::do_waitList(UgrFileInfo *fi, int tmout) {
 int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInfo **nfo, int nitemswait) {
 
     UgrFileInfo::trimpath(lfn);
-    do_n2n(lfn);
+    
+    std::string l_lfn(lfn);
+    do_n2n(l_lfn);
 
-    Info(UgrLogger::Lvl2, "UgrConnector::list", "Listing " << lfn);
+    Info(UgrLogger::Lvl2, "UgrConnector::list", "Listing " << l_lfn);
 
     // See if the info is in cache
     // If not in memory create an object and trigger a search on it
-    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, lfn, true, true);
+    UgrFileInfo *fi = locHandler.getFileInfoOrCreateNewOne(*this, l_lfn, true, true);
 
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -757,7 +761,7 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(UgrLogger::Lvl1, "UgrConnector::list", "Listed " << lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::list", "Listed " << l_lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
