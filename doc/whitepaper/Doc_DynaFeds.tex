@@ -76,7 +76,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.10}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.11}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -686,6 +686,45 @@ Enable/disable the memcached binary protocol.
 Syntax:\\
 \lstinline"extcache.memcached.useBinaryProtocol: <true|false>"\\
 Default value: true\\
+
+
+
+
+
+
+\subsection{Authorization of groups and users}
+
+When plugged into a DMLite setup (which is the normal way), Ugr can apply a simple authorization scheme to the incoming requests.\\
+In order to make this effective, the frontend (normally Apache) must be configured in order to apply a form of \textit{authentication} to the incoming clients. The Ugr authorization scheme will
+honour the user and groups information that is filled by the frontend. No restrictions are applied to the kind of authentication applied by the frontend. For Grid usage, this is normally X509 with
+VOMS extensions, and also other Web-specific forms of authentication are supposed to work, e.g. mysql-based username/password, Google, Facebook IDs, Federated Identities, etc. , provided that the frontend supports and correctly processes them.\\
+Please note that the Ugr authorization is applied after any possible name groups or fqan translation that the frontend may apply. This is valid also for the gridmap translations that the sysadmin may want to configure in the system.\\
+
+\subsubsection{glb.allowusers[]}
+Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are not supported.\\
+The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
+Syntax:\\
+\lstinline"glb.allowusers[] <username> <path prefix> [r][w][l]" \\
+
+Example:\\
+This example authorizes the anonymous user to get metadata, redirections and listings from the \textit{/fed/atlas} prefix.\\
+\lstinline"glb.allowusers[] nobody /fed/atlas rl" \\
+
+\subsubsection{glb.allowgroups[]}
+Add a rule that authorizes a specific group to read, write into, or list. Spaces in the group name are not supported.\\
+The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
+Syntax:\\
+\lstinline"glb.allowgroups[] <groupname or fqan> <path prefix> [r][w][l]" \\
+
+Example:\\
+This example authorizes any user that is reported to belong to the 'atlas' group to get metadata, redirections and listings from
+the \textit{/fed/atlas} prefix.\\
+\lstinline"glb.allowgroups[] atlas /fed/atlas rl" \\
+
+
+
+
+
 
 
 
