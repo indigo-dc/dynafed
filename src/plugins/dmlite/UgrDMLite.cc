@@ -107,8 +107,8 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
 
 
 // Implement a simple authorization scheme
-// glb.userallow[] user /path rwl
-// glb.groupallow[] group /path rwl
+// glb.allowusers[] user /path rwl
+// glb.allowgroups[] group /path rwl
 //
 // where:
 //  r = capability of reading information like stat
@@ -127,7 +127,7 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
   i = 0;
   do {
     char buf[1024];
-    CFG->ArrayGetString("glb.userallow", buf, i);
+    CFG->ArrayGetString("glb.allowusers", buf, i);
     if (!buf[0]) break;
     haddirectives = true;
     
@@ -154,7 +154,7 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
     }
     
     if (!user[0] || !resource[0] || !modes[0]) {
-      Error(fname, "UgrDMLite::isallowed Invalid userallow directive: '" << buf << "'");
+      Error(fname, "UgrDMLite::isallowed Invalid allowusers directive: '" << buf << "'");
     }
     
     Info(UgrLogger::Lvl4, fname, "UgrDMLite::isallowed Checking user. clientName:'" << c.clientName << "' user:'" << user <<
@@ -177,7 +177,7 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
   i = 0;
   do {
     char buf[1024];
-    CFG->ArrayGetString("glb.groupallow", buf, i);
+    CFG->ArrayGetString("glb.allowgroups", buf, i);
     if (!buf[0]) break;  
     haddirectives = true;
     
@@ -203,7 +203,7 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
     }
     
     if (!group[0] || !resource[0] || !modes[0]) {
-      Error("UgrDMLite::isallowed", "invalid groupallow directive: '" << buf << "'");
+      Error("UgrDMLite::isallowed", "invalid allowgroups directive: '" << buf << "'");
     }
     
     Info(UgrLogger::Lvl4, "isallowed", "Checking group. reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
@@ -215,10 +215,11 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
 	Info(UgrLogger::Lvl4, "isallowed", "Checking group. fqan:'" << c.fqans[j] << "' group:'" << group <<
 	  "' reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
     
-	if (!c.fqans[j].compare(group))
-	  
+	if (!strcmp(c.fqans[j].c_str(), group)) {  
 	  Info(UgrLogger::Lvl3, "isallowed", "Group allowed. group:" << group << " resource:" << resource );
 	  return true;
+	}
+	
       }
       
       }
@@ -226,7 +227,12 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
       ++i;
   } while (1);
   
-  if (haddirectives) return false;
+  if (haddirectives) {
+    Info(UgrLogger::Lvl3, "isallowed", "Denied." );
+    return false;
+  }
+  
+  Info(UgrLogger::Lvl3, "isallowed", "No auth directives, hence allowed." );
   return true;
 }
 
@@ -254,7 +260,7 @@ void checkperm(const char *fname, const SecurityCredentials &c, char *reqresourc
     }
     
     Error( fname, ss.str());
-    throw DmException(EPERM, ss.str());
+    throw DmException(EACCES, ss.str());
   }
   
 }
