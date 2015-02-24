@@ -38,10 +38,12 @@ inline bool compare_prec_char(char* prec, char b){
 // remove all duplicate // in url
 inline void pathHttpNomalize(std::string & url){
     std::string::iterator it;
-    if( ( it = std::find(url.begin(), url.end(), ':') ) != url.end()){
+    std::string::iterator it2;
+    it2 = std::find(url.begin(), url.end(), '?'); 
+    if( ( it = std::find(url.begin(), it2, ':') ) != it2){
         it+=3;
         char c='\0';
-        url.erase(std::remove_if(it, url.end(), boost::bind(compare_prec_char, &c, _1)), url.end());
+        url.erase(std::remove_if(it, it2, boost::bind(compare_prec_char, &c, _1)), url.end());
     }
 
 }
