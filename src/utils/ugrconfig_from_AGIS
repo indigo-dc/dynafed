@@ -64,8 +64,8 @@ def main():
                 SSL_Error = False
                 for p in list(protocols):
                     request_url = s["endpoint"] + p
-                    code, stderr = request(request_url,args)
                     print "Test of %s" % request_url
+                    code, stderr = request(request_url,args)
                     if code:
                         print "-> FAILED: %s\n" % stderr.rstrip()
                         protocols.remove(p)
@@ -146,20 +146,22 @@ def AGIS():
 def request(url, args):
     """ Execute a request defined by the action to test an url"""
     if args.key:
-        command = ['davix-ls', '-E', args.cert, '--key', args.key]
+        command = ['davix-ls', '-E', args.cert, '--key', args.key, '--timeout', '30']
     else:
-        command = ['davix-ls', '-P','grid']
+        command = ['davix-ls', '-P','grid', '--timeout', '30']
     if args.insecure:
         command.append('-k')
     if args.capath:
         command.extend(["--capath", args.capath])
     command.append(url)
+
     try:
         process = Popen(command, stdout=PIPE, stderr=PIPE)
     except:
         sys.exit("Error: Please install davix to be able to check every URL.")
-    code = process.wait()
+    
     stderr = process.communicate()[1]
+    code = process.wait()
     return (code, stderr)
 
 
