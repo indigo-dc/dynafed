@@ -88,11 +88,11 @@ int Config::ProcessFile(char *filename) {
   // Do the parsing
   if (!filename || (strlen(filename) == 0)) {
     strcpy(fn, "/etc/ugr.conf");
-    Info(UgrLogger::Lvl2, "Config::ProcessFile", "Using default config file " << fn);
+    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Using default config file " << fn);
   }
   else {
     strcpy(fn, filename);
-    Info(UgrLogger::Lvl2, "Config::ProcessFile", "Reading config file " << fn);
+    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Reading config file " << fn);
   }
 
   string line, token, val;
@@ -104,7 +104,7 @@ int Config::ProcessFile(char *filename) {
 
       // Avoid comments
       if (line[0] == '#') continue;
-      Info(UgrLogger::Lvl3, "Config::ProcessFile", line);
+      Info(UgrLogger::Lvl3, "Config::ProcessFile", "fn: " << fn << " line: '" << line << "'");
 
       // Check for INCLUDE 
       string temp = line.substr(0, 7);
@@ -118,7 +118,7 @@ int Config::ProcessFile(char *filename) {
           TrimSpaces(line);
           // check if path is absolute
           if(line[0] != '/') {
-              Error("Config::ProcessFile", "Directory path must be absolute");
+              Error("Config::ProcessFile", "Directory path must be absolute. fn: " << fn << " line: '" << line << "'");
               continue;
           }
           configfiles = ReadDirectory(line);
@@ -157,14 +157,14 @@ int Config::ProcessFile(char *filename) {
                 token = buf2;
                 // check if key already exist
                 if(arrdata.count(token) == 1) {
-                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
                 }
                 Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
             arrdata[token].push_back(val);
           }
               else {
                 if(data.count(token) == 1) {
-                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value");
+                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
                 }
                 Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "<-" << val);
                 data[token] = val;
@@ -181,7 +181,7 @@ int Config::ProcessFile(char *filename) {
     myfile.close();
   }
   else {
-    cout << "Unable to open file"; 
+    Error("Config::ProcessFile", "Unable to open file " << fn); 
     return -1;
   }
 
