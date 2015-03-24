@@ -23,7 +23,7 @@ option(UNIT_TESTS "enable or disable the unit tests" FALSE)
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
-set (UGR_VERSION_PATCH 11)
+set (UGR_VERSION_PATCH 12)
 
 
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
