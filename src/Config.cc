@@ -109,13 +109,7 @@ int Config::ProcessFile(char *filename) {
           if (line[0] == '#') continue;
           Info(UgrLogger::Lvl3, "Config::ProcessFile", "fn: " << fn << " line: '" << line << "'");
 
-          // Check for INCLUDE
-          string temp = line.substr(0, 7);
-          for(unsigned int i = 0; i < temp.length(); ++i){
-              temp[i] = toupper(temp[i]);
-          }
-
-          if(temp.compare(0, 7, "INCLUDE") == 0) {
+          if( strncasecmp(line.c_str(), "include", 7) == 0) {
               // only interested in the path
               line.erase(0, 7);
               TrimSpaces(line);
