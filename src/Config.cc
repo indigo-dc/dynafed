@@ -97,90 +97,96 @@ int Config::ProcessFile(char *filename) {
 
   string line, token, val;
   ifstream myfile (fn);
-  if (myfile.is_open()) {
+  if (myfile.is_open()){
     vector<string> configfiles;
-    while ( myfile.good() ) {
-      getline (myfile,line);
 
-      // Avoid comments
-      if (line[0] == '#') continue;
-      Info(UgrLogger::Lvl3, "Config::ProcessFile", "fn: " << fn << " line: '" << line << "'");
+    myfile.exceptions(std::ios::badbit);
+    try{
+        while ( myfile.good() ) {
+          getline (myfile,line);
 
-      // Check for INCLUDE 
-      string temp = line.substr(0, 7);
-      for(unsigned int i = 0; i < temp.length(); ++i){
-          temp[i] = toupper(temp[i]);  
-      }
+          // Avoid comments
+          if (line[0] == '#') continue;
+          Info(UgrLogger::Lvl3, "Config::ProcessFile", "fn: " << fn << " line: '" << line << "'");
 
-      if(temp.compare(0, 7, "INCLUDE") == 0) {    
-          // only interested in the path
-          line.erase(0, 7);
-          TrimSpaces(line);
-          // check if path is absolute
-          if(line[0] != '/') {
-              Error("Config::ProcessFile", "Directory path must be absolute. fn: " << fn << " line: '" << line << "'");
-              continue;
-          }
-          configfiles = ReadDirectory(line);
-      } 
-      else {  
-          token = "";
-          val = "";
-
-          char *p = strchr((char *)line.c_str(), (int)':');
-          if (!p) continue;
-
-          int pos = p-line.c_str();
-          if (pos > 0) {
-        char buf[10240];
-
-        strncpy(buf, line.c_str(), pos);
-        buf[pos] = 0;
-        token = buf;
-
-        strncpy(buf, line.c_str()+pos+1, 1024);
-        buf[1023] = 0;
-        val = buf;
+          // Check for INCLUDE
+          string temp = line.substr(0, 7);
+          for(unsigned int i = 0; i < temp.length(); ++i){
+              temp[i] = toupper(temp[i]);
           }
 
-          TrimSpaces(val);
-          DoSubst(val);
-
-          if (token.length() > 0) {
-              char *p2 = strstr((char *)token.c_str(), "[]");
-              char buf2[10240];
-              int pos2 = p2-token.c_str();
-              if (p2 && (pos2 > 0)) {
-            // it's a string to be added to an array
-                strncpy(buf2, token.c_str(), pos2);
-                buf2[pos2] = 0;
-                token = buf2;
-                // check if key already exist
-                if(arrdata.count(token) == 1) {
-                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
-                }
-                Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
-            arrdata[token].push_back(val);
+          if(temp.compare(0, 7, "INCLUDE") == 0) {
+              // only interested in the path
+              line.erase(0, 7);
+              TrimSpaces(line);
+              // check if path is absolute
+              if(line[0] != '/') {
+                  Error("Config::ProcessFile", "Directory path must be absolute. fn: " << fn << " line: '" << line << "'");
+                  continue;
+              }
+              configfiles = ReadDirectory(line);
           }
-              else {
-                if(data.count(token) == 1) {
-                    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
-                }
-                Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "<-" << val);
-                data[token] = val;
+          else {
+              token = "";
+              val = "";
+
+              char *p = strchr((char *)line.c_str(), (int)':');
+              if (!p) continue;
+
+              int pos = p-line.c_str();
+              if (pos > 0) {
+            char buf[10240];
+
+            strncpy(buf, line.c_str(), pos);
+            buf[pos] = 0;
+            token = buf;
+
+            strncpy(buf, line.c_str()+pos+1, 1024);
+            buf[1023] = 0;
+            val = buf;
+              }
+
+              TrimSpaces(val);
+              DoSubst(val);
+
+              if (token.length() > 0) {
+                  char *p2 = strstr((char *)token.c_str(), "[]");
+                  char buf2[10240];
+                  int pos2 = p2-token.c_str();
+                  if (p2 && (pos2 > 0)) {
+                // it's a string to be added to an array
+                    strncpy(buf2, token.c_str(), pos2);
+                    buf2[pos2] = 0;
+                    token = buf2;
+                    // check if key already exist
+                    if(arrdata.count(token) == 1) {
+                        Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
+                    }
+                    Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
+                arrdata[token].push_back(val);
+              }
+                  else {
+                    if(data.count(token) == 1) {
+                        Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
+                    }
+                    Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "<-" << val);
+                    data[token] = val;
+                  }
               }
           }
-      }  
+        }
+    }catch(std::exception & e){
+        Error("Config::ProcessFile", "Error during configuration file processing " << fn << " "<< e.what());
+        return -1;
     }
+
     if(!configfiles.empty() ) {
         for(unsigned int i; i < configfiles.size(); ++i) {
-        ProcessFile((char *)configfiles[i].c_str() );
-    }  
-  }
+            ProcessFile((char *)configfiles[i].c_str() );
+        }
+    }
 
-    myfile.close();
-  }
-  else {
+  }else {
     Error("Config::ProcessFile", "Unable to open file " << fn); 
     return -1;
   }
