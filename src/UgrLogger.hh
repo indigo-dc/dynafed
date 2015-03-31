@@ -29,11 +29,11 @@ public:
      */
     enum Level
     {
-        Lvl0,       // The default?
-        Lvl1,
-        Lvl2,
-        Lvl3,
-        Lvl4
+        Lvl0=0,       // The default?
+        Lvl1=1,
+        Lvl2=2,
+        Lvl3=3,
+        Lvl4=4
     };
 
     /// Destructor
