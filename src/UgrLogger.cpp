@@ -137,7 +137,7 @@ int UgrLogger::getStackTrace(std::string &s)
 
 
 
-UgrLogger::UgrLogger() : level(Lvl4), size(0)
+UgrLogger::UgrLogger() : stderr_log(true), level(Lvl0), size(0)
 {
     mask = 0;
     registerComponent("unregistered");
@@ -159,6 +159,10 @@ UgrLogger::~UgrLogger()
 void UgrLogger::log(Level lvl, const std::string & msg) const
 {
     syslog(LOG_ERR, "%s", msg.c_str());
+
+    if(stderr_log){
+        std::cerr << msg << std::endl;
+    }
 }
 
 void UgrLogger::registerComponent(component const &  comp)

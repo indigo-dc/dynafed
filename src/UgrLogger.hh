@@ -59,13 +59,7 @@ public:
 
     /// @param debug_stderr : enable/disable the stderr printing
     void SetStderrPrint(bool debug_stderr) {
-      // log the process ID, connect to syslog without delay, log also to 'cerr'
-      int options = LOG_PID | LOG_NDELAY;
-    
-      if (debug_stderr) options |= LOG_PERROR;
-    
-      // setting 'ident' to NULL means that the program name will be used
-      openlog(0, options, LOG_USER);
+        stderr_log = debug_stderr;
     }
     
     /// @return true if the given component is being logged, false otherwise
@@ -131,6 +125,8 @@ private:
     // Assignment operator (not implemented)
     UgrLogger & operator=(UgrLogger const &);
 
+    /// log to stderr
+    bool stderr_log;
     /// current log level
     short level;
     /// number of components that were assigned with a bitmask
