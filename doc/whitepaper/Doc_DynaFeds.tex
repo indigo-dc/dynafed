@@ -76,7 +76,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.11}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.15}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -749,6 +749,14 @@ Syntax:\\
 \lstinline"locplugin.<ID>.writable: <true|false>"\\
 Default value: false\\
 
+\subsubsection{locplugin.$<$ID$>$.max_latency}
+Define the maximum time that is allowed for an operation.\\
+If max_latency milliseconds are exceeded in any metadata operation, a warning will be printed in the log.\\
+If max_latency milliseconds are exceeded in a periodic check operation, the plugin will be put offline.\\
+
+Syntax:\\
+\lstinline"locplugin.<ID>.max_latency: <ms>"\\
+Default value: 10000\\
 
 \subsection{DAV and HTTP plugin}
 

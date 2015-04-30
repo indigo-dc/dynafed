@@ -8,6 +8,7 @@
 #include "PluginLoader.hh"
 #include "UgrMemcached.pb.h"
 #include "ExtCacheHandler.hh"
+#include "libs/time_utils.h"
 #include <time.h>
 #include <sys/stat.h>
 
@@ -44,9 +45,26 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
         if (op && op->fi && op->wop) {
 
+            struct timespec t1, t2, diff_time;
+            int ms;
+            
+            // Measure the time needed
+            clock_gettime(CLOCK_MONOTONIC, &t1);
+            
             // Run this search, including notifying the various calls
             pl->runsearch(op, myidx);
 
+            // Finish measuring the time needed
+            clock_gettime(CLOCK_MONOTONIC, &t2);
+            timespec_sub(&t2, &t1, &diff_time);
+            ms = (diff_time.tv_sec)*1000 + (diff_time.tv_nsec) / 1000000L;
+            
+            // Just print a warning if the operation took more than the max_latency
+            if (ms > pl->availInfo.max_latency_ms) {
+              Info(UgrLogger::Lvl1, fname, "Warning. Operation took " << ms << "ms. This exceeds max_latency: " <<
+                pl->availInfo.max_latency_ms << "ms op:" << op->wop << " item: " << op->fi->name);
+            }
+            
         }
     }
 
@@ -178,7 +196,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
 
     // get maximum latency
     availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
-    Info(UgrLogger::Lvl1, fname, " Maximum Endpoint latency " << availInfo.max_latency_ms << "ms");
+    Info(UgrLogger::Lvl1, fname, " Maximum endpoint latency " << availInfo.max_latency_ms << "ms");
 
     // get slave status
     slave = CFG->GetBool(pfx + ".slave", false);

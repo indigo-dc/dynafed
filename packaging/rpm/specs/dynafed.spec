@@ -5,7 +5,7 @@
 %endif
 
 Name:				dynafed
-Version:			1.0.14
+Version:			1.0.15
 Release:			1%{?dist}
 Summary:			Ultra-scalable dynamic system for federating HTTP-based storage resources
 Group:				Applications/Internet
