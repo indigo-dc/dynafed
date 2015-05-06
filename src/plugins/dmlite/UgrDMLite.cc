@@ -544,30 +544,42 @@ struct dirent* UgrCatalog::readDir(Directory *opaque) throw (DmException) {
 dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException) {
     myDirectory *d = (myDirectory *) opaque;
     std::string s;
-
+    bool trynext;
+    
     if (!opaque) return 0;
     if (!d->nfo) return 0;
-
-    {
+    
+    do {
+      trynext = false;
+      
+      {
         boost::lock_guard<UgrFileInfo > l(*d->nfo);
         d->nfo->touch();
         s = d->origpath;
         if (d->idx == d->nfo->subdirs.end()) return 0;
-
+        
         // Only the name is relevant here, it seems
         d->buf.name = (d->idx)->name;
         d->idx++;
-    }
-
-
-    if (*s.rbegin() != '/')
+      }
+      
+      
+      if (*s.rbegin() != '/')
         s += "/";
-
-    s += d->buf.name;
-    d->buf.stat = extendedStat(s, true).stat;
-
-
-
+      
+      s += d->buf.name;
+      
+      try {
+        d->buf.stat = extendedStat(s, true).stat;
+      }
+      catch (DmException e) {
+        Info(UgrLogger::Lvl1, "UgrCatalog::readDirx", "No stat information for '" << s << "'");
+        trynext = true;
+      }
+      
+    } while (trynext);
+    
+    
 
     return &(d->buf);
 }
