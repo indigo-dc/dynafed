@@ -352,6 +352,8 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         HttpUtils::pathHttpNomalize(new_Location);
 
         handler->addReplica(new_Location, getID());
+        
+
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << tokenized_location);
         return 0;
 

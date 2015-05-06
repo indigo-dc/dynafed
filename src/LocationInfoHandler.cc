@@ -127,6 +127,130 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(UgrConnector& contex
 
 }
 
+
+// Add the newly existing file to the subitems of the parent directory
+
+int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn) {
+     const char *fname = "LocationInfoHandler::addChildToParentSubItem";
+     bool doinsert = false;
+     UgrFileInfo *fi = 0;
+     std::string parent, child;
+
+     UgrFileInfo::trimpath(lfn);
+
+     // seperate parent and child
+     size_t pos = lfn.rfind("/");
+     if(pos != std::string::npos){
+         parent = lfn.substr(0, pos);
+         child = lfn.substr(pos + 1);
+     }
+
+     {
+         boost::lock_guard<LocationInfoHandler> l(*this);
+
+         std::map< std::string, UgrFileInfo *>::iterator p;
+
+         p = data.find(parent);
+         if (p == data.end()) {
+             // If we reached the max number of items, delete as much as we can
+             while (data.size() > maxitems) {
+                 if (purgeLRUitem()) break;
+             }
+
+             // If we still have no space, try to garbage collect the old items
+             if (data.size() > maxitems) {
+                 Info(UgrLogger::Lvl4, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
+                 purgeExpired();
+             }
+
+             // If we still have no space, complain and do it anyway.
+             if (data.size() > maxitems) {
+                 Info(UgrLogger::Lvl4, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
+                 Info(UgrLogger::Lvl4, fname, "Maximum capacity exceeded. " << data.size() << ">" << maxitems);
+             }
+
+             // Create a new item
+             fi = new UgrFileInfo(context, parent);
+
+             // We want to see if it's available in the external cache
+             // hance, make it pending
+             doinsert = true;
+
+             // We don't need to lock here, as we are the only holders
+             // Set this object as pending, as we'll try to fetch it from an external cache (if any)
+             fi->notifyItemsPending();
+             fi->notifyStatPending();
+
+
+         } else {
+             // Promote the element to being the most recently used
+
+             lrudata.right.erase(parent);
+             lrudata.insert(lrudataitem(++lrutick, parent));
+             fi = p->second;
+
+             fi->notifyItemsPending();
+
+             //docachesubitemslookup = false;
+             doinsert = false;
+
+             fi->touch();
+         }
+     }
+
+     // Here we have either
+     //  - a new empty UgrFileInfo
+     //  - an UgrFileInfo taken from the 1st level cache
+
+     // While we get it from the cache, the object is pending, and nothing is locked
+     // Get the basic fields of the object, size, etc.
+     if (doinsert && getFileInfoFromCache(fi)) {
+
+       // If we had an empty fi element and we could not fill it from the ext cache
+       // then we exit and delete the now useless object.
+       delete fi;
+       return 1;
+     }
+
+     // We also need the subitems since we need to add one more
+     // No checks, if we are here we already have a fi object to take care of
+     getSubitemsFromCache(fi);
+
+     // Add the new item
+     UgrFileItem it;
+     it.name = child;
+     it.location.clear();
+     fi->subdirs.insert(it);
+
+     fi->dirtyitems = true;
+     fi->dirty = true;
+
+     // Found or not, the cache lookup for this object has ended
+     // so it is marked as not pending
+     {
+         // Here we need to lock
+         unique_lock<mutex> l(*fi);
+
+         fi->notifyItemsNotPending();
+         if (doinsert) fi->notifyStatNotPending();
+     }
+
+     // Insert to internal cache only if parent entry did not exist there
+     if (doinsert) {
+       boost::lock_guard<LocationInfoHandler> l(*this);
+       data[parent] = fi;
+       lrudata.insert(lrudataitem(++lrutick, parent));
+     }
+    
+     // Parent is now updated with new subitem, push to external cache
+     putFileInfoToCache(fi);
+     putSubitemsToCache(fi);
+     
+     return 0;
+
+}
+
+
 // Purge from the local workspace the least recently used element
 // Returns 0 if the element was purged, non0 if it was not possible
 
@@ -209,8 +333,9 @@ void LocationInfoHandler::purgeExpired() {
                 unique_lock<mutex> lck(*fi);
 
                 time_t tl = timelimit;
-                if (fi->getInfoStatus() == UgrFileInfo::NotFound)
+                if (fi->getInfoStatus() == UgrFileInfo::NotFound){
                     tl = timelimit_neg;
+                }
 
                 if ((fi->lastreftime < tl) || (fi->lastreftime < timelimit_max)) {
                     // The item is old...

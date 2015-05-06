@@ -499,6 +499,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     new_locations = response_handler->takeAll();
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " NewLocations found for " << l_lfn);
 
+
     // apply hooks now
     for(auto it = new_locations.begin(); it < new_locations.end(); ++it){
         applyHooksNewReplica(*it);
@@ -506,6 +507,9 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
 
     // sort all answer geographically
     filterAndSortReplicaList(new_locations, client);
+
+    // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
+    this->locHandler.addChildToParentSubitem(*this, l_lfn);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
     return UgrCode();

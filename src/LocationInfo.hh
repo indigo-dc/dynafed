@@ -371,6 +371,10 @@ public:
 
     /// Update last reference time
     void touch() {
+        // only update reference time if the entry exist, otherwise it may be stuck in internal cache 
+        // until max ttl expires
+        if(getInfoStatus() == UgrFileInfo::NotFound)
+            return;
         lastreftime = time(0);
     }
 

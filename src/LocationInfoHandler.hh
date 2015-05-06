@@ -105,6 +105,9 @@ public:
     /// Get a pointer to a FileInfo, or create a new one, marked as pending
     UgrFileInfo *getFileInfoOrCreateNewOne(UgrConnector & context, std::string &lfn, bool docachelookup=true, bool docachesubitemslookup=false);
 
+    /// Get a pointer to a FileInfo if it exists in either 1st of 2nd level cache, then update its subitems list with child item
+    int addChildToParentSubitem(UgrConnector& context, std::string &lfn);
+
     // Ext Cache in/out
     int getFileInfoFromCache(UgrFileInfo *fi);
     int getSubitemsFromCache(UgrFileInfo *fi);
