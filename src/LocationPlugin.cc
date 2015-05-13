@@ -61,7 +61,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
             
             // Just print a warning if the operation took more than the max_latency
             if (ms > pl->availInfo.max_latency_ms) {
-              Info(UgrLogger::Lvl1, fname, "Warning. Operation took " << ms << "ms. This exceeds max_latency: " <<
+              Info(UgrLogger::Lvl1, pluglogname, "Warning. Operation took " << ms << "ms. This exceeds max_latency: " <<
                 pl->availInfo.max_latency_ms << "ms op:" << op->wop << " item: " << op->fi->name);
             }
             
