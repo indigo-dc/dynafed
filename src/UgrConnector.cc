@@ -387,6 +387,10 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
         if ((fi->getStatStatus() == UgrFileInfo::NoInfo) ||
           (fi->getStatStatus() == UgrFileInfo::InProgress))
             fi->status_statinfo = UgrFileInfo::NotFound;
+        
+        // stat finished and aquired info, now attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
+        else
+          this->locHandler.addChildToParentSubitem(*this, l_lfn);
 
         // We don't set it to ok if it was in progress after a timeout
         //else fi->status_statinfo = UgrFileInfo::Ok;
