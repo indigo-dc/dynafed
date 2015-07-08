@@ -14,7 +14,11 @@
 
 void ExtCacheHandler::Init() {
     maxttl = CFG->GetLong("extcache.memcached.ttl", 600);
-
+    if (maxttl <= 0) {
+      Error("ExtCacheHandler::Init", "extcache.memcached.ttl cannot be smaller than 1 second. Setting to 600 secs instead of " << maxttl);
+      maxttl = 600;
+    }
+    
     while (!conns.empty()) conns.pop();
 }
 
