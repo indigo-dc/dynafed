@@ -474,18 +474,24 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     UgrFileInfo::trimpath(l_lfn);
     do_n2n(l_lfn);
 
+    // We need to stat the file to make sure we know nothing about it... sigh
+    UgrFileInfo* fi = NULL;
+    stat(l_lfn, client, &fi);
+        
     // check if override
     if(CFG->GetBool("glb.allow_overwrite", true) == false){
-        UgrFileInfo* fi = NULL;
-        stat(l_lfn, client, &fi);
+        
         if(fi && fi->status_items !=  UgrFileInfo::NotFound){
             return UgrCode(UgrCode::OverwriteNotAllowed, "Ovewrite existing resource is not allowed");
         }
     }
 
-
     Info(UgrLogger::Lvl2, fname,  "Find new location for " << l_lfn);
-
+    
+    // Make sure that the entry we have in the cache will not contain
+    // old data, e.g. a NotFound
+    fi->setToNoInfo();
+    
     // Ask all the non slave plugins that are online
     for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
         if ( (!(*it)->isSlave()) && ((*it)->isOK())

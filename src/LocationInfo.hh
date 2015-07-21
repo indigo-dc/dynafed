@@ -409,6 +409,10 @@ public:
     /// @param s the string to be treated like a path to fix
     static void trimpath(std::string &s);
 
+    /// Clear an object, so that it seems that we know nothing about it.
+    /// Useful instead of removing the item from the cache (which is deprecated)
+    void setToNoInfo();
+    
     /// Fill the fields from a stat struct
     /// @param st the stat struct to copy fields from
     void takeStat(const struct stat &st);

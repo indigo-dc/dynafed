@@ -386,6 +386,26 @@ void UgrFileInfo::takeStat(const struct stat &st) {
 
 }
 
+void UgrFileInfo::setToNoInfo() {
+    const char *fname = "UgrFileInfo::setToNoInfo";
+    Info(UgrLogger::Lvl4, fname, "Entering");
+    
+    unique_lock<mutex> l2(*this);
+    size = 0;
+    unixflags = 0;
+    atime = 0;
+    mtime = 0;
+    ctime = 0;
+    
+    status_statinfo = UgrFileInfo::NoInfo;
+
+    subdirs.clear();
+    status_items = UgrFileInfo::NoInfo;
+    status_locations = UgrFileInfo::NoInfo;
+    dirty = false;
+
+}
+
 void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
     const char *fname = "UgrFileInfo::addReplica";
     Info(UgrLogger::Lvl4, fname, "UgrFileInfo:" << this->name << " add replicas: " << replica.name);
