@@ -201,8 +201,12 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
            // Just touch the element, it has not been used, just updated monodirectionally
            doinsert = false;
            fi = p->second;
-           fi->touch();
-           fi->notifyItemsPending();
+           
+           {
+             unique_lock<mutex> l(*fi);
+             fi->touch();
+             fi->notifyItemsPending();
+           }
          }
          
      }
