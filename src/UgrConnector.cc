@@ -390,7 +390,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
         
         // stat finished and aquired info, now attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
         else
-          this->locHandler.addChildToParentSubitem(*this, l_lfn);
+          this->locHandler.addChildToParentSubitem(*this, l_lfn, false);
 
         // We don't set it to ok if it was in progress after a timeout
         //else fi->status_statinfo = UgrFileInfo::Ok;
@@ -519,7 +519,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     filterAndSortReplicaList(new_locations, client);
 
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
-    this->locHandler.addChildToParentSubitem(*this, l_lfn);
+    this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
     return UgrCode();

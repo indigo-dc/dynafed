@@ -130,7 +130,7 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(UgrConnector& contex
 
 // Add the newly existing file to the subitems of the parent directory
 
-int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn) {
+int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn, bool checkExtCache) {
      const char *fname = "LocationInfoHandler::addChildToParentSubItem";
      bool doinsert = false;
      UgrFileInfo *fi = 0;
@@ -152,6 +152,9 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
 
          p = data.find(parent);
          if (p == data.end()) {
+             // parent item not found in memory and we don't want to check extenal cache, just return
+             if(!checkExtCache) return 0;
+             
              // If we reached the max number of items, delete as much as we can
              while (data.size() > maxitems) {
                  if (purgeLRUitem()) break;
@@ -168,7 +171,7 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
                  Info(UgrLogger::Lvl4, fname, "Too many items " << data.size() << ">" << maxitems << ", running garbage collection...");
                  Info(UgrLogger::Lvl4, fname, "Maximum capacity exceeded. " << data.size() << ">" << maxitems);
              }
-
+             
              // Create a new item
              fi = new UgrFileInfo(context, parent);
 
@@ -204,17 +207,17 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
 
      // While we get it from the cache, the object is pending, and nothing is locked
      // Get the basic fields of the object, size, etc.
-     if (doinsert && getFileInfoFromCache(fi)) {
-
-       // If we had an empty fi element and we could not fill it from the ext cache
-       // then we exit and delete the now useless object.
-       delete fi;
-       return 1;
+     if (doinsert) {
+        if(getFileInfoFromCache(fi)) {
+            // If we had an empty fi element and we could not fill it from the ext cache
+            // then we exit and delete the now useless object.
+            delete fi;
+            return 1;
+        }
+        // If parent item is found, we also need the subitems since we need to add one more
+        // No checks, if we are here we already have a fi object to take care of
+        getSubitemsFromCache(fi);
      }
-
-     // We also need the subitems since we need to add one more
-     // No checks, if we are here we already have a fi object to take care of
-     getSubitemsFromCache(fi);
 
      // Add the new item
      UgrFileItem it;
@@ -235,11 +238,15 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
          if (doinsert) fi->notifyStatNotPending();
      }
 
+     // if in lite mode, we don't need to push to ext cache, just return
+     if(!checkExtCache)
+         return 0;
+
      // Insert to internal cache only if parent entry did not exist there
      if (doinsert) {
-       boost::lock_guard<LocationInfoHandler> l(*this);
-       data[parent] = fi;
-       lrudata.insert(lrudataitem(++lrutick, parent));
+         boost::lock_guard<LocationInfoHandler> l(*this);
+         data[parent] = fi;
+         lrudata.insert(lrudataitem(++lrutick, parent));
      }
     
      // Parent is now updated with new subitem, push to external cache
