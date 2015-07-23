@@ -200,7 +200,7 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
          } else {
            // Just touch the element, it has not been used, just updated monodirectionally
            doinsert = false;
-
+           fi = p->second;
            fi->touch();
          }
          
