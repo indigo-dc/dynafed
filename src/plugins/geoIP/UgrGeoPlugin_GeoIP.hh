@@ -1,3 +1,18 @@
+/*
+ *  Copyright (c) CERN 2013
+ *
+ *  Copyright (c) Members of the EMI Collaboration. 2011-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
+ * 
+ */
+
+
+
+
 /** @file   GeoPlugin.hh
  * @brief  Base class for an UGR plugin that assigns GPS coordinates to FileItems based on the server that they specify
  * @author Fabrizio Furano

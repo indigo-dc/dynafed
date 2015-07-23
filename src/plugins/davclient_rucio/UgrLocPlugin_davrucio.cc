@@ -1,10 +1,19 @@
-/** 
- * @file   UgrLocPlugin_dav.cc
- * @brief  Plugin that talks to any Webdav compatible endpoint
- * @author Devresse Adrien
- * @date   Feb 2012
+
+
+/**
+ *  Copyright (c) CERN 2014
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
  */
 
+
+/** 
+ * @file   UgrLocPlugin_davrucio.cc
+ * @brief  Plugin that talks to any Webdav compatible endpoint, applying the Rucio replica name hash-based xlation
+ * @author Fabrizio Furano
+ * @date   Oct 2014
+ */
 
 #include "UgrLocPlugin_davrucio.hh"
 #include "../../PluginLoader.hh"

@@ -1,7 +1,11 @@
 #pragma once
 #ifndef LOCATIONPLUGIN_WEBDAVRUCIO_HH
 #define LOCATIONPLUGIN_WEBDAVRUCIO_HH
-
+/**
+ *  Copyright (c) CERN 2014
+ *
+ *  Licensed under the Apache License, Version 2.0
+ */
 
 /** 
  * @file   UgrLocPlugin_davrucio.hh

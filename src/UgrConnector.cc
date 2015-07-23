@@ -1,3 +1,16 @@
+/*
+ *  Copyright (c) CERN 2013
+ *
+ *  Copyright (c) Members of the EMI Collaboration. 2011-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
+ * 
+ */
+
+
 /** @file   UgrConnector.cc
  * @brief  Base class that gives the functionalities of a dynamic, protocol-agnostic redirector
  * @author Fabrizio Furano
@@ -381,6 +394,8 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     // wait for the search to finish by looking at the pending object
     do_waitStat(fi, CFG->GetLong("glb.waittimeout", 30));
 
+    bool addtoparent = false;
+    
     // If the status is noinfo, we can mark it as not found
     {
         boost::lock_guard<UgrFileInfo > l(*fi);
@@ -390,16 +405,20 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
         
         // stat finished and aquired info, now attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
         else
-          this->locHandler.addChildToParentSubitem(*this, l_lfn, false);
-
+          addtoparent = true;
+          
         // We don't set it to ok if it was in progress after a timeout
         //else fi->status_statinfo = UgrFileInfo::Ok;
+        
+        // Touch the item anyway, it has been referenced
+        fi->touch();
+    
     }
 
-    *nfo = fi;
+    if ( addtoparent && CFG->GetBool("glb.addchildtoparentonstat", true) )
+      this->locHandler.addChildToParentSubitem(*this, l_lfn, false);
 
-    // Touch the item anyway, it has been referenced
-    fi->touch();
+    *nfo = fi;
 
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
@@ -519,7 +538,8 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     filterAndSortReplicaList(new_locations, client);
 
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
-    this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
+    if ( CFG->GetBool("glb.addchildtoparentonput", true) )
+      this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
     return UgrCode();

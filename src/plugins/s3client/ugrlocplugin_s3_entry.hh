@@ -1,6 +1,18 @@
 #ifndef UGRLOCPLUGIN_S3_ENTRY_HH
 #define UGRLOCPLUGIN_S3_ENTRY_HH
 
+/*
+ *  Copyright (c) CERN 2013
+ *
+ *  Copyright (c) Members of the EMI Collaboration. 2011-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
+ * 
+ */
+
 
 #include "UgrLocPlugin_s3.hh"
 

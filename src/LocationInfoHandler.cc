@@ -1,3 +1,15 @@
+/*
+ *  Copyright (c) CERN 2013
+ *
+ *  Copyright (c) Members of the EMI Collaboration. 2011-2013
+ *  See  http://www.eu-emi.eu/partners for details on the copyright
+ *  holders.
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
+ * 
+ */
+
 /** @file   LocationInfoHandler.cc
  * @brief  Handling of the info that is kept per each file
  * @author Fabrizio Furano
@@ -176,7 +188,7 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
              fi = new UgrFileInfo(context, parent);
 
              // We want to see if it's available in the external cache
-             // hance, make it pending
+             // hence, make it pending
              doinsert = true;
 
              // We don't need to lock here, as we are the only holders
@@ -186,19 +198,12 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
 
 
          } else {
-             // Promote the element to being the most recently used
+           // Just touch the element, it has not been used, just updated monodirectionally
+           doinsert = false;
 
-             lrudata.right.erase(parent);
-             lrudata.insert(lrudataitem(++lrutick, parent));
-             fi = p->second;
-
-             fi->notifyItemsPending();
-
-             //docachesubitemslookup = false;
-             doinsert = false;
-
-             fi->touch();
+           fi->touch();
          }
+         
      }
 
      // Here we have either

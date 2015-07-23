@@ -1,5 +1,12 @@
 #include "ugrlocplugin_davrucio_entry.hh"
 
+/**
+ *  Copyright (c) CERN 2014
+ *
+ *  Licensed under the Apache License, Version 2.0
+ */
+
+
 
 // The hook function. GetPluginInterfaceClass must be given the name of this function
 // for the plugin to be loaded

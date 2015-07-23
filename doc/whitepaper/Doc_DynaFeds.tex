@@ -1,3 +1,13 @@
+%
+%  Copyright (c) CERN 2011
+%
+%  Copyright (c) Members of the EMI Collaboration. 2011-2013
+%  See  http://www.eu-emi.eu/partners for details on the copyright
+%  holders.
+%
+%  Licensed under the Apache License, Version 2.0
+ 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Simple Sectioned Essay Template
 % LaTeX Template
@@ -76,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.15}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.17}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -428,6 +438,33 @@ Load all the configuration files that are contained in \lstinline"/etc/ugr.conf.
  Example:\\
 \lstinline"glb.debug.components[]: <locplugin.MYSITE>"\\
 \lstinline"glb.debug.components[]: <locplugin.MYOTHERSITE>"\\
+
+
+\subsubsection{glb.addchildtoparentonput}
+ When a federator handles the writing of a new file (PUT for HTTP), it normally tries to add the new item to the listing
+of the parent directory. Setting \lstinline"glb.addchildtoparentonput" to \lstinline"false" disables this behavior, and may
+reduce the CPU usage for applications that create many files.
+
+ Syntax:\\
+
+\lstinline"glb.addchildtoparentonput: <true | false>"\\
+
+ Example:\\
+\lstinline"glb.addchildtoparentonput: <false>"\\
+
+
+\subsubsection{glb.addchildtoparentonstat}
+ When a federator computes the stat() information for a file, it normally tries to add the new item to the listing
+of the parent directory in the case it is already in the first level cache.\\
+Setting \lstinline"glb.addchildtoparentonstat" to \lstinline"false" disables this behavior, and may reduce the CPU usage, especially for listing operations of large directories.
+
+ Syntax:\\
+
+\lstinline"glb.addchildtoparentonstat: <true | false>"\\
+
+ Example:\\
+\lstinline"glb.addchildtoparentonstat: <false>"\\
+
 
 \subsubsection{\label{glb.locplugin}glb.locplugin}
 

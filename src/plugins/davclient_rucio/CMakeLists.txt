@@ -1,6 +1,11 @@
+#
+#  Copyright (c) CERN 2014
+#
+#  Licensed under the Apache License, Version 2.0
+#  See the LICENSE file for further information
+# 
+
 cmake_minimum_required (VERSION 2.6)
-# Build file for Webdav plugin
-# Devresse Adrien
 
 
 IF(DAV_PLUGIN)

@@ -1,4 +1,18 @@
 cmake_minimum_required (VERSION 2.6)
+
+#
+#  Copyright (c) CERN 2013
+#
+#  Copyright (c) Members of the EMI Collaboration. 2011-2013
+#  See  http://www.eu-emi.eu/partners for details on the copyright
+#  holders.
+#
+#  Licensed under the Apache License, Version 2.0
+#  See the LICENSE file for further information
+#
+
+
+
 project (ugr)
 
 # build type
@@ -23,7 +37,7 @@ option(UNIT_TESTS "enable or disable the unit tests" FALSE)
 # The version number
 set (UGR_VERSION_MAJOR 1)
 set (UGR_VERSION_MINOR 0)
-set (UGR_VERSION_PATCH 16)
+set (UGR_VERSION_PATCH 17)
 
 
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the

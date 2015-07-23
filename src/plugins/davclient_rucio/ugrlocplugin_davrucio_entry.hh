@@ -1,6 +1,12 @@
 #ifndef UGRLOCPLUGIN_DAV_ENTRY_HH
 #define UGRLOCPLUGIN_DAV_ENTRY_HH
 
+/**
+ *  Copyright (c) CERN 2014
+ *
+ *  Licensed under the Apache License, Version 2.0
+ */
+
 
 #include "UgrLocPlugin_davrucio.hh"
 

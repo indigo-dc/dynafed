@@ -1,3 +1,22 @@
+/*
+ *  Copyright (c) CERN 2014
+ *
+ *  Licensed under the Apache License, Version 2.0
+ *  See the LICENSE file for further information
+ * 
+ */
+
+/**
+ * @file   filter_noloop_plugin.cc
+ * @brief  Exotic filter plugin that avoid redirection loops
+ * @author Devresse Adrien
+ * @date   Feb 2014
+ */
+
+
+
+
+
 #include "filter_noloop_plugin.hh"
 #include <SimpleDebug.hh>
 #include <LocationInfo.hh>
