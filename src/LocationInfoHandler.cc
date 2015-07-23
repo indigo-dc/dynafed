@@ -202,6 +202,7 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
            doinsert = false;
            fi = p->second;
            fi->touch();
+           fi->notifyItemsPending();
          }
          
      }
@@ -228,21 +229,21 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
      UgrFileItem it;
      it.name = child;
      it.location.clear();
-     fi->subdirs.insert(it);
-
-     fi->dirtyitems = true;
-     fi->dirty = true;
-
-     // Found or not, the cache lookup for this object has ended
-     // so it is marked as not pending
+     
      {
-         // Here we need to lock
-         unique_lock<mutex> l(*fi);
+       unique_lock<mutex> l(*fi);
+       fi->subdirs.insert(it);
 
-         fi->notifyItemsNotPending();
-         if (doinsert) fi->notifyStatNotPending();
+       fi->dirtyitems = true;
+       fi->dirty = true;
+
+       // Found or not, the cache lookup for this object has ended
+       // so it is marked as not pending
+       fi->notifyItemsNotPending();
+       if (doinsert) fi->notifyStatNotPending();
+     
      }
-
+     
      // if in lite mode, we don't need to push to ext cache, just return
      if(!checkExtCache)
          return 0;
