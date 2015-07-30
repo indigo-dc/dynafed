@@ -35,7 +35,7 @@ public:
     UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {
         // Approximately 10km by default
         long ifuzz = CFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
-        fuzz = ifuzz / 6371000; // Radius of Earth in Km
+        fuzz = ifuzz / 6371000.0; // Radius of Earth in Km
         fuzz = fuzz * fuzz;
         Info(UgrLogger::Lvl1, "UgrFileItemGeoComp::UgrFileItemGeoComp", "Fuzz " << ifuzz << " normalized into " << fuzz);
     };
