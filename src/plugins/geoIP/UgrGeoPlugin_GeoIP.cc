@@ -29,14 +29,45 @@ using namespace std;
 class UgrFileItemGeoComp {
 private:
     float ltt, lng;
+    float fuzz;
 public:
 
     UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {
-        //std::cout << "geocomp" << std::endl;
+        // Approximately 10km by default
+        long ifuzz = CFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
+        fuzz = ifuzz / 6371000; // Radius of Earth in Km
+        fuzz = fuzz * fuzz;
+        Info(UgrLogger::Lvl1, "UgrFileItemGeoComp::UgrFileItemGeoComp", "Fuzz " << ifuzz << " normalized into " << fuzz);
     };
     virtual ~UgrFileItemGeoComp(){};
 
     virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
+      /*
+      Equirectangular approximation
+
+      
+      If performance is an issue and accuracy less important, for small distances Pythagoras’
+      theorem can be used on an equirectangular projection:
+
+      Formula:
+        x = Δλ ⋅ cos φm
+        y = Δφ
+        d = R ⋅ √x² + y²
+        
+      JavaScript:     
+        var x = (λ2-λ1) * Math.cos((φ1+φ2)/2);
+        var y = (φ2-φ1);
+        var d = Math.sqrt(x*x + y*y) * R;
+        
+      This uses just one trig and one sqrt function – as against half-a-dozen
+      trig functions for cos law, and 7 trigs + 2 sqrts for haversine.
+      Accuracy is somewhat complex: along meridians there are no errors, otherwise they depend on distance,
+      bearing, and latitude, but are small enough for many purposes
+      (and often trivial compared with the spherical approximation itself).
+      */
+      
+      
+      
         float x, y, d1, d2;
 
         //std::cout << "client" << ltt << " " << lng << std::endl;
@@ -51,11 +82,11 @@ public:
         y = (s2.latitude-ltt);
         d2 = x*x + y*y;
 
-        Info(UgrLogger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
+        Info(UgrLogger::Lvl1, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
                                                          << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
                                                          << "client=("<< ltt << "," << lng <<") " );
 
-        return (d1 < d2);
+        return (d1 < d2 + (rand()/(float)RAND_MAX - 0.5)*fuzz);
     }
 };
 
@@ -148,8 +179,10 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
     }
 
     Info(UgrLogger::Lvl3, fname, "Set geo info: " << it.name << srv << " " << gir->country_name << " " << gir->city << " " << gir->latitude << " " << gir->longitude);
-    it.latitude = gir->latitude;
-    it.longitude = gir->longitude;
+    
+    // Convert here into radians so we save a few operations later
+    it.latitude = gir->latitude / 180.0 * M_PI;
+    it.longitude = gir->longitude / 180.0 * M_PI;
 
     if (gir->city)
         it.location = gir->city;
@@ -175,8 +208,8 @@ void UgrGeoPlugin_GeoIP::getAddrLocation(const std::string &clientip, float &ltt
         return;
     }
 
-    ltt = gir->latitude;
-    lng = gir->longitude;
+    ltt = gir->latitude / 180.0 * M_PI;
+    lng = gir->longitude / 180.0 * M_PI;
 
     
     GeoIPRecord_delete(gir);
