@@ -548,11 +548,11 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
 
 bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (c->isEndpointOK(r.pluginID)) {
-        Info(UgrLogger::Lvl3, "UgrConnector::filter", "not a replica offline" << r.name << " ");
+        Info(UgrLogger::Lvl3, "UgrConnector::replicas_is_offline", "Replica not offline" << r.name << " ");
         return false;
     }
     
-    Info(UgrLogger::Lvl3, "UgrConnector::filter", "Skipping offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID << " ");
+    Info(UgrLogger::Lvl3, "UgrConnector::replicas_is_offline", "Offline replica: " << r.name << " " << r.location << " " << r.latitude << " " << r.longitude << " id:" << r.pluginID << " ");
     return true;
 }
 
