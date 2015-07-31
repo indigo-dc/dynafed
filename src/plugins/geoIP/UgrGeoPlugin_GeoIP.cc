@@ -89,7 +89,7 @@ public:
                                                          << "client=("<< ltt << "," << lng <<") randfuzz=" << randfuzz );
 
         // This to avoid precision problems with a finite number of decimals
-        return ((d2 - d1) < randfuzz);
+        return ((d2 - d1) > randfuzz);
         //return (d1 < d2 + randfuzz);
     }
 };
