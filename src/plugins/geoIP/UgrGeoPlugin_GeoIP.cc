@@ -149,9 +149,9 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
           
         if (fabs(i->tempDistance - d) > fuzz) {
           
-          std::shuffle (b, i, std::default_random_engine(seed));
+          shuffle (b, i, std::default_random_engine(seed));
   
-          std::random_shuffle ( b, i );
+          //std::random_shuffle ( b, i );
           d = i->tempDistance;
           b = i;
         }
