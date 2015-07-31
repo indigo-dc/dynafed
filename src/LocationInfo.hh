@@ -83,15 +83,6 @@ public:
         pluginID = -1;
     };
 
-
-    UgrFileItem_replica(const UgrFileItem_replica & origin) : UgrFileItem(origin),
-        location(origin.location),
-        status(origin.status),
-        latitude(origin.latitude),
-        longitude(origin.longitude),
-        pluginID(origin.pluginID)
-    {}
-
     // Some info about the location, e.g. galactic coordinates
     std::string location;
 
