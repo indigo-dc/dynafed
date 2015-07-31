@@ -49,31 +49,11 @@
 #include "UgrGeoPlugin_GeoIP.hh"
 
 #include "GeoIPCity.h"
+#include <random>       // std::default_random_engine
+#include <chrono>       // std::chrono::system_clock
 
 using namespace std;
 
-/// Instances of UgrFileItem may be kept in a quasi-sorted way.
-/// This is the compare functor that sorts them by distance from a point
-class UgrFileItemGeoComp {
-private:
-    float fuzz;
-public:
-
-    UgrFileItemGeoComp(float fuzzvalue) {
-      fuzz = fuzzvalue;
-    };
-    virtual ~UgrFileItemGeoComp(){};
-
-    virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
-
-      
-      if ( fabs(s1.tempDistance - s2.tempDistance) < fuzz )
-        return (rand() & 1);
-      
-      return (s2.tempDistance > s1.tempDistance);
-        
-    }
-};
 
 
 UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
@@ -92,6 +72,9 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
     fuzz = fuzz * fuzz;
     Info(UgrLogger::Lvl4, "UgrFileItemGeoComp::applyFilterOnReplicaList", "Fuzz " << ifuzz << " normalized into " << fuzz);
     
+    // obtain a time-based seed:
+    seed = std::chrono::system_clock::now().time_since_epoch().count();
+
 }
 
 UgrGeoPlugin_GeoIP::~UgrGeoPlugin_GeoIP(){
@@ -164,6 +147,9 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
         if (d < 0) d = i->tempDistance;
           
         if (fabs(i->tempDistance - d) > fuzz) {
+          
+          std::shuffle (b, i, std::default_random_engine(seed));
+  
           std::random_shuffle ( b, i );
           d = i->tempDistance;
           b = i;
