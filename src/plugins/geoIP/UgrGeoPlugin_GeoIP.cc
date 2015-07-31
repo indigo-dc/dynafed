@@ -68,7 +68,7 @@ public:
       
       
       
-        float x, y, d1, d2;
+        float x, y, d1, d2, randfuzz;
 
         //std::cout << "client" << ltt << " " << lng << std::endl;
 
@@ -82,11 +82,15 @@ public:
         y = (s2.latitude-ltt);
         d2 = x*x + y*y;
 
-        Info(UgrLogger::Lvl1, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
+        randfuzz = (rand()/(float)RAND_MAX - 0.5)*fuzz;
+        
+        Info(UgrLogger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
                                                          << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
-                                                         << "client=("<< ltt << "," << lng <<") " );
+                                                         << "client=("<< ltt << "," << lng <<") randfuzz=" << randfuzz );
 
-        return (d1 < d2 + (rand()/(float)RAND_MAX - 0.5)*fuzz);
+        // This to avoid precision problems with a finite number of decimals
+        return ((d2 - d1) < randfuzz);
+        //return (d1 < d2 + randfuzz);
     }
 };
 
