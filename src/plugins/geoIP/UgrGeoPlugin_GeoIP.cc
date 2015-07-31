@@ -18,31 +18,9 @@
  */
 
 
-#include "UgrGeoPlugin_GeoIP.hh"
 
-#include "GeoIPCity.h"
 
-using namespace std;
-
-/// Instances of UgrFileItem may be kept in a quasi-sorted way.
-/// This is the compare functor that sorts them by distance from a point
-class UgrFileItemGeoComp {
-private:
-    float ltt, lng;
-    float fuzz;
-public:
-
-    UgrFileItemGeoComp(float latitude, float longitude): ltt(latitude), lng(longitude) {
-        // Approximately 10km by default
-        long ifuzz = CFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
-        fuzz = ifuzz / 6371000.0; // Radius of Earth in Km
-        fuzz = fuzz * fuzz;
-        Info(UgrLogger::Lvl1, "UgrFileItemGeoComp::UgrFileItemGeoComp", "Fuzz " << ifuzz << " normalized into " << fuzz);
-    };
-    virtual ~UgrFileItemGeoComp(){};
-
-    virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
-      /*
+/*
       Equirectangular approximation
 
       
@@ -65,32 +43,35 @@ public:
       bearing, and latitude, but are small enough for many purposes
       (and often trivial compared with the spherical approximation itself).
       */
+
+
+
+#include "UgrGeoPlugin_GeoIP.hh"
+
+#include "GeoIPCity.h"
+
+using namespace std;
+
+/// Instances of UgrFileItem may be kept in a quasi-sorted way.
+/// This is the compare functor that sorts them by distance from a point
+class UgrFileItemGeoComp {
+private:
+    float fuzz;
+public:
+
+    UgrFileItemGeoComp(float fuzzvalue) {
+      fuzz = fuzzvalue;
+    };
+    virtual ~UgrFileItemGeoComp(){};
+
+    virtual bool operator()(const UgrFileItem_replica &s1, const UgrFileItem_replica &s2) {
+
       
+      if ( fabs(s1.tempDistance - s2.tempDistance) < fuzz )
+        return (rand() & 1);
       
-      
-        float x, y, d1, d2, randfuzz;
-
-        //std::cout << "client" << ltt << " " << lng << std::endl;
-
-        // Distance client->repl1
-        x = (s1.longitude-lng) * cos( (ltt+s1.latitude)/2 );
-        y = (s1.latitude-ltt);
-        d1 = x*x + y*y;
-
-        // Distance client->repl2
-        x = (s2.longitude-lng) * cos( (ltt+s2.latitude)/2 );
-        y = (s2.latitude-ltt);
-        d2 = x*x + y*y;
-
-        randfuzz = (rand()/(float)RAND_MAX - 0.5)*fuzz;
+      return (s2.tempDistance > s1.tempDistance);
         
-        //Info(UgrLogger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
-        //                                                 << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
-        //                                                 << "client=("<< ltt << "," << lng <<") randfuzz=" << randfuzz );
-
-        // This to avoid precision problems with a finite number of decimals
-        return ((d2 - d1) > randfuzz);
-        //return (d1 < d2 + randfuzz);
     }
 };
 
@@ -103,6 +84,14 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
 
     gi = 0;
     init(parms);
+    
+    
+    // Approximately 10km by default
+    long ifuzz = CFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
+    fuzz = ifuzz / 6371000.0; // Radius of Earth in Km
+    fuzz = fuzz * fuzz;
+    Info(UgrLogger::Lvl4, "UgrFileItemGeoComp::applyFilterOnReplicaList", "Fuzz " << ifuzz << " normalized into " << fuzz);
+    
 }
 
 UgrGeoPlugin_GeoIP::~UgrGeoPlugin_GeoIP(){
@@ -136,6 +125,8 @@ void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
 
 }
 
+bool lessthanfuzz(float i, float j, float fuzz) { return (i - j < fuzz); }
+
 int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     float cli_latitude=0, cli_longitude=0;
 
@@ -143,7 +134,23 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
         return 0;
     
     getAddrLocation(cli_info.ip, cli_latitude, cli_longitude);
-    UgrFileItemGeoComp comp_geo(cli_latitude, cli_longitude);
+    
+    // Assign distances to all the objects
+    for (UgrReplicaVec::iterator i = replica.begin(); i != replica.end(); i++) {
+      
+      float x, y;
+      // Distance client->repl1
+      x = (i->longitude-cli_longitude) * cos( (cli_latitude+i->latitude)/2 );
+      y = (i->latitude-cli_latitude);
+      i->tempDistance = x*x + y*y;
+      
+      Info(UgrLogger::Lvl4, "UgrGeoPlugin_GeoIP::applyFilterOnReplicaList",
+        "GeoDistance " << "d1=("<< i->latitude << "," << i->longitude << ", d:" << i->tempDistance << ", " << i->location << ") " );
+
+    }
+    
+    
+    UgrFileItemGeoComp comp_geo(fuzz);
 
     std::sort(replica.begin(), replica.end(), comp_geo);
 

@@ -79,7 +79,7 @@ public:
         PermissionDenied,
     };
 
-    UgrFileItem_replica(): UgrFileItem(), status(Available), latitude(0.0), longitude(0.0) {
+    UgrFileItem_replica(): UgrFileItem(), status(Available), latitude(0.0), longitude(0.0), tempDistance(0.0) {
         pluginID = -1;
     };
 
@@ -104,6 +104,9 @@ public:
     
     /// The index of the plugin that inserted this replica
     short pluginID;
+    
+    // To help saving memory while doing geo distance calculations
+    float tempDistance;
 };
 
 

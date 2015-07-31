@@ -33,6 +33,7 @@
 class UgrGeoPlugin_GeoIP : public FilterPlugin{
 protected:
     GeoIP *gi;
+    float fuzz;
 public:
 
     UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms);
