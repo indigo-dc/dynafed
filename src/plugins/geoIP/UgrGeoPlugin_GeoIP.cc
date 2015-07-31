@@ -142,7 +142,7 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
       // Distance client->repl1
       x = (i->longitude-cli_longitude) * cos( (cli_latitude+i->latitude)/2 );
       y = (i->latitude-cli_latitude);
-      i->tempDistance = x*x + y*y + (rand() / (float)RAND_MAX + 0.5) * fuzz;
+      i->tempDistance = x*x + y*y;
       
       Info(UgrLogger::Lvl4, "UgrGeoPlugin_GeoIP::applyFilterOnReplicaList",
         "GeoDistance " << "d1=("<< i->latitude << "," << i->longitude << ", d:" << i->tempDistance << ", " << i->location << ") " );
@@ -154,6 +154,22 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
 
     std::sort(replica.begin(), replica.end(), lessthan);
 
+    // Shuffle the elements that are within the fuzz value
+    if (fuzz > 0.0) {
+      float d = -1;
+      UgrReplicaVec::iterator b = replica.begin();
+      for (UgrReplicaVec::iterator i = replica.begin(); i != replica.end(); i++) {
+        if (d < 0) d = i->tempDistance;
+          
+        if (fabs(i->tempDistance - d) > fuzz) {
+          std::random_shuffle ( replica.begin(), i );
+          d = i->tempDistance;
+          b = i;
+        }
+        
+      }
+    }
+    
     return 0;
 }
 
