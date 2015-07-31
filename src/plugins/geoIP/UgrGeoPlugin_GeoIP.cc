@@ -84,9 +84,9 @@ public:
 
         randfuzz = (rand()/(float)RAND_MAX - 0.5)*fuzz;
         
-        Info(UgrLogger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
-                                                         << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
-                                                         << "client=("<< ltt << "," << lng <<") randfuzz=" << randfuzz );
+        //Info(UgrLogger::Lvl4, "UgrFileItemGeoComp()", "GeoDistance " << "d1=("<< s1.latitude << "," << s1.longitude << ","<< d1 <<", " << s1.location << ") "
+        //                                                 << "d2=("<< s2.latitude << "," << s2.longitude << ","<< d2 <<", " << s2.location << ") "
+        //                                                 << "client=("<< ltt << "," << lng <<") randfuzz=" << randfuzz );
 
         // This to avoid precision problems with a finite number of decimals
         return ((d2 - d1) > randfuzz);
@@ -137,12 +137,13 @@ void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
 }
 
 int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
-    float cli_lattitude=0, cli_longittude=0;
+    float cli_latitude=0, cli_longitude=0;
 
     if(gi == NULL)
         return 0;
-    getAddrLocation(cli_info.ip, cli_lattitude, cli_longittude);
-    UgrFileItemGeoComp comp_geo(cli_lattitude, cli_longittude);
+    
+    getAddrLocation(cli_info.ip, cli_latitude, cli_longitude);
+    UgrFileItemGeoComp comp_geo(cli_latitude, cli_longitude);
 
     std::sort(replica.begin(), replica.end(), comp_geo);
 
