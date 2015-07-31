@@ -514,6 +514,16 @@ Example:\\
 Sort all the replicas in ascending geographical distance from the client.
 \lstinline"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"
 
+\subsubsection{glb.filterplugin.geoip.fuzz}
+Tells to the GeoIP plugin to apply a fuzz value when sorting replicas according to their distance from the client. The unit of measure is kilometers, although some numerical approximation is to be expected.\\
+This has the effect of load balancing sites that are within 'fuzz' kilometers from the client.
+\\
+Syntax:\\
+\lstinline"glb.filterplugin.geoip.fuzz: <number>"
+\\
+Example:\\
+Load balance among replicas that are within a distance range of 10Km from the client.\\
+\lstinline"glb.filterplugin.geoip.fuzz: 10"
 
 \subsection{\label{globalxlation}Global name translation}
 
