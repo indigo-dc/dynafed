@@ -125,7 +125,7 @@ void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
 
 }
 
-bool lessthanfuzz(float i, float j, float fuzz) { return (i - j < fuzz); }
+bool lessthan(const UgrFileItem_replica &i, const UgrFileItem_replica &j) { return (i.tempDistance < j.tempDistance); }
 
 int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
     float cli_latitude=0, cli_longitude=0;
@@ -142,7 +142,7 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
       // Distance client->repl1
       x = (i->longitude-cli_longitude) * cos( (cli_latitude+i->latitude)/2 );
       y = (i->latitude-cli_latitude);
-      i->tempDistance = x*x + y*y;
+      i->tempDistance = x*x + y*y + (rand() / (float)RAND_MAX + 0.5) * fuzz;
       
       Info(UgrLogger::Lvl4, "UgrGeoPlugin_GeoIP::applyFilterOnReplicaList",
         "GeoDistance " << "d1=("<< i->latitude << "," << i->longitude << ", d:" << i->tempDistance << ", " << i->location << ") " );
@@ -150,9 +150,9 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
     }
     
     
-    UgrFileItemGeoComp comp_geo(fuzz);
+    //UgrFileItemGeoComp comp_geo(fuzz);
 
-    std::sort(replica.begin(), replica.end(), comp_geo);
+    std::sort(replica.begin(), replica.end(), lessthan);
 
     return 0;
 }
