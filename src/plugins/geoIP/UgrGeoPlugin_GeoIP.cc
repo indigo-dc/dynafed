@@ -133,6 +133,8 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
     if(gi == NULL)
         return 0;
     
+    if (replica.size() < 2) return 0;
+    
     getAddrLocation(cli_info.ip, cli_latitude, cli_longitude);
     
     // Assign distances to all the objects
@@ -162,7 +164,7 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
         if (d < 0) d = i->tempDistance;
           
         if (fabs(i->tempDistance - d) > fuzz) {
-          std::random_shuffle ( replica.begin(), i );
+          std::random_shuffle ( b, i );
           d = i->tempDistance;
           b = i;
         }
