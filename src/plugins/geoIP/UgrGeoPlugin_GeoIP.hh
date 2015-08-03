@@ -34,7 +34,7 @@ class UgrGeoPlugin_GeoIP : public FilterPlugin{
 protected:
     GeoIP *gi;
     float fuzz;
-    unsigned seed;
+    unsigned int seed;
 public:
 
     UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms);
@@ -46,6 +46,9 @@ public:
     virtual int applyFilterOnReplicaList(UgrReplicaVec& replica, const UgrClientInfo & cli_info);
 
 protected:
+    /// Ugly func to shuffle replica entries
+    void ugrgeorandom_shuffle( UgrReplicaVec::iterator first,
+                                               UgrReplicaVec::iterator last );
     /// Perform initialization
     int init(std::vector<std::string> &parms);
 

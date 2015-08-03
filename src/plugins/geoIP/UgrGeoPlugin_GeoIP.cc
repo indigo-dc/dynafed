@@ -49,9 +49,6 @@
 #include "UgrGeoPlugin_GeoIP.hh"
 
 #include "GeoIPCity.h"
-#include <random>       // std::default_random_engine
-#include <chrono>       // std::chrono::system_clock
-#include <algorithm>    // std::shuffle
 
 using namespace std;
 
@@ -72,10 +69,8 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
     fuzz = ifuzz / 6371000.0; // Radius of Earth in Km
     fuzz = fuzz * fuzz;
     Info(UgrLogger::Lvl4, "UgrFileItemGeoComp::applyFilterOnReplicaList", "Fuzz " << ifuzz << " normalized into " << fuzz);
-    
-    // obtain a time-based seed:
-    seed = std::chrono::system_clock::now().time_since_epoch().count();
 
+    seed = time(0);
 }
 
 UgrGeoPlugin_GeoIP::~UgrGeoPlugin_GeoIP(){
@@ -109,6 +104,17 @@ void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
 
 }
 
+// Local utility func to shuffle elements. Can't use std::shuffle here due
+// to the need of supporting obsolete platform like SL5 and SL6
+void UgrGeoPlugin_GeoIP::ugrgeorandom_shuffle( UgrReplicaVec::iterator first,
+                                               UgrReplicaVec::iterator last )
+{
+    typename UgrReplicaVec::iterator::difference_type i, n;
+    n = last - first;
+    for (i = n-1; i > 0; --i) {
+        std::swap(first[i], first[rand_r(&seed) % (i+1)]);
+    }
+}
 bool lessthan(const UgrFileItem_replica &i, const UgrFileItem_replica &j) { return (i.tempDistance < j.tempDistance); }
 
 int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const UgrClientInfo &cli_info){
@@ -149,7 +155,7 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
           
         if (fabs(i->tempDistance - d) > fuzz) {
           
-          shuffle (b, i, std::default_random_engine(seed));
+          ugrgeorandom_shuffle (b, i);
   
           //std::random_shuffle ( b, i );
           d = i->tempDistance;
