@@ -109,7 +109,7 @@ void UgrGeoPlugin_GeoIP::hookNewReplica(UgrFileItem_replica &replica){
 void UgrGeoPlugin_GeoIP::ugrgeorandom_shuffle( UgrReplicaVec::iterator first,
                                                UgrReplicaVec::iterator last )
 {
-    typename UgrReplicaVec::iterator::difference_type i, n;
+    UgrReplicaVec::iterator::difference_type i, n;
     n = last - first;
     for (i = n-1; i > 0; --i) {
         std::swap(first[i], first[rand_r(&seed) % (i+1)]);
