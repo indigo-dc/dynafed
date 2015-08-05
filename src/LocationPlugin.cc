@@ -762,21 +762,28 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
     const char *fname = "LocationPlugin::doNameXlation";
     int r = 1;
     size_t i;
-    const size_t xtlate_size = xlatepfx_from.size();
+    const size_t nxlations = xlatepfx_from.size();
 
-    if(xtlate_size == 0){ // no translation required
+    if(nxlations == 0){ // no translation required
       to = from;
       r = 0;
     }
     else {
-      for (i = 0; i < xtlate_size; i++) {
+      
+      // Loop on the prefixes that have to be recognized and xlated
+      for (i = 0; i < nxlations; i++) {
 	if ((xlatepfx_from[i].size() > 0) &&
 	  ((from.size() == 0) || (from.compare(0, xlatepfx_from[i].length(), xlatepfx_from[i]) == 0))) {
 	  
 	  if (from.size() == 0)
 	    to = xlatepfx_to;
-	  else
-	    to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
+	  else {
+            // Avoid the double slash in the case the new pfx ends with slash (or is a slash)
+            if ( ((xlatepfx_to[xlatepfx_to.length()-1]) == '/') && (from[xlatepfx_from[i].length()] == '/') )
+              to = xlatepfx_to + from.substr(xlatepfx_from[i].length()+1);
+            else
+	      to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
+          }
 	  
 	  r = 0;
 	break;
