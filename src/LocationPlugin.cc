@@ -784,8 +784,8 @@ int LocationPlugin::doNameXlation(std::string &from, std::string &to, workOp op,
 	    to = xlatepfx_to;
 	  else {
             // Avoid the double slash in the case the new pfx ends with slash (or is a slash)
-            if ( ((xlatepfx_to[xlatepfx_to.length()-1]) == '/') && (from[xlatepfx_from[i].length()] == '/') )
-              to = xlatepfx_to + from.substr(xlatepfx_from[i].length()+1);
+            if (xlatepfx_to == "/")
+              to = from.substr(xlatepfx_from[i].length());
             else
 	      to = xlatepfx_to + from.substr(xlatepfx_from[i].length());
           }
