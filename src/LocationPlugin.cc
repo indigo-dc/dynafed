@@ -39,6 +39,8 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
 
         if(op && op->operation){
             op->operation();
+            
+            delete op;
             continue;
         }
 
@@ -52,6 +54,7 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
             pl->do_Check(myidx);
             pl->availInfo.setCheckRunning(false);
 
+            delete op;
             continue;
         }
 
@@ -78,6 +81,8 @@ void pluginFunc(LocationPlugin *pl, int myidx) {
             }
             
         }
+        
+        if (op) delete op;
     }
 
     Info(UgrLogger::Lvl4, fname, "Worker: finished");
