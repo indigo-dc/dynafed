@@ -150,7 +150,13 @@ int UgrGeoPlugin_GeoIP::applyFilterOnReplicaList(UgrReplicaVec&replica, const Ug
     if (fuzz > 0.0) {
       float d = -1;
       UgrReplicaVec::iterator b = replica.begin();
-      for (UgrReplicaVec::iterator i = replica.begin(); i != replica.end(); i++) {
+      for (UgrReplicaVec::iterator i = replica.begin(); ; i++) {
+        
+        if (i == replica.end()) {
+          ugrgeorandom_shuffle (b, i);
+          break;
+        }
+        
         if (d < 0) d = i->tempDistance;
           
         if (fabs(i->tempDistance - d) > fuzz) {
