@@ -224,6 +224,8 @@ UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> 
     }
     load_configuration(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::Http);
+    
+    params.setOperationRetry(0);
 }
 
 void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
@@ -237,6 +239,7 @@ void UgrLocPlugin_http::load_configuration(const std::string & prefix) {
     struct timespec spec_timeout;
     spec_timeout.tv_sec = max(this->availInfo.time_interval_ms / 1000, 1);
     spec_timeout.tv_nsec = 0;
+    checker_params.setOperationRetry(0);
     checker_params.setOperationTimeout(&spec_timeout);
     checker_params.setConnectionTimeout(&spec_timeout);
     // disable KeepAlive for checker
