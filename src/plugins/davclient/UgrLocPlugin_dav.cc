@@ -352,4 +352,3 @@ void UgrLocPlugin_dav::do_Check(int myidx) {
 
 
 
-

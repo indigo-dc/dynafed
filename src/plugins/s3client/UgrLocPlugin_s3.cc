@@ -382,7 +382,7 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
 
 int UgrLocPlugin_s3::run_deleteReplica(const string & lfn, const std::shared_ptr<DeleteReplicaHandler> handler){
     std::string new_lfn(lfn);
-    static const char * fname = "UgrLocPlugin_s3::run_findNewLocation";
+    static const char * fname = "UgrLocPlugin_s3::run_deleteReplica";
     std::string canonical_name(base_url_endpoint.getString());
     std::string xname;
     std::string alt_prefix;

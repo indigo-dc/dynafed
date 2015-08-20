@@ -70,6 +70,9 @@ public:
     
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
+    virtual int run_deleteReplica(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
+
+    virtual int run_deleteDir(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
 
 protected:
     int flags;
@@ -84,6 +87,8 @@ protected:
 
     void load_configuration(const std::string & prefix);
     void do_CheckInternal(int myidx, const char* fname);
+
+    bool concat_http_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
 
 
 };

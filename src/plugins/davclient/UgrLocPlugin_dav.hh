@@ -53,11 +53,10 @@ public:
     ///
     virtual void runsearch(struct worktoken *op, int myidx);
 
-
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler);
 
 protected:
-
+    
 };
 
 

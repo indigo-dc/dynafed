@@ -482,6 +482,35 @@ void UgrCatalog::unlink(const std::string& path) throw (DmException){
 }
 
 
+void UgrCatalog::removeDir(const std::string& path) throw (DmException){
+
+    UgrReplicaVec vl;
+
+    std::string abspath = getAbsPath(const_cast<std::string&> (path));
+    UgrCode ret_code = getUgrConnector()->removeDir(abspath,
+                                                 UgrClientInfo(secCredentials.remoteAddress),
+                                                 vl );
+
+    switch(ret_code.getCode()){
+        case UgrCode::Ok:{
+            return;
+        }
+
+        case UgrCode::FileNotFound:{
+           throw DmException(ENOENT, "File not found or not available");
+        }
+
+        case UgrCode::PermissionDenied:{
+          throw DmException(EPERM, "Permission Denied. You are not allowed to execute this operation on the resource");
+        }
+
+        default:{
+            throw DmException(DMLITE_MALFORMED, "Error during unlink operation, Canceled");
+        }
+    }
+}
+
+
 class myDirectory {
   public:
     UgrFileInfo *nfo;

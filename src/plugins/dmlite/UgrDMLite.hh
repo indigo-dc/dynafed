@@ -68,6 +68,8 @@ namespace dmlite {
 
         virtual void unlink(const std::string&) throw (DmException);
 
+        virtual void removeDir(const std::string&) throw (DmException);
+
         virtual void changeDir(const std::string&) throw (DmException);
         virtual std::string getWorkingDir(void) throw (DmException);
 

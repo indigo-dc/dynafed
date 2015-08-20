@@ -485,6 +485,57 @@ UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client
 }
 
 
+UgrCode UgrConnector::removeDir(const std::string &lfn, const UgrClientInfo &client, UgrReplicaVec &replicas_to_delete){
+    const char *fname = "UgrConnector::removeDir";
+    std::string l_lfn(lfn);
+    std::shared_ptr<DeleteReplicaHandler> response_handler= std::make_shared<DeleteReplicaHandler>();
+
+    UgrFileInfo::trimpath(l_lfn);
+    do_n2n(l_lfn);
+
+    Info(UgrLogger::Lvl2, fname,  "Delete all replicas of " << l_lfn);
+
+
+    // Ask all the non slave plugins that are online and writable
+    for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
+        if ( (!(*it)->isSlave()) && ((*it)->isOK())
+             && (*it)->getFlag(LocationPlugin::Writable)){
+            (*it)->async_deleteDir(l_lfn, response_handler);
+        }
+    }
+
+    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+         Info(UgrLogger::Lvl2, fname, "Timeout triggered during async_deleteDir for " << l_lfn);
+    }
+
+    replicas_to_delete = response_handler->takeAll();
+
+    // check if no answer: then no resource has been deleted
+    if(replicas_to_delete.size() ==0){
+            return UgrCode(UgrCode::FileNotFound, "Resource does not exist or cannot be found");
+    }
+
+    // check permission if denied, the user has a right problem somewhere, report it
+    for(auto it = replicas_to_delete.begin(); it < replicas_to_delete.end(); ++it){
+        if((*it).status == UgrFileItem_replica::PermissionDenied){
+            return UgrCode(UgrCode::PermissionDenied, "Impossible to remove the resource, permission denied");
+        }
+    }
+
+    // remove all replicas that have been that are inconsistents or already deleted
+    size_t deleted_number = replicas_to_delete.size();
+    replicas_to_delete.erase(std::remove_if(replicas_to_delete.begin(), replicas_to_delete.end(), &predUnAvailableReplica), replicas_to_delete.end());
+    deleted_number -= replicas_to_delete.size();
+
+    // apply filters
+    filterAndSortReplicaList(replicas_to_delete, client);
+
+    Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicas_to_delete.size() << " to delete");
+
+    return UgrCode();
+}
+
+
 UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);
@@ -545,6 +596,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     return UgrCode();
 
 }
+
 
 bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r){
     if (c->isEndpointOK(r.pluginID)) {

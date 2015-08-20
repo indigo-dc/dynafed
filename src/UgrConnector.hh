@@ -178,6 +178,18 @@ public:
     virtual UgrCode remove(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicas_to_delete);
 
 
+    /// Remove All replicates of a resource at the given location
+    /// This function tries first to delete all replicate in a sychronous manner.
+    /// in case of the impossibility to delete some of the known replicas, these are added
+    /// to the replicas_to_delete vector
+    ///
+    /// @param lfn  The unique key to the directory, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
+    /// @param replicas_to_delete
+    virtual UgrCode removeDir(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicas_to_delete);
+
+
+
     /// Return a list of prefered locations for a new resource
     /// The location is selected based on client credential, client location, endpoints configuration
     /// @param new_lfn : lfn of the new resource

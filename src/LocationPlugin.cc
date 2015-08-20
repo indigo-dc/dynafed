@@ -304,6 +304,14 @@ int LocationPlugin::run_deleteReplica(const std::string & lfn, std::shared_ptr<D
 }
 
 
+int LocationPlugin::run_deleteDir(const std::string & lfn, std::shared_ptr<DeleteReplicaHandler> handler){
+    const char *fname = "LocationPlugin::run_deleteDir";
+
+    LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No deleteDir support for this plugin, default behavior");
+    // do nothing
+    return 1;
+}
+
 // Pushes a new op in the queue
 
 void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop, char *newpfx) {
@@ -628,7 +636,16 @@ int LocationPlugin::async_deleteReplica(const std::string &lfn, const std::share
     return 0;
 }
 
+void executor_deleteDir(LocationPlugin* p, std::string new_lfn, std::shared_ptr<DeleteReplicaHandler>  handler){
+    p->run_deleteDir(new_lfn, handler);
+    handler->decWorker();
+}
 
+int LocationPlugin::async_deleteDir(const std::string &lfn, const std::shared_ptr<DeleteReplicaHandler> & handler){
+    handler->incWorker();
+    pushOp(std::bind(&executor_deleteDir, this, lfn, handler));
+    return 0;
+}
 
 // Waits max a number of seconds for a locate process to be complete
 

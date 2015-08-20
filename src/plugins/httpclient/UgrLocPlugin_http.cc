@@ -558,4 +558,109 @@ int UgrLocPlugin_http::run_findNewLocation(const std::string & lfn, std::shared_
 }
 
 
+int UgrLocPlugin_http::run_deleteReplica(const string & lfn, const std::shared_ptr<DeleteReplicaHandler> handler){
+    std::string new_lfn(lfn);
+    static const char * fname = "UgrLocPlugin_http::run_deleteReplica";
+    std::string canonical_name(base_url_endpoint.getString());
+    std::string xname;
+    std::string alt_prefix;
+
+    if(params.getRecursiveMode()){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "can not delete collection with http for " << new_lfn);
+        return 1;
+    }
+
+    // do name translation
+    if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+          LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+          return 1;
+    }
+
+
+    if(concat_http_url_path(canonical_name, xname, canonical_name) == false){
+        return 1;
+    }
+
+
+    try{
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try Deletion for  " << canonical_name);
+        Davix::File f(dav_core, canonical_name);
+        f.deletion(&params);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Deletion done with success for  " << canonical_name);
+
+        UgrFileItem_replica rep;
+        rep.name = canonical_name;
+        rep.status = UgrFileItem_replica::Deleted;
+        handler->addReplica(rep, getID());
+        return 0;
+
+    }catch(Davix::DavixException & e){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Error on Deletion: " << e.what());
+    }catch(...){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Unknown Error on Deletion");
+    }
+    return 0;
+
+}
+
+
+int UgrLocPlugin_http::run_deleteDir(const string & lfn, const std::shared_ptr<DeleteReplicaHandler> handler){
+    std::string new_lfn(lfn);
+    static const char * fname = "UgrLocPlugin_http::run_deleteDir";
+    std::string canonical_name(base_url_endpoint.getString());
+    std::string xname;
+    std::string alt_prefix;
+
+    // do name translation
+    if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+          LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+          return 1;
+    }
+
+
+    if(concat_http_url_path(canonical_name, xname, canonical_name) == false){
+        return 1;
+    }
+
+
+    try{
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try Deletion for  " << canonical_name);
+        Davix::File f(dav_core, canonical_name);
+        f.deletion(&params);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Deletion done with success for  " << canonical_name);
+
+        UgrFileItem_replica rep;
+        rep.name = canonical_name;
+        rep.status = UgrFileItem_replica::Deleted;
+        handler->addReplica(rep, getID());
+        return 0;
+
+    }catch(Davix::DavixException & e){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Error on Deletion: " << e.what());
+    }catch(...){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Unknown Error on Deletion");
+    }
+    return 0;
+
+}
+
+
+// concat URI + path 
+bool UgrLocPlugin_http::concat_http_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
+    static const char * fname = "UgrLocPlugin_http::concat_http_url_path";
+    // remove "//", not sure if this is the right thing to do, need to double check
+    auto it = path.begin();
+    while(*it == '/' && it < path.end())
+        it++;
+/*
+    if(it == path.end()){
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "bucket name, ignore " << path);
+        return false;
+    }
+*/
+    canonical = base_uri;
+    canonical.append("/");
+    canonical.append(it, path.end());
+    return true;
+}
 
