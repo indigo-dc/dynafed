@@ -565,11 +565,6 @@ int UgrLocPlugin_http::run_deleteReplica(const string & lfn, const std::shared_p
     std::string xname;
     std::string alt_prefix;
 
-    if(params.getRecursiveMode()){
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "can not delete collection with http for " << new_lfn);
-        return 1;
-    }
-
     // do name translation
     if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
           LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
