@@ -748,7 +748,7 @@ VOMS extensions, and also other Web-specific forms of authentication are suppose
 Please note that the Ugr authorization is applied after any possible name groups or fqan translation that the frontend may apply. This is valid also for the gridmap translations that the sysadmin may want to configure in the system.\\
 
 \subsubsection{glb.allowusers[]}
-Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are not supported.\\
+Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are supported only if the username is enclosed in double quotes.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
 \lstinline"glb.allowusers[] <username> <path prefix> [r][w][l]" \\
@@ -758,7 +758,8 @@ This example authorizes the anonymous user to get metadata, redirections and lis
 \lstinline"glb.allowusers[] nobody /fed/atlas rl" \\
 
 \subsubsection{glb.allowgroups[]}
-Add a rule that authorizes a specific group to read, write into, or list. Spaces in the group name are not supported.\\
+Add a rule that authorizes a specific group to read, write into, or list. Spaces in the group name are not supported.
+If the groupname ends with \lstinline"*" then it is treated as a wildcard that will match all the group names or fqans that start with the given string.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
 \lstinline"glb.allowgroups[] <groupname or fqan> <path prefix> [r][w][l]" \\
