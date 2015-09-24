@@ -14,13 +14,11 @@ cmake_minimum_required (VERSION 2.6)
 # Devresse Adrien
 
 IF(LFC_PLUGIN)
-
+IF (GFAL2_PKG)
 # The source modules
 FILE(GLOB src_lfc_plugin "*.cc")
 
 message(STATUS "Building the LFC plugin")
-
-pkg_check_modules(GFAL2_PKG REQUIRED gfal2>=2.1.7)
 
 include_directories(${GFAL2_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
@@ -37,5 +35,6 @@ install(TARGETS ugrlocplugin_lfc
   LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR}
   COMPONENT plugins-lfc)
 
+ENDIF(GFAL2_PKG)
 ENDIF(LFC_PLUGIN)
 
