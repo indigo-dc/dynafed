@@ -164,9 +164,25 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
     char *p1, *p2;    
     
     if ( (p1=strchr(buf, ' ')) ) {
-      l = (unsigned int)(p1-buf);
-      strncpy(user, buf, l);
-      user[l] = '\0';
+        
+      // If the name starts with a double quote, look for a closing double quote instead of a space
+      if (buf[0] == '"') {
+        if ( (p1=strchr(buf+1, '"')) ) {
+            l = (unsigned int)(p1-buf-1);
+            strncpy(user, buf+1, l);
+            user[l] = '\0';
+        }
+        else {
+            Error(fname, "UgrDMLite::isallowed Mismatched quotes in allowusers directive: '" << buf << "'");
+        }
+ 
+      }
+      else {
+        // If no double quote, then just look for a space
+        l = (unsigned int)(p1-buf);
+        strncpy(user, buf, l);
+        user[l] = '\0';
+      }
       
       if ( (p2=strchr(p1+1, ' ')) ) {
 	l = (unsigned int)(p2-p1-1);
@@ -201,6 +217,8 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
   i = 0;
   do {
     char buf[1024];
+    bool iswildcard = false;
+    
     CFG->ArrayGetString("glb.allowgroups", buf, i);
     if (!buf[0]) break;  
     haddirectives = true;
@@ -215,6 +233,7 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
     if ( (p1=strchr(buf, ' ')) ) {
       l = (unsigned int)(p1-buf);
       strncpy(group, buf, l);
+      if ( (l > 2) && (group[l-1] == '*') ) iswildcard = true;
       group[l] = '\0';
       
       if ( (p2=strchr(p1+1, ' ')) ) {
@@ -239,11 +258,18 @@ bool isallowed(const char *fname, const SecurityCredentials &c, char *reqresourc
 	Info(UgrLogger::Lvl4, "isallowed", "Checking group. fqan:'" << c.fqans[j] << "' group:'" << group <<
 	  "' reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );
     
-	if (!strcmp(c.fqans[j].c_str(), group)) {  
-	  Info(UgrLogger::Lvl3, "isallowed", "Group allowed. group:" << group << " resource:" << resource );
-	  return true;
-	}
-	
+        if (iswildcard) {
+            if (!strncmp(c.fqans[j].c_str(), group, strlen(group)-1)) {  
+                Info(UgrLogger::Lvl3, "isallowed", "Group allowed. group:" << group << " resource:" << resource );
+                return true;
+            }
+        }
+        else {
+            if (!strcmp(c.fqans[j].c_str(), group)) {  
+                Info(UgrLogger::Lvl3, "isallowed", "Group allowed. group:" << group << " resource:" << resource );
+                return true;
+            }
+        }
       }
       
       }
