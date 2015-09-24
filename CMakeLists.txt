@@ -86,6 +86,8 @@ find_package(LibMemCached REQUIRED)
 #Protobuf
 find_package(Protobuf REQUIRED)
 
+pkg_check_modules(GFAL2_PKG gfal2>=2.1.7)
+
 add_subdirectory(packaging)
 add_subdirectory(doc)
 add_subdirectory(src)
