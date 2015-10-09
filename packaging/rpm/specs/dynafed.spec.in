@@ -25,6 +25,7 @@ BuildRequires:		dmlite-devel >= 0.7.0
 BuildRequires:		dmlite-private-devel  >= 0.7.0
 BuildRequires:		davix-devel >= 0.2.11
 BuildRequires:          lfc-devel >= 1.8.8
+BuildRequires:          lfc >= 1.8.8
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		libmemcached-devel
