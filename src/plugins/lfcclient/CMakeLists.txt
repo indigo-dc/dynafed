@@ -13,7 +13,7 @@ cmake_minimum_required (VERSION 2.6)
 # Build file for lfc plugin based on GFAL 2.0
 # Devresse Adrien
 
-IF(LFC_PLUGIN)
+IF (LFC_PLUGIN)
 IF (GFAL2_PKG)
 # The source modules
 FILE(GLOB src_lfc_plugin "*.cc")
@@ -37,4 +37,3 @@ install(TARGETS ugrlocplugin_lfc
 
 ENDIF(GFAL2_PKG)
 ENDIF(LFC_PLUGIN)
-
