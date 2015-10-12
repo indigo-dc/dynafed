@@ -69,7 +69,7 @@ set (Boost_NO_BOOST_CMAKE ON) # fix boost problem on EL6
 find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread REQUIRED)
 
 # Look for the LFC client
-find_package(LFC 1.8.0)
+#find_package(LFC 1.8.0)
 
 # Look for libDMlite
 find_package(DMLite 0.3)
