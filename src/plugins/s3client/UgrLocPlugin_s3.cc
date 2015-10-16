@@ -129,8 +129,8 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
             if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
                 time_t expiration_time = time(NULL) +3600;
                 Davix::HeaderVec vec;
-                Davix::Uri replica = Davix::S3::tokenizeRequest(params, "GET", canonical_name, vec, expiration_time);
-                LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain tokenized replica " << replica);
+                Davix::Uri replica = Davix::S3::signURI(params, "GET", canonical_name, vec, expiration_time);
+                LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed replica " << replica);
 
                 replica_vec.push_back(Davix::File(dav_core, replica.getString()));
             }
@@ -358,16 +358,16 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         Davix::HeaderVec vec;
         std::string new_Location;
 
-        Davix::Uri tokenized_location = Davix::S3::tokenizeRequest(params, "PUT", canonical_name, vec, expiration_time);
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain tokenized newLocation " << tokenized_location);
+        Davix::Uri signed_location = Davix::S3::signURI(params, "PUT", canonical_name, vec, expiration_time);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation " << signed_location);
 
-        new_Location = HttpUtils::protocolHttpNormalize(tokenized_location.getString());
+        new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
         HttpUtils::pathHttpNomalize(new_Location);
 
         handler->addReplica(new_Location, getID());
         
 
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << tokenized_location);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << signed_location);
         return 0;
 
     }catch(Davix::DavixException & e){
@@ -430,11 +430,26 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
 
     const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");
     const std::string s3_pub_key = pluginGetParam<std::string>(prefix, "s3.pub_key");
+    const std::string s3_region = pluginGetParam<std::string>(prefix, "s3.region");
+    const bool s3_v2alternate = pluginGetParam<bool>(prefix, "s3.v2alternate", false);
     if (s3_priv_key.size() > 0 && s3_pub_key.size()){
         Info(UgrLogger::Lvl1, name, " S3 authentication defined");
     }
     params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
     checker_params.setAwsAuthorizationKeys(s3_priv_key, s3_pub_key);
+
+    if(s3_region.size() > 0){
+        Info(UgrLogger::Lvl1, name, " S3 region defined - using v4 authentication");
+        params.setAwsRegion(s3_region);
+        checker_params.setAwsRegion(s3_region);
+    }
+
+    if(s3_v2alternate) {
+        Info(UgrLogger::Lvl1, name, " S3 - using v2 alternate");
+    }
+
+    params.setAwsv2Alternate(s3_v2alternate);
+    checker_params.setAwsv2Alternate(s3_v2alternate);
 }
 
 // concat URI + path, if it correspond to a bucket name, return false -> error

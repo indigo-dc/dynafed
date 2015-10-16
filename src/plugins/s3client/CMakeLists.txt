@@ -11,7 +11,7 @@ FILE(GLOB src_s3_plugin "*.cc")
 
 message(STATUS "Building the S3 plugin")
 
-pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.3.6)
+pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.5.1)
 
 include_directories(${DAVIX_PKG_INCLUDE_DIRS} )
 # Configure the target for the consumer shared library that we want to provide
