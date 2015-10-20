@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.17}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynamic federations v1.0.18}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -923,6 +923,14 @@ Setup the AWS access key used for the S3 authentication.
 
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.pub_key: <AWS access key>"\\
+
+\subsubsection{locplugin.$<$ID$>$.signature\_validity}
+The S3 signatures computed by this plugin will expire after the given number of seconds. Default is one hour.
+Pre-signed URLs should not be cached for a time that exceeds their \lstinline"signature_validity".
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.signature_validity: <number of seconds>"\\
+
 
 \subsection{DAVrucio plugin}
 The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\

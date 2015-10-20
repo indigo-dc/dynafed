@@ -127,9 +127,9 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
             LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "invoking Locate(" << canonical_name << ")");
             Davix::DavixError::clearError(&tmp_err);
             if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
-                time_t expiration_time = time(NULL) +3600;
+                
                 Davix::HeaderVec vec;
-                Davix::Uri replica = Davix::S3::signURI(params, "GET", canonical_name, vec, expiration_time);
+                Davix::Uri replica = Davix::S3::signURI(params, "GET", canonical_name, vec, signature_validity);
                 LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed replica " << replica);
 
                 replica_vec.push_back(Davix::File(dav_core, replica.getString()));
@@ -354,11 +354,10 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
 
     try{
 
-        time_t expiration_time = time(NULL) +3600;
         Davix::HeaderVec vec;
         std::string new_Location;
 
-        Davix::Uri signed_location = Davix::S3::signURI(params, "PUT", canonical_name, vec, expiration_time);
+        Davix::Uri signed_location = Davix::S3::signURI(params, "PUT", canonical_name, vec, signature_validity);
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation " << signed_location);
 
         new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
@@ -431,6 +430,7 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
     const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");
     const std::string s3_pub_key = pluginGetParam<std::string>(prefix, "s3.pub_key");
     const std::string s3_region = pluginGetParam<std::string>(prefix, "s3.region");
+    time_t signature_validity = (time_t)pluginGetParam<long>(prefix, "s3.signaturevalidity", 3600);
     const bool s3_v2alternate = pluginGetParam<bool>(prefix, "s3.v2alternate", false);
     if (s3_priv_key.size() > 0 && s3_pub_key.size()){
         Info(UgrLogger::Lvl1, name, " S3 authentication defined");
