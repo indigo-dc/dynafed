@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynamic federations v1.0.18}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynafed v1.0.18}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -911,20 +911,28 @@ The S3 plugin supports the AWS credential delegation mechanism. The federation c
 Syntax:\\
 \lstinline"glb.locplugin[]: libugrlocplugin_s3.so <ID> <concurrency> <URL prefix>"\\
 
-\subsubsection{locplugin.$<$ID$>$.priv\_key}
+\subsubsection{locplugin.$<$ID$>$.s3.priv\_key}
 Setup the AWS private key used for the S3 authentication.
 
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.priv_key: <AWS secret key>"\\
 
 
-\subsubsection{locplugin.$<$ID$>$.pub\_key}
+\subsubsection{locplugin.$<$ID$>$.s3.pub\_key}
 Setup the AWS access key used for the S3 authentication.
 
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.pub_key: <AWS access key>"\\
 
-\subsubsection{locplugin.$<$ID$>$.signature\_validity}
+\subsubsection{locplugin.$<$ID$>$.s3.region}
+Sets the S3 region parameter that has to be used for the S3 signing algorithm version 4. Setting this parameter automatically
+enables the S3 signing algorithm version 4, using the given S3 region parameter.
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.region: <AWS region>"\\
+
+
+\subsubsection{locplugin.$<$ID$>$.s3.signature\_validity}
 The S3 signatures computed by this plugin will expire after the given number of seconds. Default is one hour.
 Pre-signed URLs should not be cached for a time that exceeds their \lstinline"signature_validity".
 
@@ -932,6 +940,7 @@ Syntax:\\
 \lstinline"locplugin.<ID>.s3.signature_validity: <number of seconds>"\\
 
 
+v2alternate
 \subsection{DAVrucio plugin}
 The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 It allows to browse and access a federation of remote sites that host content that is managed by the ATLAS experiment \textit{rucio} data management system.\\
