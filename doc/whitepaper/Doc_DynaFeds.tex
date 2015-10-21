@@ -905,8 +905,8 @@ Default value: false \\
 \subsection{S3 plugin}
 The S3 plugin is a location plugin allowing to include a bucket of Simple Storage Service Cloud Storage as part of the namespace. The S3 plugin supports read, write and list operations.
 
-The S3 plugin supports the AWS credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already authenticated via the AWS query string authentication mechanism.
-
+The S3 plugin supports the AWS credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already authenticated via the AWS query string authentication mechanism.\\
+The S3 plugin accepts the parameters of the HTTP plugin, plus a few that are related to the AWS signing process, listed here.\\
 
 Syntax:\\
 \lstinline"glb.locplugin[]: libugrlocplugin_s3.so <ID> <concurrency> <URL prefix>"\\
@@ -939,8 +939,22 @@ Pre-signed URLs should not be cached for a time that exceeds their \lstinline"si
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.signature_validity: <number of seconds>"\\
 
+\subsubsection{locplugin.$<$ID$>$.s3.v2alternate}
+When using the default S3 signing algorithm v2, the URL prefix will have to be similar to the following example:\\
 
-v2alternate
+\lstinline"s3://mybucket.s3.amazonaws.com"\\
+
+ where the bucket name appears in the hostname part of the URL.\\
+ 
+ If the boolean parameter \lstinline"v2alternate" is set to true, the Dynafed S3 plugin
+ will expect an alternate syntax for that URL, which is similar to:\\
+ 
+\lstinline"s3://s3.amazonaws.com/mybucket"\\
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.v2alternate: <yes|true>"\\
+Any value that is different from \lstinline"yes" or \lstinline"true" will be treated as a boolean value of false.\\
+
 \subsection{DAVrucio plugin}
 The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 It allows to browse and access a federation of remote sites that host content that is managed by the ATLAS experiment \textit{rucio} data management system.\\
