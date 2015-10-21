@@ -430,7 +430,10 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
     const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");
     const std::string s3_pub_key = pluginGetParam<std::string>(prefix, "s3.pub_key");
     const std::string s3_region = pluginGetParam<std::string>(prefix, "s3.region");
-    time_t signature_validity = (time_t)pluginGetParam<long>(prefix, "s3.signaturevalidity", 3600);
+    
+    signature_validity = (time_t)pluginGetParam<long>(prefix, "s3.signaturevalidity", 3600);
+    Info(UgrLogger::Lvl1, name, " S3 signature validity is " << signature_validity);
+    
     const bool s3_v2alternate = pluginGetParam<bool>(prefix, "s3.v2alternate", false);
     if (s3_priv_key.size() > 0 && s3_pub_key.size()){
         Info(UgrLogger::Lvl1, name, " S3 authentication defined");
