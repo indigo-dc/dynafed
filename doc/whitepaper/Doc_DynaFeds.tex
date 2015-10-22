@@ -940,18 +940,23 @@ Syntax:\\
 \lstinline"locplugin.<ID>.s3.signature_validity: <number of seconds>"\\
 
 \subsubsection{locplugin.$<$ID$>$.s3.alternate}
-When using the S3 signing algorithm, by default the URL prefix will have to be in the format visible in the following example:\\
+When using the S3 signing algorithm, by default the URL prefix will have to be in the following format:
+
+\lstinline"s3://<bucket_name>.s3.amazonaws.com"\\
+
+where the bucket name appears in the hostname part of the URL.\\
+
+Example:\\
 
 \lstinline"s3://mybucket.s3.amazonaws.com"\\
 
- where the bucket name appears in the hostname part of the URL.\\
  
- If the boolean parameter \lstinline"alternate" is set to true, the Dynafed S3 plugin
+If the boolean parameter \lstinline"alternate" is set to true, the Dynafed S3 plugin
 will expect an alternate syntax for that URL, with the bucket name in the path:\\
  
-\lstinline"s3://s3.amazonaws.com/mybucket"\\
+\lstinline"s3://s3-<S3_region_name>.amazonaws.com/mybucket"\\
 
-Please consult your provider of Cloud storage to verify which URL format has to be used.\\
+Please consult your provider of Cloud storage to verify which URL format has to be used for the specific case. Amazon S3 recommends the default host-based one.\\
 
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.alternate: <yes|true>"\\
