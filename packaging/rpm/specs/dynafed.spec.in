@@ -56,6 +56,7 @@ Headers files for %{name}'s plugin development.
 Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
+Requires:			davix-libs >= 0.5.1
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
 # name transition ugr -> dynafed
 Obsoletes:                      ugr-http-plugin < 1.0.8
