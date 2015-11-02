@@ -31,3 +31,5 @@ add_subdirectory(noloop)
 
 
 
+
+add_subdirectory(MSAzureclient)
