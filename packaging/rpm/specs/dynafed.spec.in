@@ -157,6 +157,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrlocplugin_dav.so
 %{_libdir}/ugr/libugrlocplugin_http.so
 %{_libdir}/ugr/libugrlocplugin_s3.so
+%{_libdir}/ugr/libugrlocplugin_azure.so
 %{_libdir}/ugr/libugrlocplugin_davrucio.so
 
 
