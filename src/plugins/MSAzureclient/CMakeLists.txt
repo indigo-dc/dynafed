@@ -20,7 +20,7 @@ add_library(ugrlocplugin_azure SHARED ${src_azure_plugin})
 set_target_properties(ugrlocplugin_azure PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
                                        
-target_link_libraries(ugrlocplugin_azure ugrconnector ${DAVIX_PKG_LIBRARIES} ugrlocplugin_s3 ugrlocplugin_http rt)
+target_link_libraries(ugrlocplugin_azure ugrconnector ${DAVIX_PKG_LIBRARIES} rt)
 
 # How to install. This is a set of plugins that belong to a specific component
 install(TARGETS ugrlocplugin_azure

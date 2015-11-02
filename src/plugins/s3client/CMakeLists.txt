@@ -19,7 +19,7 @@ add_library(ugrlocplugin_s3 SHARED ${src_s3_plugin})
 set_target_properties(ugrlocplugin_s3 PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
-target_link_libraries(ugrlocplugin_s3 ugrconnector ${DAVIX_PKG_LIBRARIES} ugrlocplugin_http rt)
+target_link_libraries(ugrlocplugin_s3 ugrconnector ${DAVIX_PKG_LIBRARIES} rt)
 
 
 # How to install. This is a set of plugins that belong to a specific component
