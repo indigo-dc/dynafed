@@ -61,9 +61,12 @@ public:
 
 
     virtual int run_deleteReplica(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
-
-private:
+    
+protected:
     time_t signature_validity;
+    
+private:
+    
     void configure_S3_parameter(const std::string & str);
     bool concat_s3_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
 };
