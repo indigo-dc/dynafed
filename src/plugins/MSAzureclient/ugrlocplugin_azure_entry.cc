@@ -19,5 +19,5 @@
  * */
 extern "C" PluginInterface *GetPluginInterface(GetPluginInterfaceArgs) {
     davix_set_log_level(DAVIX_LOG_WARNING);
-    return (PluginInterface*)new UgrLocPlugin_s3(c, parms);
+    return (PluginInterface*)new UgrLocPlugin_Azure(c, parms);
 }

@@ -7,7 +7,8 @@ IF(AZURE_PLUGIN)
 
 
 # The source modules
-FILE(GLOB src_azure_plugin "*.cc")
+FILE(GLOB src_azure_plugin "*azure.cc")
+FILE(GLOB src_azure_plugin_entry "*entry.cc")
 
 message(STATUS "Building the Azure plugin")
 
@@ -16,7 +17,7 @@ pkg_check_modules(DAVIX_PKG REQUIRED davix>=0.5.1)
 include_directories(${DAVIX_PKG_INCLUDE_DIRS} )
 
 # Configure the target for the consumer shared library that we want to provide
-add_library(ugrlocplugin_azure SHARED ${src_azure_plugin})
+add_library(ugrlocplugin_azure SHARED ${src_azure_plugin} ${src_s3_plugin} ${src_http_plugin} ${src_azure_plugin_entry})
 set_target_properties(ugrlocplugin_azure PROPERTIES LINK_FLAGS "-rdynamic"
                                        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
                                        
