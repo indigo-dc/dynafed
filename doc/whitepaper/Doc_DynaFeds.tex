@@ -966,6 +966,52 @@ Syntax:\\
 \lstinline"locplugin.<ID>.s3.alternate: <yes|true>"\\
 Any value that is different from \lstinline"yes" or \lstinline"true" will be treated as a boolean value of false.\\
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Microsoft Azure plugin}
+The Azure plugin is a location plugin allowing to include a container of Microsoft Azure Storage as part of the namespace. The Azure plugin supports read, write, delete and list operations.
+
+The Azure plugin supports the Azure credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already authenticated via the Azure REST query string authentication mechanism.\\
+The Azure plugin accepts the parameters of the HTTP plugin, plus a few that are related to the Azure signing process, listed here.\\
+
+Syntax:\\
+\lstinline"glb.locplugin[]: libugrlocplugin_azure.so <ID> <concurrency> <URL prefix>"\\
+
+\subsubsection{locplugin.$<$ID$>$.azure.key}
+Setup the Azure key used for the Azure REST authentication. This key can be found in the Microsoft Azure online console.
+
+Syntax:\\
+\lstinline"locplugin.<ID>.azure.key: <Azure key>"\\
+
+
+\subsubsection{locplugin.$<$ID$>$.azure.signaturevalidity}
+The Azure signatures computed by this plugin will expire after the given number of seconds. Default is one hour.\\
+
+\textit{\textbf{A signed URL has to be requested to Dynafed in the moment it is used. Storing a signed URL or caching it makes no sense, as it
+is more complex than just requesting access to a file with a plain URL.\\
+The typical example for this is a batch job. As the queueing time for the job is not predictable, the job should
+be given the plain HTTP(s) URL that has to be used against Dynafed by the job itself when it starts.\\}}
+
+Syntax:\\
+\lstinline"locplugin.<ID>.s3.signaturevalidity: <number of seconds>"\\
+
+
+
+
+
 \subsection{DAVrucio plugin}
 The DAVrucio plugin, when loaded as a location plugin instance, points to an external DAV or HTTP endpoint, to consider its content as part of the storage federation.\\
 It allows to browse and access a federation of remote sites that host content that is managed by the ATLAS experiment \textit{rucio} data management system.\\

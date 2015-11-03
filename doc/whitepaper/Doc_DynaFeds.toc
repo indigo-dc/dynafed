@@ -70,6 +70,9 @@
 \contentsline {subsubsection}{\numberline {6.10.3}locplugin.$<$ID$>$.s3.region}{41}
 \contentsline {subsubsection}{\numberline {6.10.4}locplugin.$<$ID$>$.s3.signaturevalidity}{41}
 \contentsline {subsubsection}{\numberline {6.10.5}locplugin.$<$ID$>$.s3.alternate}{42}
-\contentsline {subsection}{\numberline {6.11}DAVrucio plugin}{42}
-\contentsline {subsubsection}{\numberline {6.11.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{43}
-\contentsline {subsection}{\numberline {6.12}DMLite client plugin}{45}
+\contentsline {subsection}{\numberline {6.11}Microsoft Azure plugin}{42}
+\contentsline {subsubsection}{\numberline {6.11.1}locplugin.$<$ID$>$.azure.key}{43}
+\contentsline {subsubsection}{\numberline {6.11.2}locplugin.$<$ID$>$.azure.signaturevalidity}{43}
+\contentsline {subsection}{\numberline {6.12}DAVrucio plugin}{44}
+\contentsline {subsubsection}{\numberline {6.12.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{44}
+\contentsline {subsection}{\numberline {6.13}DMLite client plugin}{46}
