@@ -694,56 +694,63 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
     const char* fname = "LocationPlugin::doParentQueryCheck";
     bool doitemsnotify = false;
     // Loop through the xlatepfx alternatives
-
+    
     for( std::vector<std::string>::iterator it = xlatepfx_from.begin(); it < xlatepfx_from.end(); it++){
-      
-	// IF we are querying for a substring of any of the xlatepfx
-	//  AND this substring is followed by '/'
-        if( it->size() > from.size()
-           && it->compare(0, from.size(), from) == 0
-           && ( it->at(from.size()) == '/' || from.size() == 1)) {
-	    // if query on parent translated dir
+        
+        // IF we are querying for a substring of any of the xlatepfx
+        //  AND this substring is followed by '/' in the xlatepfx it is substring of
+        // OR
+        // IF we are querying for one of the xlatepfx
+        if( (it->size() > from.size()
+            && it->compare(0, from.size(), from) == 0
+            && ( it->at(from.size()) == '/' || from.size() == 1))
+            ||
+            (it->compare(from) == 0) ) {
+            // if query on parent translated dir
             
             switch(wtk->wop){
                 case LocationPlugin::wop_List :{
-		  
-		    UgrFileItem item;
-		    const size_t pos = it->find('/', from.size()+1);
-		    
-		    if (from.size() == 1) {
-		      // Particular case, we are querying the root dir
-		      item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
-		    }
-		    else {
-		      item.name = it->substr(from.size()+1, (pos == std::string::npos)?std::string::npos: pos - from.size()-1);
-		    }
-		    
+                    
+                    UgrFileItem item;
+                    const size_t pos = it->find('/', from.size()+1);
+                    
+                    if (from.size() == 1) {
+                        // Particular case, we are querying the root dir
+                        item.name = it->substr(from.size(), (pos == std::string::npos)?std::string::npos: pos - from.size());
+                    }
+                    else if (from.size() == it->size()) {
+                        continue;
+                    }
+                    else {
+                        item.name = it->substr(from.size()+1, (pos == std::string::npos)?std::string::npos: pos - from.size()-1);
+                    }
+                    
                     // Lock the file instance
                     boost::unique_lock<boost::mutex> l(*(wtk->fi));
-
+                    
                     wtk->fi->setPluginID(getID(), false);
-
+                    
                     LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Worker: Inserting prefix item  " << item.name);
                     wtk->fi->subdirs.insert(item);
-
+                    
                     wtk->fi->status_items = UgrFileInfo::Ok;
-		    doitemsnotify = true;
-		    continue;
+                    doitemsnotify = true;
+                    continue;
                 }
                 case LocationPlugin::wop_Stat:{
-
+                    
                     struct stat st = {};
                     st.st_nlink = 1;
                     st.st_mode |= S_IFDIR;
-		    st.st_mode |= ACCESSPERMS;
+                    st.st_mode |= ACCESSPERMS;
                     wtk->fi->takeStat(st);
-
-                    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Stat");
+                    
+                    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Added fake stat info ... now notify End Stat " << from);
                     {
-                      // Lock the file instance
-                      boost::unique_lock<boost::mutex> l(*(wtk->fi));
-		      wtk->fi->setPluginID(getID(), false);
-                      wtk->fi->notifyStatNotPending();
+                        // Lock the file instance
+                        boost::unique_lock<boost::mutex> l(*(wtk->fi));
+                        wtk->fi->setPluginID(getID(), false);
+                        wtk->fi->notifyStatNotPending();
                     }
                     return true;
                 }
@@ -751,21 +758,21 @@ bool LocationPlugin::doParentQueryCheck(std::string & from, struct worktoken *wt
                     // no ops
                     break;
             }
-
-        }
-
+            
+            }
+            
     }
-
+    
     if (doitemsnotify) {
-      LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Listdir");
-      {
-        // Lock the file instance
-        boost::unique_lock<boost::mutex> l(*(wtk->fi));
-        wtk->fi->notifyItemsNotPending();
-      }
-      return true;
+        LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Notify End Listdir");
+        {
+            // Lock the file instance
+            boost::unique_lock<boost::mutex> l(*(wtk->fi));
+            wtk->fi->notifyItemsNotPending();
+        }
+        return true;
     }
-
+    
     return false;
 }
 
