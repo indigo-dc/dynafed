@@ -847,7 +847,7 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     // Send, if needed, to the external cache
     this->locHandler.putSubitemsToCache(fi);
 
-    Info(UgrLogger::Lvl1, "UgrConnector::list", "Listed " << l_lfn << "items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
+    Info(UgrLogger::Lvl1, "UgrConnector::list", "Listed " << l_lfn << " items:" << fi->subdirs.size() << " Status: " << fi->getItemsStatus() <<
             " status_items: " << fi->status_items << " pending_items: " << fi->pending_items);
 
     return 0;
