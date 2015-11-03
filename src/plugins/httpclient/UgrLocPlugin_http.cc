@@ -642,7 +642,7 @@ int UgrLocPlugin_http::run_deleteDir(const string & lfn, const std::shared_ptr<D
 
 // concat URI + path 
 bool UgrLocPlugin_http::concat_http_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
-    static const char * fname = "UgrLocPlugin_http::concat_http_url_path";
+    //static const char * fname = "UgrLocPlugin_http::concat_http_url_path";
     // remove "//", not sure if this is the right thing to do, need to double check
     auto it = path.begin();
     while(*it == '/' && it < path.end())
