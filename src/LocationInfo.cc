@@ -377,7 +377,7 @@ void UgrFileInfo::setPluginID(const short pluginID, bool dolock) {
 
 void UgrFileInfo::takeStat(const struct stat &st) {
     const char *fname = "UgrFileInfo::takeStat";
-    Info(UgrLogger::Lvl4, fname, this->name << "sz:" << st.st_size << "mode:" << st.st_mode);
+    Info(UgrLogger::Lvl4, fname, this->name << " sz:" << st.st_size << " mode:" << st.st_mode);
     
     unique_lock<mutex> l2(*this);
     size = st.st_size;
