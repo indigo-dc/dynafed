@@ -78,6 +78,10 @@ bool UgrLocPlugin_Azure::concat_Azure_url_path(const std::string & base_uri, con
 
 
 
+Davix::Uri UgrLocPlugin_Azure::signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime) {
+
+    return Davix::Azure::signURI(params.getAzureKey(), method, url, expirationTime);
+}
 
 
 

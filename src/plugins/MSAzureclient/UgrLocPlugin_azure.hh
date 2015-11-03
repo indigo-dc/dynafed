@@ -37,6 +37,8 @@ public:
     ///
     UgrLocPlugin_Azure(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrLocPlugin_Azure(){}
+    
+    virtual Davix::Uri signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime);
 
 private:
 

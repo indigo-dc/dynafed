@@ -129,7 +129,7 @@ void UgrLocPlugin_s3::runsearch(struct worktoken *op, int myidx) {
             if(pos.stat(&params, canonical_name, &st, &tmp_err) >=0){
                 
                 Davix::HeaderVec vec;
-                Davix::Uri replica = Davix::S3::signURI(params, "GET", canonical_name, vec, signature_validity);
+                Davix::Uri replica = signURI(params, "GET", canonical_name, vec, signature_validity);
                 LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed replica " << replica);
 
                 replica_vec.push_back(Davix::File(dav_core, replica.getString()));
@@ -481,7 +481,10 @@ void UgrLocPlugin_s3::do_Check(int myidx) {
 }
 
 
+Davix::Uri UgrLocPlugin_s3::signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime) {
 
+    return Davix::S3::signURI(params, method, url, headers, expirationTime);
+}
 
 
 
