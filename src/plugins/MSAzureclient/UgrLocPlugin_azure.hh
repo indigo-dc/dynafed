@@ -43,7 +43,7 @@ public:
 private:
 
     void configure_Azure_parameters(const std::string & str);
-    bool concat_Azure_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
+    virtual bool concat_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
 };
 
 

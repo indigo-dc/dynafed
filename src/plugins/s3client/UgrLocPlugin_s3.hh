@@ -65,11 +65,12 @@ public:
     virtual Davix::Uri signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime);
 protected:
     time_t signature_validity;
+    virtual bool concat_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
     
 private:
     
     void configure_S3_parameter(const std::string & str);
-    bool concat_s3_url_path(const std::string & base_uri, const std::string & path, std::string & canonical);
+    
 };
 
 

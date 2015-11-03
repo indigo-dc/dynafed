@@ -348,7 +348,7 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
     }
 
 
-    if(concat_s3_url_path(canonical_name, xname, canonical_name) == false){
+    if(concat_url_path(canonical_name, xname, canonical_name) == false){
         return 1;
     }
 
@@ -357,7 +357,7 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         Davix::HeaderVec vec;
         std::string new_Location;
 
-        Davix::Uri signed_location = Davix::S3::signURI(params, "PUT", canonical_name, vec, signature_validity);
+        Davix::Uri signed_location = signURI(params, "PUT", canonical_name, vec, signature_validity);
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation " << signed_location);
 
         new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
@@ -394,7 +394,7 @@ int UgrLocPlugin_s3::run_deleteReplica(const string & lfn, const std::shared_ptr
 
 
 
-    if(concat_s3_url_path(canonical_name, xname, canonical_name) == false){
+    if(concat_url_path(canonical_name, xname, canonical_name) == false){
         return 1;
     }
 
@@ -456,7 +456,7 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
 }
 
 // concat URI + path, if it correspond to a bucket name, return false -> error
-bool UgrLocPlugin_s3::concat_s3_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
+bool UgrLocPlugin_s3::concat_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
     static const char * fname = "UgrLocPlugin_s3::concat_s3_url_path";
     // s3 does not support //
     auto it = path.begin();

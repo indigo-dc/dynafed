@@ -58,7 +58,7 @@ void UgrLocPlugin_Azure::configure_Azure_parameters(const std::string & prefix){
 }
 
 // concat URI + path, if it correspond to a bucket name, return false -> error
-bool UgrLocPlugin_Azure::concat_Azure_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
+bool UgrLocPlugin_Azure::concat_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
     static const char * fname = "UgrLocPlugin_azure::concat_azure_url_path";
     // Azure does not support //
     auto it = path.begin();
