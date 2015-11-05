@@ -133,6 +133,7 @@ make DESTDIR=%{buildroot} install
 %post dmlite-frontend
 /sbin/ldconfig
 /sbin/service rsyslog condrestart || true
+/sbin/service httpd condrestart  || true
 
 %files
 %defattr (-,root,root)
