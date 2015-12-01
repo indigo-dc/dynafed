@@ -142,6 +142,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/libugrconnector.so.*
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %{_libdir}/ugr/libugrnoloopplugin.so
+%{_libdir}/ugr/libugrauthplugin_python*.so
 %config(noreplace) %{_sysconfdir}/ugr.conf
 %config(noreplace) %{_sysconfdir}/ugr.conf.d/*
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
