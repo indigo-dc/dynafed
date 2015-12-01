@@ -493,7 +493,7 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
 
 
     // For DAV we can also check that the prefix directory is known
-    if (st.errcode >= 200 && st.errcode < 400) {
+    if ( ((st.errcode >= 200) && (st.errcode < 400)) || (st.errcode == 404) ) {
         if (st.latency_ms > availInfo.max_latency_ms) {
             std::ostringstream ss;
             ss << "Latency of the endpoint " << st.latency_ms << "ms is superior to the limit " << availInfo.max_latency_ms << "ms";

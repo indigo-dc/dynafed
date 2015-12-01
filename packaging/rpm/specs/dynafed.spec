@@ -40,7 +40,7 @@ Obsoletes:              ugr < 1.0.8
 
 
 %description
-The Dynamic Federations project provides a dynamic, scalable HTTP resource federation mechanism for distributed storage systems.
+The Dynafed project provides a dynamic, scalable HTTP resource federation mechanism for distributed storage systems.
 The default deployment style is accessible by any HTTP/Webdav compatible client. The core components can be used to design frontends based on other protocols.
 
 %package private-devel
