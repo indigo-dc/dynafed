@@ -24,11 +24,13 @@
 #include <sys/stat.h>
 
 #include "SimpleDebug.hh"
-#include "PluginLoader.hh"
+
 #include <string>
 #include "UgrConnector.hh"
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
+#include "UgrPluginLoader.hh"
+#include "UgrAuthorization.hh"
 
 #include <dlfcn.h>
 
@@ -44,62 +46,6 @@ bool replicas_is_offline(UgrConnector * c,  const UgrFileItem_replica & r);
 // mocking object
 std::function<bool (UgrConnector*, const UgrFileItem_replica&)> replicasStatusObj(replicas_is_offline);
 
-
-// ------------------------------------------------------------------------------------
-// Plugin-related stuff
-// ------------------------------------------------------------------------------------
-
-template<class T>
-void ugr_load_plugin(UgrConnector & c,
-                       const std::string & fname,
-                       const boost::filesystem::path & plugin_dir,
-                       const std::string & key_list_config,
-                       std::vector<T*> & v_plugin){
-    char buf[1024];
-    int i = 0;
-    v_plugin.clear();
-    do {
-        CFG->ArrayGetString(key_list_config.c_str(), buf, i);
-        if (buf[0]) {
-            T* filter = NULL;
-            std::vector<std::string> parms = tokenize(buf, " ");
-           path plugin_path(parms[0].c_str()); // if not abs path -> load from plugin dir
-           // Get the entry point for the plugin that implements the product-oriented technicalities of the calls
-           // An empty string does not load any plugin, just keeps the default behavior
-
-           if (!plugin_path.has_root_directory()) {
-               plugin_path = plugin_dir;
-               plugin_path /= parms[0];
-           }
-            try{
-
-                Info(UgrLogger::Lvl1, fname, "Attempting to load plugin "<< typeid(T).name() << plugin_path.string());
-                PluginInterface *prod = static_cast<PluginInterface*>(GetPluginInterfaceClass((char *) plugin_path.string().c_str(),
-                        c,
-                        parms));
-                filter = dynamic_cast<T*>(prod);
-            }catch(...){
-                // silent exception
-                filter = NULL;
-            }
-            if (filter) {
-                filter->setID(v_plugin.size());
-                v_plugin.push_back(filter);
-            }else{
-                Error(fname, "Impossible to load plugin " << plugin_path << " of type " << typeid(T).name() << std::endl;);
-            }
-        }
-        i++;
-    } while (buf[0]);
-}
-
-
-template<class T>
-void ugr_unload_plugin(std::vector<T*> & v_plugin){
-    for(typename std::vector<T*>::iterator it = v_plugin.begin(); it != v_plugin.end(); ++it){
-        delete *it;
-    }
-}
 
 
 // Invoked by a thread, gives life to the object
@@ -289,6 +235,17 @@ int UgrConnector::init(char *cfgfile) {
                                                "glb.filterplugin", filterPlugins);
 
 
+        // load authorization plugins
+        ugr_load_plugin<UgrAuthorizationPlugin>(*this, fname, plugin_dir,
+                                               "glb.authorizationplugin", authorizationPlugins);
+        
+        // An instance of the default authorization plugins is always added to the list, passing no parameters
+        {
+            std::vector<std::string> pp;
+            UgrAuthorizationPlugin *p = new UgrAuthorizationPlugin(*this, pp);
+            authorizationPlugins.push_back(p);
+        }
+        
         n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
         n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
         UgrFileInfo::trimpath(n2n_pfx);
@@ -852,6 +809,41 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
 
     return 0;
 }
+
+
+
+
+
+int UgrConnector::checkperm(const char *fname,
+                          const std::string &clientName,
+                          const std::string &remoteAddress,
+                          const std::vector<std::string> &fqans,
+                          const std::vector<std::string> &keys,
+                          char *reqresource, char reqmode) {
+    
+    bool ok = false;
+    
+    // If one of the auth plugins accepts, then it's accepted
+    for (unsigned int i = 0; i < authorizationPlugins.size(); i++) {
+        if (authorizationPlugins[i]->isallowed(fname,
+                          clientName,
+                          remoteAddress,
+                          fqans,
+                          keys,
+                          reqresource, reqmode)) {
+            ok = true;
+            break;
+        }
+    }
+    
+    if ( !ok ) {
+        return 1;
+    }
+    
+    return 0;
+}
+
+
 
 
 const std::string & getUgrLibPath(){

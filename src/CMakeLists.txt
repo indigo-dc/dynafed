@@ -42,7 +42,7 @@ ADD_CUSTOM_COMMAND(
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc UgrConnector.cc /
-  PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc PluginInterface.cc UgrLogger.cpp)
+  PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc PluginInterface.cc UgrLogger.cpp UgrPluginLoader.cc UgrAuthorization.cc)
 
 
 set(Ugr_default_plugin_dir ${PLUGIN_INSTALL_DIR})

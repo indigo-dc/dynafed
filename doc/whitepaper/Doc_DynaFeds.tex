@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynafed v1.1.0}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynafed v1.2.0}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -741,17 +741,26 @@ Default value: true\\
 
 \subsection{Authorization of groups and users}
 
-When plugged into a DMLite setup (which is the normal way), Ugr can apply a simple authorization scheme to the incoming requests.\\
+When plugged into a DMLite setup (which is the normal way), Ugr can apply authorization schemes to the incoming requests.\\
 In order to make this effective, the frontend (normally Apache) must be configured in order to apply a form of \textit{authentication} to the incoming clients. The Ugr authorization scheme will
 honour the user and groups information that is filled by the frontend. No restrictions are applied to the kind of authentication applied by the frontend. For Grid usage, this is normally X509 with
-VOMS extensions, and also other Web-specific forms of authentication are supposed to work, e.g. mysql-based username/password, Google, Facebook IDs, Federated Identities, etc. , provided that the frontend supports and correctly processes them.\\
+VOMS extensions, and also other Web-specific forms of authentication are supposed to work, e.g. Google, Facebook IDs, Federated Identities, etc. , provided that the frontend supports and correctly processes them.\\
 Please note that the Ugr authorization is applied after any possible name groups or fqan translation that the frontend may apply. This is valid also for the gridmap translations that the sysadmin may want to configure in the system.\\
+Authentication in Ugr is plugin-based. All the authorization plugins are executed sequentially for the same query, until one that grants access is found. If no plugin that grants access is found, then access is denied.\\
+In the absence of authorization plugins to load, Ugr always has in memory a default implementation that implements a simple rule-based scheme. What follows are the default authorization directives.\\
 
 \subsubsection{glb.allowusers[]}
 Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are supported only if the username is enclosed in double quotes.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowusers[] <username> <path prefix> [r][w][l]" \\
+\lstinline"glb.allowusers[] <username> <path prefix> [r][w][l][d]" \\
+
+Parameters:\\
+\begin{itemize}
+ \item username : the username or DN to match this rule
+ \item path prefix : the path prefix this rule applies to
+ \item read "r" , write "w" , list "l" , delete "d"
+\end{itemize}
 
 Example:\\
 This example authorizes the anonymous user to get metadata, redirections and listings from the \textit{/fed/atlas} prefix.\\
@@ -762,7 +771,14 @@ Add a rule that authorizes a specific group to read, write into, or list. Spaces
 If the groupname ends with \lstinline"*" then it is treated as a wildcard that will match all the group names or fqans that start with the given string.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowgroups[] <groupname or fqan> <path prefix> [r][w][l]" \\
+\lstinline"glb.allowgroups[] <groupname or fqan> <path prefix> [r][w][l][d]" \\
+
+Parameters:\\
+\begin{itemize}
+ \item username : the username or DN to match this rule
+ \item path prefix : the path prefix this rule applies to
+ \item read "r" , write "w" , list "l" , delete "d"
+\end{itemize}
 
 Example:\\
 This example authorizes any user that is reported to belong to the 'atlas' group to get metadata, redirections and listings from
@@ -770,10 +786,89 @@ the \textit{/fed/atlas} prefix.\\
 \lstinline"glb.allowgroups[] atlas /fed/atlas rl" \\
 
 
+\textbf{Important}:\\ All the auth plugins are checked for a given query, including the default one. If the default plugin has not to grant any authorization, then it has to
+be explicitely configured to do so, by giving rules that always result in a denial. Example:\\
+\begin{lstlisting}
+glb.allowusers[]: nouser /nodir r
+glb.authorizationplugin[]: libugrauthplugin_python26.so authplug1 ugrauth_example isallowed
+\end{lstlisting}
+
+\subsubsection{glb.authorizationplugin}
+An authorization plugin is a plugin that implements some form of decision whether to authorize a request coming from a client.
+\\
+Syntax:\\
+\lstinline"glb.authorizationplugin[]: <auth plugin library name> <plugin_name>  <Python module to import> <Python function to invoke>"
+\\
+Example:\\
+To authorize a client, invoke the function \lstinline"isallowed()" from the python module \lstinline"ugrauth_example.py".
+\lstinline"glb.authorizationplugin[]: libugrauthplugin_python26.so authplug1 ugrauth_example isallowed"
 
 
 
 
+\subsubsection{The Python authorization plugin}
+The Python authorization plugin invokes a function from a Python module to determine if a request coming from a client has to be authorized.\\
+Please note that no script is executed or spawned, and the python function is invoked natively, using the python C API. This keeps performance high.\\
+
+Syntax:\\
+\lstinline"glb.authorizationplugin[]: libugrauthplugin_python26.so  <plugin_name>  <Python module to import> <Python function to invoke>"
+
+Mandatory signature of the Python function:\\
+\lstinline"def <any_func_name>(clientname="unknown", remoteaddr="noIP", resource="none", mode="0", fqans=None, keys=None)"\\
+
+The module that is imported must be in a directory fulfilling one of these conditions:\\
+\begin{itemize}
+ \item it's a directory contained in the PYTHONPATH environment variable as evaluated within the Apache daemon
+ \item the directory is \lstinline"/etc/ugr.conf.d/"
+\end{itemize}
+Both the directory and the Python module must be readable and executable by the user running the apache daemon.\\
+
+Parameters:\\
+\begin{itemize}
+ \item clientname : the username or DN of the client
+ \item remoteaddr : IP address of the client
+ \item resource : the filename or directory name for which the operation has been requested
+ \item mode : read "r" , write "w" , list "l" , delete "d"
+ \item fqans : list of groups or FQANS the user belongs to. VOMS roles will appear here.
+ \item keys : list of other authentication keys that Apache has filled while authenticating the client.
+\end{itemize}
+
+The function's Return value is an integer. A zero value means that the access is granted. A nonzero value means that the access is denied.
+A non callable function means that the access is denied.\\
+
+Example:
+To authorize a client, invoke the function \lstinline"isallowed()" from the python module \lstinline"ugrauth_example.py" that is available in the directory \lstinline"/etc/ugr.conf.d" .\\
+\lstinline"glb.authorizationplugin[]: libugrauthplugin_python26.so authplug1 ugrauth_example isallowed"\\
+
+Example Python module:\\
+
+\begin{lstlisting}
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# Simple script that prints its arguments and then decides if the user has
+# to be authorized
+# usage:
+# ugrauth_example.py clientname remoteaddr <fqan1> .. <fqanN>
+
+import sys
+
+
+def isallowed(clientname="unknown", remoteaddr="nowhere", resource="none", mode="0", fqans=None, keys=None):
+    print "clientname", clientname
+    print "remote address", remoteaddr
+    print "fqans", fqans
+    print "keys", keys
+    print "resource", resource
+
+    return 0
+
+
+#------------------------------
+if __name__ == "__main__":
+    isallowed(sys.argv[1], sys.argv[2:])
+"
+\end{lstlisting}
 
 
 \subsection{Location Plugin}

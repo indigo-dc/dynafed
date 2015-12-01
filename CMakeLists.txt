@@ -26,7 +26,7 @@ OPTION(DAV_PLUGIN "Enable Webdav client side plugin" TRUE)
 OPTION(S3_PLUGIN "Enable S3 client side plugin" TRUE)
 OPTION(AZURE_PLUGIN "Enable MS Azure client side plugin" TRUE)
 OPTION(HTTP_PLUGIN "Enable HTTP client side plugin" TRUE)
-
+OPTION(AUTHPYTHON_PLUGIN "Enable the Python authorization plugin" TRUE)
 
 ## support option
 OPTION(RSYSLOG_SUPPORT "Enable rsyslog Support inside UGR" FALSE)
@@ -37,7 +37,7 @@ option(UNIT_TESTS "enable or disable the unit tests" FALSE)
 
 # The version number
 set (UGR_VERSION_MAJOR 1)
-set (UGR_VERSION_MINOR 1)
+set (UGR_VERSION_MINOR 2)
 set (UGR_VERSION_PATCH 0)
 
 
@@ -73,7 +73,7 @@ find_package( Boost 1.41.0 COMPONENTS date_time filesystem system thread REQUIRE
 #find_package(LFC 1.8.0)
 
 # Look for libDMlite
-find_package(DMLite 0.3)
+find_package(DMLite 0.7)
 
 # generic pkgconfig module for Davix & co
 find_package(PkgConfig REQUIRED)
@@ -88,6 +88,16 @@ find_package(LibMemCached REQUIRED)
 find_package(Protobuf REQUIRED)
 
 pkg_check_modules(GFAL2_PKG gfal2>=2.1.7)
+
+
+# Also look for the Python libraries
+# Prefer shared libs to static ones to look for Python
+find_package(PythonLibs 2.4)
+STRING(REPLACE "." "" _PYLIBS_VERSION_NODOTS ${PythonLibs_VERSION})
+set(PYLIBS_VERSION_NODOTS ${_PYLIBS_VERSION_NODOTS} CACHE INTERNAL "" FORCE)
+message(STATUS ${PYLIBS_VERSION_NODOTS})
+
+
 
 add_subdirectory(packaging)
 add_subdirectory(doc)

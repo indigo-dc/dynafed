@@ -29,6 +29,10 @@ class UgrFileItem_replica;
 class UgrClientInfo;
 
 
+/// The generic set of args that have to be passed to the plugin hook function
+#define GetPluginInterfaceArgs UgrConnector & c, std::vector<std::string> &parms
+
+
 class PluginInterface : protected boost::noncopyable
 {
 public:

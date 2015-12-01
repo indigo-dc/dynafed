@@ -418,17 +418,6 @@ public:
 
 
 
-// ------------------------------------------------------------------------------------
-// Plugin-related stuff
-// ------------------------------------------------------------------------------------
-
-/// The set of args that have to be passed to the plugin hook function
-#define GetPluginInterfaceArgs UgrConnector & c, std::vector<std::string> &parms
-
-/// The plugin functionality. This function invokes the plugin loader, looking for the
-/// plugin where to call the hook function
-PluginInterface *GetPluginInterfaceClass(char *pluginPath, GetPluginInterfaceArgs);
-
 
 
 #endif

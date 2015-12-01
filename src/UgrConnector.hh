@@ -35,6 +35,9 @@
 #include "ExtCacheHandler.hh"
 
 
+class UgrAuthorization;
+class UgrAuthorizationPlugin;
+
 /// return the path of the UgrConnector shared library
 const std::string & getUgrLibPath();
 
@@ -72,6 +75,10 @@ protected:
     /// The filter plugins that we have loaded
     /// Each filter plugin is applied in order by the operation filterAndSortReplicaList()
     std::vector<FilterPlugin *> filterPlugins;
+    
+    /// The authorization plugins that we have loaded
+    /// All of them are applied looking for one that grants access
+    std::vector<UgrAuthorizationPlugin *> authorizationPlugins;
 
     /// The main instance of the cache handler
     /// The eventual responsibility of destroying it is of this class
@@ -198,6 +205,21 @@ public:
     virtual UgrCode findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
 
 
+        
+    /// Checks the permissions to do a operation
+    /// Returns 0 if accepted
+    /// @param fname the original function name that was invoked (for pretty logging purposes)
+    /// @param clientName Authentication info about the client asking for access
+    /// @param remoteAddress Authentication info about the client asking for access
+    /// @param fqans Authentication info about the client asking for access
+    /// @param reqresource the path or filename in question
+    /// @param reqmode r, w, l ... the mode
+    int checkperm(const char *fname,
+                          const std::string &clientName,
+                          const std::string &remoteAddress,
+                          const std::vector<std::string> &fqans,
+                          const std::vector<std::string> &keys,
+                          char *reqresource, char reqmode);
 
     /// Start an async process that finds the endpoint that has the given replica
     /// There is no wait primitive associated to this, as the normal do_waitLocate will do
