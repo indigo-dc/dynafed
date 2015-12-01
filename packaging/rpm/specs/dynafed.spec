@@ -31,6 +31,8 @@ BuildRequires:		GeoIP-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
+BuildRequires:          python >= 2.6
+BuildRequires:          python-devel >= 2.6
 
 Requires:               rsyslog
 # name transition ugr -> dynafed
