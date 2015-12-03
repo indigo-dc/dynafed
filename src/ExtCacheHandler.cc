@@ -594,7 +594,7 @@ int ExtCacheHandler::putMoninfo(std::string val) {
       "' Key= " << k <<
       " Valuelen: " << val.length());
       
-      releaseconn(conn);
+      releasesyncconn(conn);
       
       return 1;
     }
