@@ -986,6 +986,19 @@ int PluginEndpointStatus::encodeToString(std::string &str) {
     return (str.length() > 0);
 }
 
+
+int PluginEndpointStatus::encodeToMonString(std::string &str) {
+    std::ostringstream ss;
+    
+    ss << lastcheck << "%%" << state << "%%" << latency_ms << "%%" <<
+      errcode << "%%" << explanation;
+
+    str.append(ss.str());
+
+    return (str.length() > 0);
+}
+
+
 /// We will like to be able to encode this info to a string, e.g. for external caching purposes
 
 int PluginEndpointStatus::decode(void *data, int sz) {
@@ -1003,3 +1016,8 @@ int PluginEndpointStatus::decode(void *data, int sz) {
     return 0;
 }
 
+void LocationPlugin::appendMonString(std::string &mons) {
+  PluginEndpointStatus st;
+  this->availInfo.getStatus(st);
+  st.encodeToMonString(mons);
+}

@@ -91,6 +91,11 @@ public:
     /// We will like to be able to encode this info to a string, e.g. for external caching purposes
     int decode(void *data, int sz);
 
+    /// We will like to be able to encode this info to a string, e.g. for being monitored
+    /// This func actually appends it to a given string
+    int encodeToMonString(std::string &str);
+    
+    
     PluginEndpointStatus() {
         lastcheck = 0;
         state = PLUGIN_ENDPOINT_UNKNOWN;
@@ -411,6 +416,8 @@ public:
     /// Asynchronously check the plugin Status
     void do_Check(int myidx);
 
+    void appendMonString(std::string &mons);
+    
 public:
     static const std::string & getConfigPrefix();
 

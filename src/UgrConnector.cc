@@ -93,6 +93,20 @@ void UgrConnector::tick(int parm) {
 	  timesummary = time(0);
 	}
 	
+	// Prepare a summary of the plugin statuses, for monitoring purposes
+	std::string statuses;
+        unsigned int cnt = locPlugins.size();
+	for (unsigned int i = 0; i < cnt; i++) {
+          statuses.append(locPlugins[i]->get_Name());
+          statuses.append("%%");
+          statuses.append(locPlugins[i]->get_Name());
+          statuses.append("%%");
+          locPlugins[i]->appendMonString(statuses);
+          if (i < cnt-1) statuses.append("&&");
+        }
+	Info(UgrLogger::Lvl4, fname, " Plugin mon info:" << statuses);
+        
+        extCache.putMoninfo(statuses);
     }
 
     Info(UgrLogger::Lvl1, fname, "Ticker exiting");

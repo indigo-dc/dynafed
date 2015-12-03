@@ -43,14 +43,18 @@ private:
 
     /// This is our simple but effective pool of connections to memcached
     /// If a connection is not available, a new one is created and it is then added to the pool
-    std::queue<memcached_st *> conns;
+    std::queue<memcached_st *> conns, syncconns;
     boost::mutex connsmtx;
 
-    /// Getting the Memcached connection
+    /// Getting the Memcached connection, for async operations
     memcached_st* getconn();
     /// Releasing the Memcached connection
     void releaseconn(memcached_st *c);
 
+    /// Getting the Memcached connection, for SYNC operations
+    memcached_st* getsyncconn();
+    /// Releasing the Memcached connection
+    void releasesyncconn(memcached_st *c);
     
     /// The max ttl for an item in the cache
     int maxttl;
@@ -72,6 +76,8 @@ public:
     int getEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
     int putEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
 
+    int putMoninfo(std::string val);
+    
     ExtCacheHandler() {};
 
     void Init();
@@ -82,7 +88,10 @@ public:
             conns.pop();
         }
         
-
+        while (!syncconns.empty()) {
+            memcached_free(syncconns.front());
+            syncconns.pop();
+        }
     }
 
 
