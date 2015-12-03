@@ -584,11 +584,13 @@ int ExtCacheHandler::putMoninfo(std::string val) {
     std::string k = "Ugrpluginstats_idx";
     uint64_t newval = 0;
     
+    Info(UgrLogger::Lvl3, fname, "memcached_increment " <<
+      " key:" << k);
+    
     // First get a new value of the counter Ugrpluginstats_idx
     memcached_return r1 = memcached_increment_with_initial(conn, k.c_str(), k.length(),
                                                     1, 0, expirationtime, &newval);
-    
-    
+        
     if (r1 != MEMCACHED_SUCCESS) {
       Error(fname, "Cannot increment monitoring index to memcached. retval=" << r1 << " '" << memcached_strerror(conn, r1) <<
       "' Key= " << k <<
@@ -613,7 +615,7 @@ int ExtCacheHandler::putMoninfo(std::string val) {
                                        val.c_str(), val.length() + 1,
                                        expirationtime, (uint32_t) 0);
     
-    Info(UgrLogger::Lvl4, fname, "memcached_set " << "r:" << r <<
+    Info(UgrLogger::Lvl4, fname, "memcached_increment " << "r:" << r <<
     " key:" << k << " len:" << val.length());
     
     if (r != MEMCACHED_SUCCESS) {
@@ -621,12 +623,12 @@ int ExtCacheHandler::putMoninfo(std::string val) {
       "' Key= " << k <<
       " Valuelen: " << val.length());
       
-      releaseconn(conn);
+      releasesyncconn(conn);
       
       return 1;
     }
     
-    releaseconn(conn);
+    releasesyncconn(conn);
     
   }
   
