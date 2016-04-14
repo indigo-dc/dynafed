@@ -352,8 +352,12 @@ bool UgrAuthorizationPlugin_py::isallowed(const char *fname,
   int r = pyxeqfunc2(retval, info_pyfunc.pFunc, clientName, remoteAddress, reqresource, reqmode, fqans, keys);
 
   // A value of 0 got from a successful execution means allowed
-  if (!r && !retval) return true;
+  if (!r && !retval) {
+    Info(UgrLogger::Lvl3, "isallowed", "Allowed. clientname: '" << clientName << "' remoteaddr: '" << remoteAddress << "' mode: " << reqmode );
+    return true;
+  }
   
+  Info(UgrLogger::Lvl3, "isallowed", "Denied. clientname: '" << clientName << "' remoteaddr: '" << remoteAddress << "' mode: " << reqmode );
   return false;
 
 }
