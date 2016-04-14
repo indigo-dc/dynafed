@@ -19,7 +19,7 @@ PyObject* log_CaptureStdout(PyObject* self, PyObject* pArgs)
   if (!PyArg_ParseTuple(pArgs, "s", &LogStr)) return NULL;
   
   
-  Info(UgrLogger::Lvl1, "PythonStdout", LogStr);
+  Info(UgrLogger::Lvl2, "PythonStdout", LogStr);
   //printf("%s", LogStr); 
   // Simply using printf to do the real work. 
   // You could also write it to a .log file or whatever...
@@ -36,7 +36,7 @@ PyObject* log_CaptureStderr(PyObject* self, PyObject* pArgs)
   char* LogStr = NULL;
   if (!PyArg_ParseTuple(pArgs, "s", &LogStr)) return NULL;
   
-  Info(UgrLogger::Lvl1, "PythonStderr", LogStr);
+  Info(UgrLogger::Lvl2, "PythonStderr", LogStr);
   //printf("%s", LogStr);
   
   Py_INCREF(Py_None);
