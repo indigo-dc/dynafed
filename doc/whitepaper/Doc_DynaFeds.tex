@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynafed v1.2.0}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynafed v1.2.1}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -747,13 +747,17 @@ honour the user and groups information that is filled by the frontend. No restri
 VOMS extensions, and also other Web-specific forms of authentication are supposed to work, e.g. Google, Facebook IDs, Federated Identities, etc. , provided that the frontend supports and correctly processes them.\\
 Please note that the Ugr authorization is applied after any possible name groups or fqan translation that the frontend may apply. This is valid also for the gridmap translations that the sysadmin may want to configure in the system.\\
 Authentication in Ugr is plugin-based. All the authorization plugins are executed sequentially for the same query, until one that grants access is found. If no plugin that grants access is found, then access is denied.\\
-In the absence of authorization plugins to load, Ugr always has in memory a default implementation that implements a simple rule-based scheme. What follows are the default authorization directives.\\
+In the absence of additional authorization plugins to load, Ugr always has in memory a default implementation that implements a simple rule-based scheme.\\
+
+\textbf{Important: the simple rule-based scheme always grants authorization if no rules are given. To allow any other plugin to deny authorization there must be at least one rule defined.}\\
+
+What follows are the default authorization directives.\\
 
 \subsubsection{glb.allowusers[]}
 Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are supported only if the username is enclosed in double quotes.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowusers[] <username> <path prefix> [r][w][l][d]" \\
+\lstinline"glb.allowusers[]: <username> <path prefix> [r][w][l][d]" \\
 
 Parameters:\\
 \begin{itemize}
@@ -771,7 +775,7 @@ Add a rule that authorizes a specific group to read, write into, or list. Spaces
 If the groupname ends with \lstinline"*" then it is treated as a wildcard that will match all the group names or fqans that start with the given string.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowgroups[] <groupname or fqan> <path prefix> [r][w][l][d]" \\
+\lstinline"glb.allowgroups[]: <groupname or fqan> <path prefix> [r][w][l][d]" \\
 
 Parameters:\\
 \begin{itemize}
@@ -870,6 +874,8 @@ if __name__ == "__main__":
 "
 \end{lstlisting}
 
+\textbf{Warning: depending on the frontend (typically Apache) configuration, the python module may clash with other modules loaded by the frontend. A typical example is mod\_wsgi for Apache, which must be disabled for the ugr auth python module to work.
+}
 
 \subsection{Location Plugin}
 The Location plugins (dmlite, lfc, DAV, HTTP, etc) have in common a group of parameters.

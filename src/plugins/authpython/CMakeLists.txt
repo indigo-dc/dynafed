@@ -45,10 +45,10 @@ install(TARGETS ugrauthplugin_python${__CURRENT_VERSION_NO_DOTS}
   LIBRARY DESTINATION ${PLUGIN_INSTALL_DIR} COMPONENT plugins-authpython)
 
 # Install the example python auth script
-if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr.conf.d/ugrauth_example.py)
+if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr/conf.d)
   install(FILES ugrauth_example.py
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${SYSCONF_INSTALL_DIR}/ugr.conf.d/ugrauth_example.py
+  DESTINATION ${SYSCONF_INSTALL_DIR}/ugr/conf.d
   COMPONENT plugins-authpython)
 endif()
 

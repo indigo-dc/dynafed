@@ -89,6 +89,7 @@ find_package(Protobuf REQUIRED)
 
 pkg_check_modules(GFAL2_PKG gfal2>=2.1.7)
 
+pkg_check_modules(DAVIX_PKG REQUIRED davix)
 
 # Also look for the Python libraries
 # Prefer shared libs to static ones to look for Python

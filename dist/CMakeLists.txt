@@ -14,7 +14,7 @@ cmake_minimum_required (VERSION 2.6)
 
 set(rsyslog_dir "${SYSCONF_INSTALL_DIR}/rsyslog.d/")
 set(logrotate_dir "${SYSCONF_INSTALL_DIR}/logrotate.d/")
-set(conf_dir "${SYSCONF_INSTALL_DIR}/ugr.conf.d/")
+set(conf_dir "${SYSCONF_INSTALL_DIR}/ugr/conf.d/")
 
 IF(RSYSLOG_SUPPORT)
 message(STATUS "rsyslog support enabled")
@@ -34,10 +34,10 @@ install(FILES "conf/logrotate/ugr-server"
 ENDIF(LOGROTATE_SUPPORT)
 
 # Install the config files
-if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr.conf)
+if (NOT EXISTS ${SYSCONF_INSTALL_DIR}/ugr/ugr.conf)
   install(FILES conf/ugr.conf
   PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-  DESTINATION ${SYSCONF_INSTALL_DIR} 
+  DESTINATION ${SYSCONF_INSTALL_DIR}/ugr 
   COMPONENT core)
 endif()
 if (NOT EXISTS ${conf_dir}/endpoints.conf)
