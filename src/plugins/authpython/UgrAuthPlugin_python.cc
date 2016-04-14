@@ -295,9 +295,9 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
   // Load from the cfg file the definitions of the scripts/funcs to call
   Py_Initialize();
 
-  Py_InitModule("log", logMethods);
+  Py_InitModule("mylog", logMethods);
   PyRun_SimpleString(
-                     "import log\n"
+                     "import mylog\n"
                      "import sys\n"
                      "class StdoutCatcher:\n"
                      "\tdef write(self, str):\n"
