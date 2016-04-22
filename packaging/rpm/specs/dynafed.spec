@@ -25,18 +25,16 @@ BuildRequires:		dmlite-devel >= 0.7.0
 BuildRequires:		dmlite-private-devel  >= 0.7.0
 BuildRequires:		davix-devel >= 0.5.1
 BuildRequires:          lfc-devel >= 1.8.8
-BuildRequires:          lfc-libs >= 1.8.8
 BuildRequires:          gfal2-devel
 BuildRequires:		GeoIP-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
-BuildRequires:          python >= 2.6
-BuildRequires:          python-devel >= 2.6
+BuildRequires:          python
+BuildRequires:          python-devel
 
 Requires:               rsyslog
-# name transition ugr -> dynafed
-Obsoletes:              ugr < 1.0.8
+
 
 
 %description
@@ -48,8 +46,6 @@ Summary:			Development files for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Requires:			pkgconfig
-# name transition ugr -> dynafed
-Obsoletes:                      ugr-devel < 1.0.8
 
 %description private-devel
 Headers files for %{name}'s plugin development.
@@ -60,9 +56,6 @@ Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release} 
 Requires:			davix-libs >= 0.5.1
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
-# name transition ugr -> dynafed
-Obsoletes:                      ugr-http-plugin < 1.0.8
-Obsoletes:                      ugr-dav-plugin < 1.0.8
 
 %description http-plugin
 Plugin for the WebDav based storage system for %{name}
@@ -72,8 +65,6 @@ Summary:			Logical File catalog (LFC) plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			gfal2-plugin-lfc%{?_isa}
-# name transition ugr -> dynafed
-Obsoletes:                      ugr-lfc-plugin < 1.0.8
 
 %description lfc-plugin
 Plugin for the Logical File catalog system for %{name}
@@ -92,9 +83,6 @@ Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
 Requires:                       dmlite-libs%{?_isa} >= 0.7.0
-# name transition ugr -> dynafed
-Obsoletes:                      ugr-dmlite-plugin < 1.0.8
-Obsoletes:                      ugr-dmlite-frontend < 1.0.8
 
 %description dmlite-frontend
 Webdav frontend for %{name} using dmlite and lcgdm-dav
