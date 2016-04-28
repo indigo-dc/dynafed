@@ -1,18 +1,8 @@
+Dynafed's aim is to support the creation of
+flexble, high performance, high scalability storage federations
+out of independent WebDAV services.
 
+For more information on the project:
 
-How to Compile UGR
-
-
-A few hints to compile from source:
-
-To make a build from scratch (like a make distclean, which CMake does not
-provide)
-
->cd build
->../scratchbuild.sh
-
-The CMake line that I normally use:
-
-cmake ../
-make
+http://lcgdm.web.cern.ch/dynafed-dynamic-federation-project
 
