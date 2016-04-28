@@ -4,6 +4,16 @@
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include
 %endif
 
+
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
+%global systemd 1
+%else
+%global systemd 0
+%endif
+
+
+
+
 Name:				dynafed
 Version:			1.2.0
 Release:			1%{?dist}
@@ -33,8 +43,11 @@ BuildRequires:		protobuf-devel
 BuildRequires:          python
 BuildRequires:          python-devel
 
+%if %systemd
+# possible deps to configure the journal for practical logging
+%else
 Requires:               rsyslog
-
+%endif
 
 
 %description
@@ -97,6 +110,17 @@ make clean
 %setup -q
 
 %build
+%if %systemd
+%cmake \
+-DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
+-DAPACHE_SITES_INSTALL_DIR=%{_sysconfdir}/httpd/conf.d \
+-DOUT_OF_SOURCE_CHECK=FALSE \
+-DRSYSLOG_SUPPORT=FALSE \
+-DLOGROTATE_SUPPORT=FALSE \
+%{boost_cmake_flags} \
+.
+make
+%else
 %cmake \
 -DDOC_INSTALL_DIR=%{_docdir}/%{name}-%{version} \
 -DAPACHE_SITES_INSTALL_DIR=%{_sysconfdir}/httpd/conf.d \
@@ -106,6 +130,7 @@ make clean
 %{boost_cmake_flags} \
 .
 make
+%endif
 
 %install
 rm -rf %{buildroot}
@@ -133,8 +158,12 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrauthplugin_python*.so
 %config(noreplace) %{_sysconfdir}/ugr/ugr.conf
 %config(noreplace) %{_sysconfdir}/ugr/conf.d/*
+%if %systemd
+# possible config to configure the journal for practical logging
+%else
 %config(noreplace) %{_sysconfdir}/rsyslog.d/*
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
+%endif
 %doc RELEASE-NOTES
 
 %files private-devel
@@ -172,6 +201,8 @@ make DESTDIR=%{buildroot} install
 
 
 %changelog
+* Thu Apr 28 2016 Fabrizio Furano <furano at cern.ch>
+ - initial draft
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
  - initial draft
 
