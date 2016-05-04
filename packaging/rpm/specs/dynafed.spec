@@ -1,9 +1,8 @@
-%if 0%{?el5}
-%global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost141 -DBOOST_LIBRARYDIR=%{_libdir}/boost141
-%else
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
 %global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include
+%else
+%global boost_cmake_flags -DBOOST_INCLUDEDIR=/usr/include/boost148 -DBOOST_LIBRARYDIR=%{_libdir}/boost148
 %endif
-
 
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
 %global systemd 1
@@ -16,7 +15,7 @@
 
 Name:				dynafed
 Version:			1.2.0
-Release:			1%{?dist}
+Release:			2%{?dist}
 Summary:			Ultra-scalable dynamic system for federating HTTP-based storage resources
 Group:				Applications/Internet
 License:			ASL 2.0
@@ -25,11 +24,12 @@ URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz 
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-%if 0%{?el5}
-BuildRequires:		boost141-devel
+%if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
+BuildRequires:                  boost-devel >= 1.48.0
 %else
-BuildRequires:		boost-devel
+BuildRequires:                  boost148-devel >= 1.48.0
 %endif
+
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel >= 0.7.0
 BuildRequires:		dmlite-private-devel  >= 0.7.0
