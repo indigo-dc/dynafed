@@ -108,5 +108,5 @@ enable_testing()
 
 # install status dashboard
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dashboard
-        DESTINATION ${WWW_INSTALL_DIR}/dashboard
+        DESTINATION ${WWW_INSTALL_DIR}
         COMPONENT dashboard)
