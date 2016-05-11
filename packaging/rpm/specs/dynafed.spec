@@ -68,6 +68,7 @@ Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
 Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			davix-libs >= 0.5.1
+Requires:			mod_proxy_fcgi
 Requires:			php-fpm
 Requires:			php-pecl-memcache
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
