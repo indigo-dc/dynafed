@@ -105,7 +105,7 @@ if (UNIX)
     CACHE PATH "The ${APPLICATION_NAME} info install dir (default prefix/info)"
   )
   SET(WWW_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/var/www/html"
+    "/var/www/html"
     CACHE PATH "The ${APPLICATION_NAME} www install dir (default prefix/var/www/html)"
   )
 
