@@ -59,12 +59,12 @@ if (UNIX)
     "${DATA_INSTALL_PREFIX}"
     CACHE PATH "The parent directory where applications can install their data (default prefix/share/${APPLICATION_NAME})"
   )
- 
+
   SET(DOC_INSTALL_DIR
     "${SHARE_INSTALL_PREFIX}/doc/${APPLICATION_NAME}"
     CACHE PATH "The parent directory where applications can install their documentation (default prefix/share/doc/${APPLICATION_NAME})"
   )
-  
+
   SET(HTML_INSTALL_DIR
     "${DATA_INSTALL_PREFIX}/doc/HTML"
     CACHE PATH "The HTML install dir for documentation (default data/doc/html)"
@@ -104,6 +104,11 @@ if (UNIX)
     "${SHARE_INSTALL_PREFIX}/info"
     CACHE PATH "The ${APPLICATION_NAME} info install dir (default prefix/info)"
   )
+  SET(WWW_INSTALL_DIR
+    "${CMAKE_INSTALL_PREFIX}/var/www/html"
+    CACHE PATH "The ${APPLICATION_NAME} www install dir (default prefix/var/www/html)"
+  )
+
 endif (UNIX)
 
 if (WIN32)
@@ -117,5 +122,5 @@ if (WIN32)
   set(ICON_INSTALL_DIR "." CACHE PATH "-")
   set(SOUND_INSTALL_DIR "." CACHE PATH "-")
   set(LOCALE_INSTALL_DIR "lang" CACHE PATH "-")
+  set(WWW_INSTALL_DIR "dashboard" CACHE PATH "-")
 endif (WIN32)
-

@@ -54,7 +54,7 @@ include(CMakeUninstall REQUIRED)
 include(MacroOutOfSourceBuild)
 #enable testing
 INCLUDE(CTest)
- 
+
 macro_ensure_out_of_source_build("$(PROJECT_NAME) requires an out of source build.")
 
 # enable 64 bits off_t on 32 bits plateforms
@@ -98,8 +98,6 @@ STRING(REPLACE "." "" _PYLIBS_VERSION_NODOTS ${PythonLibs_VERSION})
 set(PYLIBS_VERSION_NODOTS ${_PYLIBS_VERSION_NODOTS} CACHE INTERNAL "" FORCE)
 message(STATUS ${PYLIBS_VERSION_NODOTS})
 
-
-
 add_subdirectory(packaging)
 add_subdirectory(doc)
 add_subdirectory(src)
@@ -108,3 +106,7 @@ add_subdirectory(test)
 
 enable_testing()
 
+# install status dashboard
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/dashboard
+        DESTINATION ${WWW_INSTALL_DIR}/dashboard
+        COMPONENT dashboard)

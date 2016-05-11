@@ -1,0 +1,19 @@
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript
+  ================================================== -->
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+
+  <script type="text/javascript">
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+  })
+  </script>
+
+</body>
+</html>

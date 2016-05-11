@@ -21,7 +21,7 @@ Group:				Applications/Internet
 License:			ASL 2.0
 URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 # svn export http://svn.cern.ch/guest/lcgdm/ugr/trunk ugr
-Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz 
+Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
@@ -57,7 +57,7 @@ The default deployment style is accessible by any HTTP/Webdav compatible client.
 %package private-devel
 Summary:			Development files for %{name}
 Group:				Applications/Internet
-Requires:			%{name}%{?_isa} = %{version}-%{release} 
+Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			pkgconfig
 
 %description private-devel
@@ -66,8 +66,10 @@ Headers files for %{name}'s plugin development.
 %package http-plugin
 Summary:			Http and WebDav plugin for %{name}
 Group:				Applications/Internet
-Requires:			%{name}%{?_isa} = %{version}-%{release} 
+Requires:			%{name}%{?_isa} = %{version}-%{release}
 Requires:			davix-libs >= 0.5.1
+Requires:			php-fpm
+Requires:			php-pecl-memcache
 Provides:                       %{name}-dav-plugin = %{version}-%{release}
 
 %description http-plugin
@@ -180,7 +182,7 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/ugr/libugrlocplugin_s3.so
 %{_libdir}/ugr/libugrlocplugin_azure.so
 %{_libdir}/ugr/libugrlocplugin_davrucio.so
-
+/var/www/html/dashboard/*
 
 %files lfc-plugin
 %defattr (-,root,root)
@@ -205,4 +207,3 @@ make DESTDIR=%{buildroot} install
  - initial draft
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
  - initial draft
-
