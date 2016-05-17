@@ -16,7 +16,7 @@
           $color="danger";
         }
 ?>
-          <div data-toggle="tooltip" title="<?php echo "From " . gmdate("h:m:s Y-m-d", $chunk->start) . " to " . gmdate("h:m:s Y-m-d", $chunk->end) ?>" class="progress-bar progress-bar-<?php echo $color ?>" style="width: <?php echo $percentage ?>%;"></div>
+          <div data-toggle="tooltip" title="<?php echo "From " . gmdate("h:i:s Y-m-d", $chunk->start) . " to " . gmdate("h:i:s Y-m-d", $chunk->end) ?>" class="progress-bar progress-bar-<?php echo $color ?>" style="width: <?php echo $percentage ?>%;"></div>
 <?php
       }
 ?>
