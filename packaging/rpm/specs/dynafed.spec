@@ -24,6 +24,7 @@ URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
+
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
 BuildRequires:                  boost-devel >= 1.48.0
 %else
