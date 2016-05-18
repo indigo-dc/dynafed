@@ -40,13 +40,13 @@ BuildRequires:		GeoIP-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
-BuildRequires:          python
-BuildRequires:          python-devel
+BuildRequires:		python
+BuildRequires:		python-devel
 
 %if %systemd
 # possible deps to configure the journal for practical logging
 %else
-Requires:               rsyslog
+Requires:		rsyslog
 %endif
 
 
@@ -197,6 +197,7 @@ make DESTDIR=%{buildroot} install
 
 %files dmlite-plugin
 %defattr (-,root,root)
+%attr (-,root,root)
 %{_libdir}/ugr/libugrlocplugin_dmliteclient.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
