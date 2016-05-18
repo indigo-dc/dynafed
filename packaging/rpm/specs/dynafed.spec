@@ -14,7 +14,7 @@
 
 
 Name:				dynafed
-Version:			1.2.0
+Version:			1.2.1
 Release:			2%{?dist}
 Summary:			Ultra-scalable dynamic system for federating HTTP-based storage resources
 Group:				Applications/Internet
@@ -211,7 +211,7 @@ make DESTDIR=%{buildroot} install
 /var/www/html/dashboard/*
 
 %changelog
-* Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.0-2
- - Little packaging mods for inclusion into EPEL
+* Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.1-1
+ - Little packaging fixes for inclusion into EPEL
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
  - initial draft
