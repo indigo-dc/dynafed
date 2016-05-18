@@ -204,6 +204,7 @@ make DESTDIR=%{buildroot} install
 
 
 %files dmlite-frontend
+%defattr (-,root,root)
 %{_libdir}/ugr/libugrdmlite.so
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmlite.conf
 %config(noreplace) %{_sysconfdir}/httpd/conf.d/zlcgdm-ugr-dav.conf
