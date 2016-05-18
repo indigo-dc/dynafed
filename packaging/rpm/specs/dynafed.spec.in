@@ -21,7 +21,7 @@ Group:				Applications/Internet
 License:			ASL 2.0
 URL:				https://svnweb.cern.ch/trac/lcgdm/wiki
 # svn export http://svn.cern.ch/guest/lcgdm/ugr/trunk ugr
-Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}.tar.gz
+Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{name}/%{name}-%{version}-%{release}.tar.gz
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
@@ -51,8 +51,14 @@ Requires:               rsyslog
 
 
 %description
-The Dynafed project provides a dynamic, scalable HTTP resource federation mechanism for distributed storage systems.
-The default deployment style is accessible by any HTTP/Webdav compatible client. The core components can be used to design frontends based on other protocols.
+The Dynafed project provides a dynamic, scalable HTTP resource federation
+mechanism for distributed storage systems.
+It supports backends exposing HTTP, WebDAV, S3, Azure as access
+protocols. In the S3 and Azure case it hides the secret keys and
+exploits pre-signed URLs.
+The default deployment style is accessible by any HTTP/Webdav compatible
+client. The core components can be used to design frontends based on
+other protocols.
 
 %package private-devel
 Summary:			Development files for %{name}
@@ -203,7 +209,7 @@ make DESTDIR=%{buildroot} install
 /var/www/html/dashboard/*
 
 %changelog
-* Thu Apr 28 2016 Fabrizio Furano <furano at cern.ch>
- - initial draft
+* Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.0-2
+ - Little packaging mods for inclusion into EPEL
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
  - initial draft
