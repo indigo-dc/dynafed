@@ -25,9 +25,9 @@ Source0:			http://grid-deployment.web.cern.ch/grid-deployment/dms/lcgutil/tar/%{
 BuildRoot:			%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 %if %{?fedora}%{!?fedora:0} >= 17 || %{?rhel}%{!?rhel:0} >= 7
-BuildRequires:                  boost-devel >= 1.48.0
+BuildRequires:			boost-devel >= 1.48.0
 %else
-BuildRequires:                  boost148-devel >= 1.48.0
+BuildRequires:			boost148-devel >= 1.48.0
 %endif
 
 BuildRequires:		cmake
@@ -51,14 +51,14 @@ Requires:               rsyslog
 
 
 %description
-The Dynafed project provides a dynamic, scalable HTTP resource federation
-mechanism for distributed storage systems.
-It supports backends exposing HTTP, WebDAV, S3, Azure as access
-protocols. In the S3 and Azure case it hides the secret keys and
-exploits pre-signed URLs.
-The default deployment style is accessible by any HTTP/Webdav compatible
-client. The core components can be used to design frontends based on
-other protocols.
+The Dynafed project provides a dynamic, scalable HTTP resource
+federation mechanism for distributed storage systems.
+It supports backends exposing HTTP, WebDAV, S3, Azure as
+access protocols. In the S3 and Azure case it hides the secret
+keys and exploits pre-signed URLs.
+The default deployment style is accessible by any HTTP/Webdav
+compatible client. The core components can be used to design
+frontends based on other protocols.
 
 %package private-devel
 Summary:			Development files for %{name}
