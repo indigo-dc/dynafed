@@ -28,7 +28,7 @@
       <tr>
         <td rowspan="<?php echo $rowspan ?>" class="<?php echo $td_class ?>"><?php echo $point->state ?></td>
         <td><?php echo $point->name ?></td>
-        <td><?php echo gmdate("h:m:s Y-m-d", $point->lastcheck) ?></td>
+        <td><?php echo gmdate("h:i:s Y-m-d", $point->lastcheck) ?></td>
         <td><?php echo $point->latency ?></td>
       </tr>
 
