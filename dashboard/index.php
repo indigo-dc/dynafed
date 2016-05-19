@@ -19,7 +19,7 @@ else {
 
   // load all previous history
   $history = array();
-  for ($i=$idx; $i >= $idx-1000+1; $i--) {
+  for ($i=$idx; $i >= $idx-500+1; $i--) {
     $str = $mem->get("Ugrpluginstats_$i");
     if($str == "") break;
     $history[] = new AllPluginStatus($mem->get("Ugrpluginstats_$i"));
