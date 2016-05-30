@@ -102,7 +102,9 @@ Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
 Requires:                       dmlite-libs%{?_isa} >= 0.7.6
+%if %systemd == 0
 Requires:                       mod_proxy_fcgi
+%endif
 Requires:                       php-fpm
 Requires:                       php-pecl-memcache
 
