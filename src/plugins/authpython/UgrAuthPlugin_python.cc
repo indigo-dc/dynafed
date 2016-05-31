@@ -308,7 +308,7 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
                      "sys.stdout = StdoutCatcher()\n"
                      "sys.stderr = StderrCatcher()\n"
                      "sys.path.append(\"/\")\n"
-                     "sys.path.append(\"/etc/ugr.conf.d/\")\n"
+                     "sys.path.append(\"/etc/ugr/conf.d/\")\n"
                      );
 
   
