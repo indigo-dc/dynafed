@@ -163,7 +163,7 @@ make DESTDIR=%{buildroot} install
 
 %files
 %defattr (-,root,root)
-%{_libdir}/libugrconnector.so*
+%{_libdir}/libugrconnector.so.*
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
 %{_libdir}/ugr/libugrnoloopplugin.so
 %{_libdir}/ugr/libugrauthplugin_python*.so
