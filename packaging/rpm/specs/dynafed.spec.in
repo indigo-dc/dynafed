@@ -30,7 +30,7 @@ BuildRequires:			boost-devel >= 1.48.0
 BuildRequires:			boost148-devel >= 1.48.0
 %endif
 
-Provides: libugrconnector.so.1.2.2()(64bit)
+## Provides: libugrconnector.so.1.2.2()(64bit)
 
 BuildRequires:		cmake
 BuildRequires:		dmlite-devel >= 0.7.6

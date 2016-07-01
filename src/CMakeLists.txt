@@ -79,7 +79,7 @@ target_link_libraries(ugrconnector "dl" ${Boost_LIBRARIES} ${LIBMEMCACHED_LIBRAR
 
 # Install directive. This is the library core, to which LFC/DPM should have dependencies
 install(TARGETS ugrconnector
-  PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+  PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
   LIBRARY DESTINATION ${LIB_INSTALL_DIR}
   COMPONENT core)
 
