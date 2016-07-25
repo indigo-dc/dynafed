@@ -3,14 +3,14 @@
 /*
  *  Copyright (c) CERN 2015
  *  Author: Fabrizio Furano (CERN IT-SDC)
- * 
+ *
  *  Licensed under the Apache License, Version 2.0
  *  See the LICENSE file for further information
- * 
+ *
  */
 
 
-/** 
+/**
  * @file   UgrLocPlugin_Azure.cc
  * @brief  Plugin that talks to a Microsoft Azure endpoint
  * @author Fabrizio Furano
@@ -36,21 +36,23 @@ using namespace std;
 UgrLocPlugin_Azure::UgrLocPlugin_Azure(UgrConnector & c, std::vector<std::string> & parms) :
     UgrLocPlugin_s3(c, parms) {
     Info(UgrLogger::Lvl1, "UgrLocPlugin_Azure", "UgrLocPlugin_Azure: Starting Azure access");
-    
+
     configure_Azure_parameters(getConfigPrefix() + name);
-    
+
     params.setProtocol(Davix::RequestProtocol::Azure);
     checker_params.setProtocol(Davix::RequestProtocol::Azure);
+    checker_url = base_url_endpoint;
+    checker_url.ensureTrailingSlash();
 }
 
 
 
 void UgrLocPlugin_Azure::configure_Azure_parameters(const std::string & prefix){
 
-    
+
     signature_validity = (time_t)pluginGetParam<long>(prefix, "azure.signaturevalidity", 3600);
     Info(UgrLogger::Lvl1, name, " Azure signature validity is " << signature_validity);
-    
+
 
     params.setAzureKey( pluginGetParam<std::string>(prefix, "azure.key") );
     checker_params.setAzureKey( pluginGetParam<std::string>(prefix, "azure.key") );
@@ -82,8 +84,3 @@ Davix::Uri UgrLocPlugin_Azure::signURI(const Davix::RequestParams & params, cons
 
     return Davix::Azure::signURI(params.getAzureKey(), method, url, expirationTime);
 }
-
-
-
-
-

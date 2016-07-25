@@ -7,7 +7,7 @@
  *
  *  Licensed under the Apache License, Version 2.0
  *  See the LICENSE file for further information
- * 
+ *
  */
 
 
@@ -218,14 +218,14 @@ UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> 
     if (params_size > 3) {
         Info(UgrLogger::Lvl1, "UgrLocPlugin_[http/dav]", "Try to bind UgrLocPlugin_[http/dav] with " << parms[3]);
         base_url_endpoint = Davix::Uri(parms[3]);
-
+        checker_url = base_url_endpoint;
     } else {
         Error("UgrLocPlugin_[http/dav]", "Not enough parameters in the plugin line.");
         throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
     }
     load_configuration(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::Http);
-    
+
     params.setOperationRetry(1);
 }
 
@@ -271,7 +271,7 @@ void UgrLocPlugin_http::runsearch(struct worktoken *op, int myidx) {
 
     // Doublecheck if we are disabled. If so, quickly close the pending requests
     bool imdisabled = !availInfo.isOK();
-    
+
     if (op->wop == wop_CheckReplica) {
 
         // Do the default name translation for this plugin (prefix xlation)
@@ -456,46 +456,39 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
     Davix::DavixError* tmp_err = NULL;
 
     PluginEndpointStatus st;
-    st.errcode = 404;
+    st.errcode = -1;
 
-    LocPluginLogInfo(UgrLogger::Lvl3, fname, "Start checker for " << base_url_endpoint << " with time " << availInfo.time_interval_ms);
+    LocPluginLogInfo(UgrLogger::Lvl3, fname, "Start checker for " << checker_url << " with time " << availInfo.time_interval_ms);
     // Measure the time needed
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
-    Davix::HeadRequest req(dav_core, base_url_endpoint, &tmp_err);
+    Davix::HeadRequest req(dav_core, checker_url, &tmp_err);
 
     if( tmp_err != NULL){
-        Error(fname, "Status Checker: Impossible to initiate Query to" << base_url_endpoint << ", Error: "<< tmp_err->getErrMsg());
+        Error(fname, "Status Checker: Impossible to initiate Query to" << checker_url << ", Error: "<< tmp_err->getErrMsg());
+        Davix::DavixError::clearError(&tmp_err);
         return;
     }
 
     // Set decent timeout values for the operation
     req.setParameters(checker_params);
 
-    if (req.executeRequest(&tmp_err) == 0)
-        st.errcode = req.getRequestCode();
-
-    // Prepare the text status message to display
-    if (tmp_err) {
-        std::ostringstream ss;
-        ss << "HTTP status error on " << base_url_endpoint << " " << tmp_err->getErrMsg();
-        st.explanation = ss.str();
-        st.errcode = -1;
-    }
+    req.executeRequest(&tmp_err);
+    st.errcode = req.getRequestCode();
 
     // Finish measuring the time needed
     clock_gettime(CLOCK_MONOTONIC, &t2);
-
 
     // Calculate the latency
     struct timespec diff_time;
     timespec_sub(&t2, &t1, &diff_time);
     st.latency_ms = (diff_time.tv_sec)*1000 + (diff_time.tv_nsec) / 1000000L;
 
-
     // We assume that the prefix directory was set correctly, and we worry only
     // about the functionality of the endpoint
-    if ( ((st.errcode >= 200) && (st.errcode < 400)) || (st.errcode == 404) ) {
+    // Special case: azure returns 400 when statting the base of a bucket
+    if ( ((st.errcode >= 200) && (st.errcode < 400)) || (st.errcode == 404) ||
+          (st.errcode == 400 && !checker_params.getAzureKey().empty()) ) {
         if (st.latency_ms > availInfo.max_latency_ms) {
             std::ostringstream ss;
             ss << "Latency of the endpoint " << st.latency_ms << "ms is superior to the limit " << availInfo.max_latency_ms << "ms";
@@ -509,26 +502,23 @@ void UgrLocPlugin_http::do_CheckInternal(int myidx, const char* fname){
         }
 
     } else {
-        if (st.explanation.empty()) {
-            std::ostringstream ss;
-            ss << "Server error reported : " << st.errcode;
-            st.explanation = ss.str();
-        }
-        st.state = PLUGIN_ENDPOINT_OFFLINE;
+        std::ostringstream ss;
+        ss << "Error when contacting '" << checker_url << "'. Status code: " << req.getRequestCode() << ". ";
+        if(tmp_err) ss << "DavixError: '" << tmp_err->getErrMsg() << "'";
+        st.explanation = ss.str();
 
+        st.state = PLUGIN_ENDPOINT_OFFLINE;
     }
 
     st.lastcheck = time(0);
     availInfo.setStatus(st, true, (char *) name.c_str());
 
-
     // Propagate this fresh result to the extcache
     if (extCache)
         extCache->putEndpointStatus(&st, name);
 
-
+    Davix::DavixError::clearError(&tmp_err);
     LocPluginLogInfo(UgrLogger::Lvl4, fname, " End checker for " << base_url_endpoint);
-
 }
 
 
@@ -538,25 +528,25 @@ int UgrLocPlugin_http::run_findNewLocation(const std::string & lfn, std::shared_
   std::string canonical_name(base_url_endpoint.getString());
   std::string xname;
   std::string alt_prefix;
-  
+
   // do name translation
   if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
     LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
     return 1;
   }
-  
 
-  
+
+
   canonical_name.append("/");
   canonical_name.append(xname);
-  
+
   std::string new_Location = HttpUtils::protocolHttpNormalize(canonical_name);
   HttpUtils::pathHttpNomalize(new_Location);
-  
+
   handler->addReplica(new_Location, getID());
   LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << new_Location);
   return 0;
-  
+
 }
 
 
@@ -642,7 +632,7 @@ int UgrLocPlugin_http::run_deleteDir(const string & lfn, const std::shared_ptr<D
 }
 
 
-// concat URI + path 
+// concat URI + path
 bool UgrLocPlugin_http::concat_http_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
     //static const char * fname = "UgrLocPlugin_http::concat_http_url_path";
     // remove "//", not sure if this is the right thing to do, need to double check
@@ -660,4 +650,3 @@ bool UgrLocPlugin_http::concat_http_url_path(const std::string & base_uri, const
     canonical.append(it, path.end());
     return true;
 }
-

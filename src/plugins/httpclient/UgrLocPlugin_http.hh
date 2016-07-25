@@ -12,10 +12,10 @@
  *
  *  Licensed under the Apache License, Version 2.0
  *  See the LICENSE file for further information
- * 
+ *
  */
 
-/** 
+/**
  * @file   UgrLocPlugin_http.hh
  * @brief  Plugin that talks to any Webdav compatible endpoint
  * @author Devresse Adrien
@@ -41,7 +41,7 @@ class HttpAvailabilityChecker;
  *  auth_passwd : password	   - password to use for the basic HTTP authentification
  * */
 
-/** 
+/**
  * Location Plugin for Ugr, inherit from the LocationPlugin
  *  allow to do basic query to a webdav endpoint
  **/
@@ -50,14 +50,14 @@ public:
 
     /**
      * Follow the standard LocationPlugin construction
-     * 
+     *
      * */
     UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> & parms);
     virtual ~UgrLocPlugin_http(){}
 
 
     /**
-     *  main executor for the plugin    
+     *  main executor for the plugin
      **/
     virtual void runsearch(struct worktoken *op, int myidx);
 
@@ -66,8 +66,8 @@ public:
     virtual int do_List(UgrFileInfo *fi, LocationInfoHandler *handler) {
         return 0;
     }
-    
-    
+
+
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
     virtual int run_deleteReplica(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
@@ -77,6 +77,7 @@ public:
 protected:
     int flags;
     Davix::Uri base_url_endpoint;
+    Davix::Uri checker_url;
 
     Davix::Context dav_core;
     Davix::DavPosix pos;
@@ -100,4 +101,3 @@ protected:
 
 
 #endif
-
