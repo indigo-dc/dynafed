@@ -48,7 +48,7 @@
 \contentsline {subsubsection}{\numberline {6.7.3}glb.authorizationplugin}{36}
 \contentsline {subsubsection}{\numberline {6.7.4}The Python authorization plugin}{36}
 \contentsline {subsection}{\numberline {6.8}Location Plugin}{38}
-\contentsline {subsubsection}{\numberline {6.8.1}locplugin.$<$ID$>$.listable}{38}
+\contentsline {subsubsection}{\numberline {6.8.1}locplugin.$<$ID$>$.listable}{39}
 \contentsline {subsubsection}{\numberline {6.8.2}locplugin.$<$ID$>$.readable}{39}
 \contentsline {subsubsection}{\numberline {6.8.3}locplugin.$<$ID$>$.writable}{39}
 \contentsline {subsubsection}{\numberline {6.8.4}locplugin.$<$ID$>$.max\_latency}{39}
@@ -65,7 +65,7 @@
 \contentsline {subsubsection}{\numberline {6.9.10}locplugin.$<$ID$>$.status\_checker\_frequency}{43}
 \contentsline {subsubsection}{\numberline {6.9.11}locplugin.$<$ID$>$.auth\_login}{43}
 \contentsline {subsubsection}{\numberline {6.9.12}locplugin.$<$ID$>$.auth\_passwd}{43}
-\contentsline {subsubsection}{\numberline {6.9.13}locplugin.$<$ID$>$.metalink\_support}{43}
+\contentsline {subsubsection}{\numberline {6.9.13}locplugin.$<$ID$>$.metalink\_support}{44}
 \contentsline {subsection}{\numberline {6.10}S3 plugin}{44}
 \contentsline {subsubsection}{\numberline {6.10.1}locplugin.$<$ID$>$.s3.priv\_key}{44}
 \contentsline {subsubsection}{\numberline {6.10.2}locplugin.$<$ID$>$.s3.pub\_key}{44}
@@ -77,4 +77,4 @@
 \contentsline {subsubsection}{\numberline {6.11.2}locplugin.$<$ID$>$.azure.signaturevalidity}{47}
 \contentsline {subsection}{\numberline {6.12}DAVrucio plugin}{47}
 \contentsline {subsubsection}{\numberline {6.12.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{48}
-\contentsline {subsection}{\numberline {6.13}DMLite client plugin}{49}
+\contentsline {subsection}{\numberline {6.13}DMLite client plugin}{50}

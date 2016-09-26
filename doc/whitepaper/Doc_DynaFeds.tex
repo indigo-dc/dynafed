@@ -768,7 +768,7 @@ Parameters:\\
 
 Example:\\
 This example authorizes the anonymous user to get metadata, redirections and listings from the \textit{/fed/atlas} prefix.\\
-\lstinline"glb.allowusers[] nobody /fed/atlas rl" \\
+\lstinline"glb.allowusers[]: nobody /fed/atlas rl" \\
 
 \subsubsection{glb.allowgroups[]}
 Add a rule that authorizes a specific group to read, write into, or list. Spaces in the group name are not supported.
@@ -787,7 +787,7 @@ Parameters:\\
 Example:\\
 This example authorizes any user that is reported to belong to the 'atlas' group to get metadata, redirections and listings from
 the \textit{/fed/atlas} prefix.\\
-\lstinline"glb.allowgroups[] atlas /fed/atlas rl" \\
+\lstinline"glb.allowgroups[]: atlas /fed/atlas rl" \\
 
 
 \textbf{Important}:\\ All the auth plugins are checked for a given query, including the default one. If the default plugin has not to grant any authorization, then it has to
