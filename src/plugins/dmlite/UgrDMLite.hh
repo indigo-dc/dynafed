@@ -15,7 +15,7 @@
  *
  *  Licensed under the Apache License, Version 2.0
  *  See the LICENSE file for further information
- * 
+ *
  */
 
 
@@ -64,6 +64,7 @@ namespace dmlite {
         virtual std::vector<Replica> getReplicas(const std::string&) throw (DmException);
 
 
+        virtual DmStatus extendedStat(ExtendedStat&, const std::string&, bool) throw (DmException);
         virtual ExtendedStat extendedStat(const std::string&, bool) throw (DmException);
 
         virtual void unlink(const std::string&) throw (DmException);
@@ -92,9 +93,9 @@ namespace dmlite {
         static UgrConnector *conn;
 
         SecurityCredentials secCredentials;
-        
+
         std::string workingdir;
-        
+
         std::string getAbsPath(std::string &path);
 
     };
@@ -127,7 +128,7 @@ namespace dmlite {
         };
 
 	virtual GroupInfo getGroup(const std::string& groupName) throw (DmException);
-	
+
         virtual std::vector<dmlite::GroupInfo> getGroups() throw (DmException) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
@@ -172,7 +173,7 @@ namespace dmlite {
 
 
   class UgrFactory;
-  
+
   class UgrPoolManager: public PoolManager {
   public:
     UgrPoolManager(UgrFactory* factory) throw (DmException);
@@ -191,7 +192,7 @@ namespace dmlite {
     Location whereToWrite(const std::string& path) throw (DmException);
 
   private:
-    
+
     StackInstance* si_;
 
     /// The corresponding factory.
@@ -210,7 +211,7 @@ namespace dmlite {
         UgrFactory() throw (DmException);
         /// Destructor
         ~UgrFactory() ;
-	
+
         virtual void configure(const std::string& key, const std::string& value) throw (DmException);
         Catalog* createCatalog(CatalogFactory* factory,
                 PluginManager* pm) throw (DmException);
@@ -222,12 +223,12 @@ namespace dmlite {
         Authn* createAuthn(PluginManager* pm) throw (DmException) {
             return new UgrAuthn();
         };
-	
+
 	PoolManager* createPoolManager(PluginManager*) throw (DmException) {
 	  return new UgrPoolManager(this);
-	  
+
 	}
-	
+
 
     private:
         std::string cfgfile;
@@ -244,5 +245,3 @@ namespace dmlite {
 }
 
 #endif
-
-

@@ -11,7 +11,7 @@
  *
  *  Licensed under the Apache License, Version 2.0
  *  See the LICENSE file for further information
- * 
+ *
  */
 
 
@@ -61,10 +61,10 @@ int ugrToDmliteErrCode(const UgrCode & c){
 
 
 UgrFactory::UgrFactory() throw (DmException) {
-  
+
     ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
     Info(UgrLogger::Lvl3, "UgrFactory::UgrFactory", "UgrFactory starting");
-  
+
     // Make sure that there is an UgrConnector ready to be used
     // NOTE: calls to this ctor MUST be serialized
     UgrCatalog::getUgrConnector();
@@ -113,7 +113,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
         //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
         //        throw;
     }
-    
+
     try {
 	Info(UgrLogger::Lvl0, "registerPluginUgr", "Registering Ugr PoolManager Factory");
         pm->registerPoolManagerFactory(f);
@@ -122,7 +122,7 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
         //            throw DmException(DM_NO_FACTORY, std::string("UgrDMLite can not be loaded first"));
         //        throw;
     }
-    
+
 }
 
 
@@ -133,11 +133,11 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
 /// Checks the permissions inside a given func
 /// throws an exception if not allowed
 void checkperm(const char *fname, UgrConnector *ugr, const SecurityCredentials &c, char *reqresource, char reqmode) throw (DmException) {
-  
+
   if ( ugr->checkperm(fname, c.clientName, c.remoteAddress, c.fqans, c.getKeys(), reqresource, reqmode) ) {
-      
+
     // Not allowed. Throw a damn exception
-      
+
     std::ostringstream ss;
     ss << "Unauthorized operation " << reqmode << " on " << reqresource;
     ss << " ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
@@ -153,10 +153,10 @@ void checkperm(const char *fname, UgrConnector *ugr, const SecurityCredentials &
         if (i < vs.size() - 1) ss << ",";
       }
     }
-    
+
     throw DmException(EACCES, ss.str());
   }
-  
+
 }
 
 
@@ -190,8 +190,8 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
     UgrFileInfo *nfo = 0;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    
-        
+
+
     checkperm("UgrCatalog::getReplicas", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'r');
 
     if (!getUgrConnector()->locate((std::string&)abspath,
@@ -246,7 +246,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
 //
 //
 //            };
-            
+
             Info(UgrLogger::Lvl3, "UgrCatalog::getReplicas", r.rfn << " " << r.server << " " << i->location << " " << i->latitude << " " << i->longitude);
             replicas.push_back(r);
         }
@@ -261,7 +261,7 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) throw (DmE
         Info(UgrLogger::Lvl1, "UgrCatalog::getReplicas", "No endpoints have replicas of this file. " << path);
         throw DmException(DMLITE_NO_REPLICAS, "No active endpoints have replicas of this file now. " + path);
     }
-    
+
     return replicas;
 }
 
@@ -293,19 +293,15 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
     nfo->unlock();
 }
 
-dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
-  
-    
-    
-    dmlite::ExtendedStat st;
+DmStatus UgrCatalog::extendedStat(dmlite::ExtendedStat& st, const std::string& path, bool followsym) throw (DmException) {
     UgrFileInfo *nfo = 0;
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
     checkperm("UgrCatalog::extendedStat", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'r');
-    
+
     if (!getUgrConnector()->stat((std::string&)abspath, UgrClientInfo(secCredentials.remoteAddress), &nfo) &&
         nfo &&
         (nfo->getStatStatus() == nfo->Ok) ) {
-      
+
         st.csumtype[0] = '\0';
         st.csumvalue[0] = '\0';
         st.guid[0] = '\0';
@@ -316,19 +312,24 @@ dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool foll
 
         fillstat(st.stat, nfo);
 
-        return st;
+        return DmStatus();
     }
-    throw DmException(ENOENT, "File not found");
+    return DmStatus(ENOENT, "File not found");
 }
 
-
+dmlite::ExtendedStat UgrCatalog::extendedStat(const std::string& path, bool followsym) throw (DmException) {
+    ExtendedStat ret;
+    DmStatus st = this->extendedStat(ret, path, followsym);
+    if(!st.ok()) throw st.exception();
+    return ret;
+}
 
 void UgrCatalog::unlink(const std::string& path) throw (DmException){
 
     UgrReplicaVec vl;
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    
+
     checkperm("UgrCatalog::unlink", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'd');
 
     UgrCode ret_code = getUgrConnector()->remove(abspath,
@@ -390,7 +391,7 @@ class myDirectory {
     std::set<UgrFileItem>::iterator idx;
 
     std::string origpath;
-    
+
     dmlite::ExtendedStat buf;
     struct dirent direntbuf;
 
@@ -408,7 +409,7 @@ Directory* UgrCatalog::openDir(const std::string &path) throw (DmException) {
 
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
     checkperm("UgrCatalog::openDir", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'l');
-    
+
     if (!getUgrConnector()->list((std::string&)abspath,
 				 UgrClientInfo(secCredentials.remoteAddress),
 				 &fi)
@@ -471,30 +472,30 @@ dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException
     myDirectory *d = (myDirectory *) opaque;
     std::string s;
     bool trynext;
-    
+
     if (!opaque) return 0;
     if (!d->nfo) return 0;
-    
+
     do {
       trynext = false;
-      
+
       {
         boost::lock_guard<UgrFileInfo > l(*d->nfo);
         d->nfo->touch();
         s = d->origpath;
         if (d->idx == d->nfo->subdirs.end()) return 0;
-        
+
         // Only the name is relevant here, it seems
         d->buf.name = (d->idx)->name;
         d->idx++;
       }
-      
-      
+
+
       if (*s.rbegin() != '/')
         s += "/";
-      
+
       s += d->buf.name;
-      
+
       try {
         d->buf.stat = extendedStat(s, true).stat;
       }
@@ -502,10 +503,10 @@ dmlite::ExtendedStat* UgrCatalog::readDirx(Directory *opaque) throw (DmException
         Info(UgrLogger::Lvl1, "UgrCatalog::readDirx", "No stat information for '" << s << "'");
         trynext = true;
       }
-      
+
     } while (trynext);
-    
-    
+
+
 
     return &(d->buf);
 }
@@ -532,7 +533,7 @@ std::string UgrCatalog::getAbsPath(std::string &path) {
 // ---------------------------
 
 dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentials &c) throw (dmlite::DmException) {
-  
+
   std::ostringstream ss;
   ss << "ClientName: " << c.clientName << " Addr:" << c.remoteAddress << " fqans: ";
   for (unsigned int i = 0; i < c.fqans.size(); i++ ) {
@@ -547,30 +548,30 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(const SecurityCredentia
       if (i < vs.size() - 1) ss << ",";
     }
   }
-  
 
-  
+
+
   Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", ss.str());
-  
-  
+
+
   return new dmlite::SecurityContext(c, userinfo, groupinfo);
-  
+
 }
 
 
 UserInfo UgrAuthn::getUser(const std::string& userName) throw (DmException)
 {
   UserInfo   user;
-  
-  
-  
+
+
+
     user.name      = userName;
     user["ca"]     = std::string();
     user["banned"] = 0;
     user["uid"]    = 0u;
-    
+
   Info(UgrLogger::Lvl3, "UgrAuthn::getUser", "usr:" << userName);
-  
+
   return user;
 }
 
@@ -581,16 +582,16 @@ UserInfo UgrAuthn::getUser(const std::string& userName) throw (DmException)
 GroupInfo UgrAuthn::getGroup(const std::string& groupName) throw (DmException)
 {
   GroupInfo group;
-  
-  
+
+
   Info(UgrLogger::Lvl3, "UgrAuthn::getGroup", "group:" << groupName);
-    
+
   group.name      = groupName;
   group["gid"]    = 0;
   group["banned"] = 0;
-    
+
   Info(UgrLogger::Lvl3, "UgrAuthn::getGroup", "Exiting. group:" << groupName);
-  
+
   return group;
 }
 
@@ -603,9 +604,9 @@ void UgrAuthn::getIdMap(const std::string& userName,
 {
   std::string vo;
   GroupInfo   group;
-  
+
   Info(UgrLogger::Lvl3, "UgrAuthn::getIdMap", "usr:" << userName);
-  
+
   // Clear
   groups->clear();
 
@@ -613,7 +614,7 @@ void UgrAuthn::getIdMap(const std::string& userName,
   *user = this->getUser(userName);
 
   // No VO information, so use the mapping file to get the group
-  if (groupNames.empty()) {   
+  if (groupNames.empty()) {
     group = this->getGroup("dummy");
     groups->push_back(group);
   }
@@ -625,7 +626,7 @@ void UgrAuthn::getIdMap(const std::string& userName,
       groups->push_back(group);
     }
   }
-  
+
   Info(UgrLogger::Lvl3, "UgrAuthn::getIdMap", "Exiting. usr:" << userName);
 }
 
@@ -633,7 +634,7 @@ void UgrAuthn::getIdMap(const std::string& userName,
 
 dmlite::SecurityContext* UgrAuthn::createSecurityContext(void) throw (DmException) {
   Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", "Creating dummy");
-    
+
   UserInfo user;
   std::vector<GroupInfo> groups;
   GroupInfo group;
@@ -643,10 +644,10 @@ dmlite::SecurityContext* UgrAuthn::createSecurityContext(void) throw (DmExceptio
   group.name   = "root";
   group["gid"] = 0;
   groups.push_back(group);
-  
+
   SecurityContext* sec = new SecurityContext(SecurityCredentials(), user, groups);
   Info(UgrLogger::Lvl1, "UgrAuthn::createSecurityContext", SecurityCredentials().clientName << " " << SecurityCredentials().remoteAddress);
-  
+
   return sec;
 }
 
@@ -659,7 +660,7 @@ UgrPoolManager::UgrPoolManager(UgrFactory* factory) throw (DmException):
   si_(NULL), factory_(factory), secCtx_(NULL)
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::UgrPoolManager", "Ctor");
-  
+
 
 }
 
@@ -686,14 +687,14 @@ void UgrPoolManager::setStackInstance(StackInstance* si) throw (DmException)
 void UgrPoolManager::setSecurityContext(const SecurityContext* ctx) throw (DmException)
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::setSecurityContext", "Entering");
-    
+
   if (!ctx) {
     Info(UgrLogger::Lvl4, "UgrPoolManager::setSecurityContext", "Context is null. Exiting.");
     return;
   }
-  
+
   this->secCtx_ = ctx;
-  
+
   Info(UgrLogger::Lvl3, "UgrPoolManager::setSecurityContext", "Exiting.");
 }
 
@@ -701,7 +702,7 @@ void UgrPoolManager::setSecurityContext(const SecurityContext* ctx) throw (DmExc
 std::vector<Pool> UgrPoolManager::getPools(PoolAvailability availability) throw (DmException)
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::getPools", " PoolAvailability: " << availability);
-  
+
   std::vector<Pool> pools;
   return pools;
 }
@@ -720,17 +721,17 @@ Pool UgrPoolManager::getPool(const std::string& poolname) throw (DmException)
 Location UgrPoolManager::whereToRead(const std::string& path) throw (DmException)
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::whereToRead", " Path: " << path);
-  
-  
+
+
   // This will throw an exception if no file
   std::vector<Replica> r = si_->getCatalog()->getReplicas(path);
-  
+
   Chunk single( r[0].rfn, 0, 1234);
-  
-    
+
+
   Info(UgrLogger::Lvl3, "UgrPoolManager::whereToRead", " Path: " << path << " --> " << single.toString());
-  return Location(1, single);          
- 
+  return Location(1, single);
+
 }
 
 
@@ -747,36 +748,26 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
 {
   Info(UgrLogger::Lvl4, "UgrPoolManager::whereToWrite", " path:" << path);
   UgrReplicaVec vl;
-  
+
   checkperm("UgrPoolManager::whereToWrite", UgrCatalog::getUgrConnector(), secCtx_->credentials, (char *)path.c_str(), 'w');
-  
+
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,
     UgrClientInfo(secCtx_->credentials.remoteAddress),
 						 vl );
-  
+
   if(!code.isOK()){
       throw DmException(DMLITE_SYSERR(ugrToDmliteErrCode(code)), code.getString());
   }
   if (vl.size() > 0) {
     Chunk ck( vl[0].name, 0, 1234);
-    
+
     // Done!
     Info(UgrLogger::Lvl3, "UgrPoolManager::whereToWrite", "Exiting. loc:" << ck.toString());
     return Location(1, ck);
   }
-  
+
   Error("UgrPoolManager::whereToWrite", " Didn't get a destination from writing : " << path);
   throw DmException(DMLITE_SYSERR(ENOENT),
 		    "Didn't get a destination for writing : %s", path.c_str());
 }
-
-
-
-
-
-
-
-
-
-
