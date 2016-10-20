@@ -33,8 +33,8 @@ BuildRequires:			boost148-devel >= 1.48.0
 ## Provides: libugrconnector.so.1.2.2()(64bit)
 
 BuildRequires:		cmake
-BuildRequires:		dmlite-devel >= 0.7.6
-BuildRequires:		dmlite-private-devel  >= 0.7.6
+BuildRequires:		dmlite-devel >= 0.8.0
+BuildRequires:		dmlite-private-devel  >= 0.8.0
 BuildRequires:		davix-devel >= 0.5.1
 BuildRequires:          lfc-devel >= 1.8.8
 BuildRequires:          gfal2-devel
@@ -94,6 +94,7 @@ Plugin for the Logical File catalog system for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
+Requires:                       dmlite-libs%{?_isa} >= 0.8.0
 
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
@@ -103,7 +104,7 @@ Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
-Requires:                       dmlite-libs%{?_isa} >= 0.7.6
+Requires:                       dmlite-libs%{?_isa} >= 0.8.0
 %if %systemd == 0
 Requires:                       mod_proxy_fcgi
 %endif
