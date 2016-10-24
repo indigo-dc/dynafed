@@ -48,6 +48,7 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
     int i;
     bool haddirectives = false;
     unsigned int l;
+    unsigned int buflen;
     
     Info(UgrLogger::Lvl4, fname, "isallowed. res: " << reqresource);
     
@@ -57,6 +58,11 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
         char buf[1024];
         CFG->ArrayGetString("glb.allowusers", buf, i);
         if (!buf[0]) break;
+        if ( (buflen = strlen(buf)) < 4) {
+          Error(fname, "UgrAuthorization::isallowed Bad allowusers directive: '" << buf << "'");
+          break;
+        }
+        
         haddirectives = true;
         
         
@@ -67,14 +73,29 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
         modes[0] = '\0';
         char *p1, *p2;    
         
+        // Look for the space that separates userDN from permissions
         if ( (p1=strchr(buf, ' ')) ) {
-            
+            // A space was found
+          
             // If the name starts with a double quote, look for a closing double quote instead of a space
             if (buf[0] == '"') {
                 if ( (p1=strchr(buf+1, '"')) ) {
-                    l = (unsigned int)(p1-buf-1);
-                    strncpy(user, buf+1, l);
-                    user[l] = '\0';
+                  // Compute the length of the quoted string. This is the userDN
+                  l = (unsigned int)(p1-buf-1);
+                  
+                  if ( l+2 > buflen ) {
+                    Error(fname, "UgrAuthorization::isallowed Bad allowusers directive: '" << buf << "'");
+                    break;
+                  }
+                  
+                  strncpy(user, buf+1, l);
+                  user[l] = '\0';
+                  
+                  // p1 is pointing to the closing double quote now
+                  // We advance it by one, and it should point to a space. If not then it's an error.
+                  if ( *(++p1) != ' ')
+                    Error(fname, "UgrAuthorization::isallowed Syntax error in allowusers directive, missing separator space after closing quote: '" << buf << "'");
+                  
                 }
                 else {
                     Error(fname, "UgrAuthorization::isallowed Mismatched quotes in allowusers directive: '" << buf << "'");
@@ -84,12 +105,25 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
             else {
                 // If no double quote, then just look for a space
                 l = (unsigned int)(p1-buf);
+                
+                if ( l+2 > buflen ) {
+                  Error(fname, "UgrAuthorization::isallowed Bad allowusers directive: '" << buf << "'");
+                  break;
+                }
+                
                 strncpy(user, buf, l);
                 user[l] = '\0';
             }
             
+            // Here p1 points to the space after the userDN, we look for the next one. No quotes supported in the dir name
             if ( (p2=strchr(p1+1, ' ')) ) {
                 l = (unsigned int)(p2-p1-1);
+                
+                if ( p2-buf+3 > buflen ) {
+                  Error(fname, "UgrAuthorization::isallowed Bad allowusers directive: '" << buf << "'");
+                  break;
+                }
+                
                 strncpy(resource, p1+1, l);
                 resource[l] = '\0';
                 
