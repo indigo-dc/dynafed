@@ -155,7 +155,7 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
   i = 0;
   do {
     char buf[1024];
-    bool iswildcard = false;
+    
     
     CFG->ArrayGetString("glb.allowgroups", buf, i);
     if (!buf[0]) break;  
@@ -253,6 +253,9 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
         return true;
       }
       
+      // If the group name ends with a * then we treat it as a wildcard
+      bool iswildcard = (group[0] && group[ strlen(group)-1 ] == '*');
+    
       for (unsigned int j = 0; j < fqans.size(); j++ ) {
         Info(UgrLogger::Lvl4, "isallowed", "Checking group. fqan:'" << fqans[j] << "' group:'" << group <<
         "' reqresource:'" << reqresource << "' resource:'" << resource << "' reqmode:'" << reqmode << "' modes:" << modes );

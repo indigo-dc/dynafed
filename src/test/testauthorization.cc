@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
   
   UgrConnector ugr;
   UgrClientInfo cli_info("localhost");
-  UgrFileInfo *fi = 0;
   
   long long cnt = atoll(argv[1]);
   
@@ -51,14 +50,15 @@ int main(int argc, char **argv) {
   string user = argv[3];
   
   std::vector<std::string> groups;
-  groups.push_back( argv[4] );
+  // To create an empty fqans list, just pass an empty string
+  if (strlen(argv[4])) groups.push_back( argv[4] );
   
   string resource = argv[5];
   string privs = argv[6];
   int res;
 
   
-  if ( res = ugr.checkperm("testperm.cc", user, "localhost", groups, groups, (char *)resource.c_str(), privs[0]) ) {
+  if ( (res = ugr.checkperm("testperm.cc", user, "localhost", groups, groups, (char *)resource.c_str(), privs[0])) ) {
     
     // Not allowed. Explain why
     
