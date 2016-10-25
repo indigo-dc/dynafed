@@ -4,7 +4,7 @@
 # Simple script that prints its arguments and then decides if the user has
 # to be authorized
 # usage:
-# ugrauth_example.py clientname remoteaddr <fqan1> .. <fqanN>
+# ugrauth_example.py <clientname> <remoteaddr> <fqan1> .. <fqanN>
 #
 # Return value means:
 # 0 --> access is GRANTED
@@ -12,6 +12,22 @@
 #
 
 import sys
+
+# A class that one day may implement an authorization list loaded
+# from a file during the initialization of the module.
+# If this list is written only during initialization, and used as a read-only thing
+# no synchronization primitives (e.g. semaphores) are needed, and the performance will be maximized
+class _Authlist(object):
+    def __init__(self):
+        print "I claim I am loading an authorization list from a file, maybe one day I will :-)"
+
+# Initialize a global instance of the authlist class, to be used inside the isallowed() function
+myauthlist = _Authlist()
+
+
+
+# The main function that has to be invoked from ugr to determine if a request
+# has to be performed or not
 def isallowed(clientname="unknown", remoteaddr="nowhere", resource="none", mode="0", fqans=None, keys=None):
     print "clientname", clientname
     print "remote address", remoteaddr
