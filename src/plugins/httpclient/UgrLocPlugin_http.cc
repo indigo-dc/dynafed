@@ -221,7 +221,7 @@ UgrLocPlugin_http::UgrLocPlugin_http(UgrConnector & c, std::vector<std::string> 
         checker_url = base_url_endpoint;
     } else {
         Error("UgrLocPlugin_[http/dav]", "Not enough parameters in the plugin line.");
-        throw std::runtime_error("No correct parameter for this Plugin : Unable to load the plugin properly ");
+        throw std::runtime_error("Incorrect parameters for this Plugin : Unable to load the plugin.");
     }
     load_configuration(getConfigPrefix() + name);
     params.setProtocol(Davix::RequestProtocol::Http);
