@@ -9,7 +9,8 @@
 
 
 #include "UgrAuthPlugin_python.hh"
-
+#include <time.h>
+#include "libs/time_utils.h"
 
 
 
@@ -245,9 +246,22 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
     
   Info(UgrLogger::Lvl4, fname, "Invoking func");
+  {
+    struct timespec t1, t2;
+    clock_gettime(CLOCK_MONOTONIC, &t1);
     
-  pValue = PyObject_CallObject(pFunc, pArgs);
-  Py_DECREF(pArgs);
+    pValue = PyObject_CallObject(pFunc, pArgs);
+    Py_DECREF(pArgs);
+    
+    // Finish measuring the time needed
+    clock_gettime(CLOCK_MONOTONIC, &t2);
+    struct timespec diff_time;
+    timespec_sub(&t2, &t1, &diff_time);
+    int latency_ms = (diff_time.tv_sec)*1000 + (diff_time.tv_nsec) / 1000000L;
+    
+    if (latency_ms > 5)
+      Error(fname, "The python authorization function took too long to execute. Please fix it or remove it.");
+  }
     
   if (pValue != NULL) {
     retval = PyInt_AsLong(pValue);
