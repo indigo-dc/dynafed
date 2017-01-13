@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynafed v1.2.3}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynafed v1.2.4}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -1038,10 +1038,15 @@ Syntax:\\
 \subsubsection{locplugin.$<$ID$>$.s3.signaturevalidity}
 The S3 signatures computed by this plugin will expire after the given number of seconds. Default is one hour.\\
 
-\textit{\textbf{A signed URL has to be requested to Dynafed in the moment it is used. Storing a signed URL or caching it makes no sense, as it
-is more complex than just requesting access to a file with a plain URL.\\
+\textit{\textbf{A signed URL has to be requested to Dynafed in the moment it is used. Storing a signed URL or caching it in the client
+is a questionable practice, at best.\\
 The typical example for this is a batch job. As the queueing time for the job is not predictable, the job should
 be given the plain HTTP(s) URL that has to be used against Dynafed by the job itself when it starts.\\}}
+
+
+\textit{\textbf{Please note that the signature validity must be longer than the maximum TTL of entries in the
+internal or external cache (the parameters infohandler.itemmaxttl and extcache.memcached.ttl)\\}}
+
 
 Syntax:\\
 \lstinline"locplugin.<ID>.s3.signaturevalidity: <number of seconds>"\\
@@ -1105,10 +1110,13 @@ Syntax:\\
 \subsubsection{locplugin.$<$ID$>$.azure.signaturevalidity}
 The Azure signatures computed by this plugin will expire after the given number of seconds. Default is one hour.\\
 
-\textit{\textbf{A signed URL has to be requested to Dynafed in the moment it is used. Storing a signed URL or caching it makes no sense, as it
-is more complex than just requesting access to a file with a plain URL.\\
+\textit{\textbf{A signed URL has to be requested to Dynafed in the moment it is used. Storing a signed URL or caching it in the client
+is a questionable practice, at best.\\
 The typical example for this is a batch job. As the queueing time for the job is not predictable, the job should
 be given the plain HTTP(s) URL that has to be used against Dynafed by the job itself when it starts.\\}}
+
+\textit{\textbf{Please note that the signature validity must be longer than the maximum TTL of entries in the internal or
+external cache (the parameters infohandler.itemmaxttl and extcache.memcached.ttl)\\}}
 
 Syntax:\\
 \lstinline"locplugin.<ID>.azure.signaturevalidity: <number of seconds>"\\

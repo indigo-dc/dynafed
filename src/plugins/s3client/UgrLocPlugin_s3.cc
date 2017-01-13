@@ -434,6 +434,19 @@ void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
     signature_validity = (time_t)pluginGetParam<long>(prefix, "s3.signaturevalidity", 3600);
     Info(UgrLogger::Lvl1, name, " S3 signature validity is " << signature_validity);
     
+    // Now abort everything if the signature validity clashes with the settings of the cache
+    // This thing is very important, hence no cache parameter means bad  
+    if (signature_validity < (time_t)pluginGetParam<long>(prefix, "extcache.memcached.ttl", 1000000)-60) {
+      Error(name, " The given signature validity of " << signature_validity <<
+        " is not compatible with the expiration time of the external cache extcache.memcached.ttl");
+      throw 1;
+    }
+    if (signature_validity < (time_t)pluginGetParam<long>(prefix, "infohandler.itemmaxttl", 1000000)-60) {
+      Error(name, " The given signature validity of " << signature_validity <<
+      " is not compatible with the expiration time of the internal cache infohandler.itemmaxttl");
+      throw 1;
+    }
+
     const bool s3_alternate = pluginGetParam<bool>(prefix, "s3.alternate", false);
     if (s3_priv_key.size() > 0 && s3_pub_key.size()){
         Info(UgrLogger::Lvl1, name, " S3 authentication defined");
