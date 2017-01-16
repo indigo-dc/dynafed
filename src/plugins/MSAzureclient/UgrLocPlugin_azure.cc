@@ -55,12 +55,12 @@ void UgrLocPlugin_Azure::configure_Azure_parameters(const std::string & prefix){
 
     // Now abort everything if the signature validity clashes with the settings of the cache
     // This thing is very important, hence no cache parameter means bad  
-    if ( signature_validity < (time_t)CFG->GetLong(prefix, "extcache.memcached.ttl", 1000000)-60 ) {
+    if ( signature_validity < (time_t)CFG->GetLong("extcache.memcached.ttl", 1000000L)-60 ) {
       Error(name, " The given signature validity of " << signature_validity <<
       " cannot be smaller than the expiration time of the external cache extcache.memcached.ttl");
       throw 1;
     }
-    if ( signature_validity < (time_t)CFG->GetLong(prefix, "infohandler.itemmaxttl", 1000000)-60 ) {
+    if ( signature_validity < (time_t)CFG->GetLong("infohandler.itemmaxttl", 1000000L)-60 ) {
       Error(name, " The given signature validity of " << signature_validity <<
       " cannot be smaller than the expiration time of the internal cache infohandler.itemmaxttl");
       throw 1;
