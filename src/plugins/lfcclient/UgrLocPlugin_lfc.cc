@@ -103,9 +103,6 @@ void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
     }
 
     const bool debug = c->GetBool(pref_dot + std::string("debug"), false);
-    if(debug){
-        gfal_set_verbose(GFAL_VERBOSE_TRACE | GFAL_VERBOSE_DEBUG | GFAL_VERBOSE_VERBOSE | GFAL_VERBOSE_TRACE_PLUGIN);
-    }
 
 }
 

@@ -179,7 +179,6 @@ make DESTDIR=%{buildroot} install
 %config(noreplace) %{_sysconfdir}/logrotate.d/*
 %endif
 %doc RELEASE-NOTES
-%doc doc/whitepaper/Doc_DynaFeds.pdf
 
 %files private-devel
 %defattr (-,root,root)
