@@ -102,7 +102,7 @@ void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
          Info(UgrLogger::Lvl1, "UgrLocPlugin_lfc", " default Csec Mechanism");
     }
 
-    const bool debug = c->GetBool(pref_dot + std::string("debug"), false);
+    const bool debug = UgrCFG->GetBool(pref_dot + std::string("debug"), false);
 
 }
 
