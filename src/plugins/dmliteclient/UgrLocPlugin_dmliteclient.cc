@@ -280,7 +280,7 @@ void UgrLocPlugin_dmlite::runsearch(struct worktoken *op, int myidx) {
                             // Lock the file instance
                             unique_lock<mutex> l(*(op->fi));
 
-                            if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                            if (cnt++ > UgrCFG->GetLong("glb.maxlistitems", 2000)) {
                                 LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                                 listerror = true;
                                 op->fi->subdirs.clear();

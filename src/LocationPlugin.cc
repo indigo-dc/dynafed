@@ -102,7 +102,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     extCache(NULL),
     exiting(false)
 {
-    CFG->Set(&c.getConfig());
+    UgrCFG->Set(&c.getConfig());
 
     const char *fname = "LocationPlugin::LocationPlugin";
     nthreads = 0;
@@ -148,7 +148,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     s += ".xlatepfx";
 
     std::string v;
-    v = CFG->GetString(s.c_str(), (char *) "");
+    v = UgrCFG->GetString(s.c_str(), (char *) "");
 
     if (v.size() > 0) {
 
@@ -181,7 +181,7 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     s = pfx;
     s += ".pfxmultiply";
 
-    v = CFG->GetString(s.c_str(), (char *) "");
+    v = UgrCFG->GetString(s.c_str(), (char *) "");
 
     if (v.size() > 0) {
 
@@ -205,28 +205,28 @@ LocationPlugin::LocationPlugin(UgrConnector & c, std::vector<std::string> &parms
     std::sort(pfxmultiply.begin(), pfxmultiply.end(), sortStringsByDescLen);
     
     // get state checker
-    availInfo.state_checking = CFG->GetBool(pfx + ".status_checking", true);
+    availInfo.state_checking = UgrCFG->GetBool(pfx + ".status_checking", true);
     Info(UgrLogger::Lvl1, fname, " State checker : " << ((availInfo.state_checking) ? "ENABLED" : "DISABLED"));
 
-    availInfo.time_interval_ms = CFG->GetLong(pfx + ".status_checker_frequency", 5000);
+    availInfo.time_interval_ms = UgrCFG->GetLong(pfx + ".status_checker_frequency", 5000);
     Info(UgrLogger::Lvl1, fname, " State checker frequency : " << availInfo.time_interval_ms);
 
     // get maximum latency
-    availInfo.max_latency_ms = CFG->GetLong(pfx + ".max_latency", 10000);
+    availInfo.max_latency_ms = UgrCFG->GetLong(pfx + ".max_latency", 10000);
     Info(UgrLogger::Lvl1, fname, " Maximum endpoint latency " << availInfo.max_latency_ms << "ms");
 
     // get slave status
-    slave = CFG->GetBool(pfx + ".slave", false);
+    slave = UgrCFG->GetBool(pfx + ".slave", false);
     Info(UgrLogger::Lvl1, fname, " Slave : " << ((slave) ? "true" : "false"));
 
     // get replica xlator
-    replicaXlator = CFG->GetBool(pfx + ".replicaxlator", false);
+    replicaXlator = UgrCFG->GetBool(pfx + ".replicaxlator", false);
     Info(UgrLogger::Lvl1, fname, " ReplicaXlator : " << ((replicaXlator) ? "true" : "false"));
 
     // get readable / writable / listable capability
-    setFlag(Readable, CFG->GetBool(pfx + ".readable", true));
-    setFlag(Listable, CFG->GetBool(pfx + ".listable", true));
-    setFlag(Writable, CFG->GetBool(pfx + ".writable", false));
+    setFlag(Readable, UgrCFG->GetBool(pfx + ".readable", true));
+    setFlag(Listable, UgrCFG->GetBool(pfx + ".listable", true));
+    setFlag(Writable, UgrCFG->GetBool(pfx + ".writable", false));
     Info(UgrLogger::Lvl1, fname, "configured as " <<  (getFlag(Readable)?"Readable":"")
                     << " " << (getFlag(Writable)?"Writable":"")
                     << " " << (getFlag(Listable)?"Listable":""));

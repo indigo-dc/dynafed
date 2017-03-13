@@ -248,7 +248,7 @@ void UgrLocPlugin_dav::runsearch(struct worktoken *op, int myidx) {
                         // We have modified the data, hence set the dirty flag
                         op->fi->dirtyitems = true;
 
-                        if (cnt++ > CFG->GetLong("glb.maxlistitems", 2000)) {
+                        if (cnt++ > UgrCFG->GetLong("glb.maxlistitems", 2000)) {
                             LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Setting as non listable. cnt=" << cnt);
                             listerror = true;
                             op->fi->subdirs.clear();

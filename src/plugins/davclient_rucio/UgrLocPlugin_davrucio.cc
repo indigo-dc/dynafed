@@ -48,7 +48,7 @@ UgrLocPlugin_davrucio::UgrLocPlugin_davrucio(UgrConnector & c, std::vector<std::
     s += ".xlatepfx_ruciohash";
 
     std::string v;
-    v = CFG->GetString(s.c_str(), (char *) "");
+    v = UgrCFG->GetString(s.c_str(), (char *) "");
 
     if (v.size() > 0) {
 

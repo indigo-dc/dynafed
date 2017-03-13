@@ -43,7 +43,7 @@ void ugr_load_plugin(UgrConnector & c,
     int i = 0;
     v_plugin.clear();
     do {
-        CFG->ArrayGetString(key_list_config.c_str(), buf, i);
+        UgrCFG->ArrayGetString(key_list_config.c_str(), buf, i);
         if (buf[0]) {
             T* filter = NULL;
             std::vector<std::string> parms = tokenize(buf, " ");

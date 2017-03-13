@@ -193,13 +193,13 @@ int UgrConnector::init(char *cfgfile) {
             return 1;
         }
 
-        if (CFG->ProcessFile(cfgfile)) {
+        if (UgrCFG->ProcessFile(cfgfile)) {
             Error(fname, "Error processing config file." << cfgfile << std::endl;);
             return 1;
         }
 
-        bool debug_stderr = CFG->GetBool("glb.log_stderr", true);
-        long debuglevel = CFG->GetLong("glb.debug", 1);
+        bool debug_stderr = UgrCFG->GetBool("glb.log_stderr", true);
+        long debuglevel = UgrCFG->GetLong("glb.debug", 1);
         DebugSetLevel(debuglevel);
         UgrLogger::get()->SetStderrPrint(debug_stderr);
 	
@@ -207,7 +207,7 @@ int UgrConnector::init(char *cfgfile) {
 	int i = 0;
 	do {
 	  char buf[1024];
-	  CFG->ArrayGetString("glb.debug.components", buf, i);
+	  UgrCFG->ArrayGetString("glb.debug.components", buf, i);
 	  if (!buf[0]) break;
 	  UgrLogger::get()->setLogged(buf, true);
 	  ++i;
@@ -217,7 +217,7 @@ int UgrConnector::init(char *cfgfile) {
         plugin_dir = getPluginDirectory();
 
         // Get the tick pace from the config
-        ticktime = CFG->GetLong("glb.tick", 10);
+        ticktime = UgrCFG->GetLong("glb.tick", 10);
 
         // Init the extcache, as now we have the cfg parameters
         extCache.Init();
@@ -260,8 +260,8 @@ int UgrConnector::init(char *cfgfile) {
             authorizationPlugins.push_back(p);
         }
         
-        n2n_pfx = CFG->GetString("glb.n2n_pfx", (char *) "");
-        n2n_newpfx = CFG->GetString("glb.n2n_newpfx", (char *) "");
+        n2n_pfx = UgrCFG->GetString("glb.n2n_pfx", (char *) "");
+        n2n_newpfx = UgrCFG->GetString("glb.n2n_newpfx", (char *) "");
         UgrFileInfo::trimpath(n2n_pfx);
         UgrFileInfo::trimpath(n2n_newpfx);
         Info(UgrLogger::Lvl1, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
@@ -363,7 +363,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitStat(fi, CFG->GetLong("glb.waittimeout", 30));
+    do_waitStat(fi, UgrCFG->GetLong("glb.waittimeout", 30));
 
     bool addtoparent = false;
     
@@ -386,7 +386,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     
     }
 
-    if ( addtoparent && CFG->GetBool("glb.addchildtoparentonstat", true) )
+    if ( addtoparent && UgrCFG->GetBool("glb.addchildtoparentonstat", true) )
       this->locHandler.addChildToParentSubitem(*this, l_lfn, false);
 
     *nfo = fi;
@@ -423,7 +423,7 @@ UgrCode UgrConnector::remove(const std::string &lfn, const UgrClientInfo &client
         }
     }
 
-    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+    if(response_handler->wait(UgrCFG->GetLong("glb.waittimeout", 30)) == false){
          Info(UgrLogger::Lvl2, fname, "Timeout triggered during deleteAll for " << l_lfn);
     }
 
@@ -475,7 +475,7 @@ UgrCode UgrConnector::removeDir(const std::string &lfn, const UgrClientInfo &cli
         }
     }
 
-    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+    if(response_handler->wait(UgrCFG->GetLong("glb.waittimeout", 30)) == false){
          Info(UgrLogger::Lvl2, fname, "Timeout triggered during async_deleteDir for " << l_lfn);
     }
 
@@ -520,7 +520,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     stat(l_lfn, client, &fi);
         
     // check if override
-    if(CFG->GetBool("glb.allow_overwrite", true) == false){
+    if(UgrCFG->GetBool("glb.allow_overwrite", true) == false){
         
         if(fi && fi->status_items !=  UgrFileInfo::NotFound){
             return UgrCode(UgrCode::OverwriteNotAllowed, "Ovewrite existing resource is not allowed");
@@ -542,7 +542,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     }
 
 
-    if(response_handler->wait(CFG->GetLong("glb.waittimeout", 30)) == false){
+    if(response_handler->wait(UgrCFG->GetLong("glb.waittimeout", 30)) == false){
          Info(UgrLogger::Lvl2, fname, "Timeout triggered during findNewLocation for " << l_lfn);
     }
 
@@ -560,7 +560,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     filterAndSortReplicaList(new_locations, client);
 
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
-    if ( CFG->GetBool("glb.addchildtoparentonput", true) )
+    if ( UgrCFG->GetBool("glb.addchildtoparentonput", true) )
       this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
 
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
@@ -715,7 +715,7 @@ int UgrConnector::locate(std::string &lfn, const UgrClientInfo &client, UgrFileI
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitLocate(fi, CFG->GetLong("glb.waittimeout", 30));
+    do_waitLocate(fi, UgrCFG->GetLong("glb.waittimeout", 30));
 
 
     // If the status is noinfo, we can mark it as not found
@@ -792,7 +792,7 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     }
 
     // wait for the search to finish by looking at the pending object
-    do_waitList(fi, CFG->GetLong("glb.waittimeout", 30));
+    do_waitList(fi, UgrCFG->GetLong("glb.waittimeout", 30));
 
 
 
@@ -807,7 +807,7 @@ int UgrConnector::list(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     }
 
     // Stat all the childs in parallel, eventually
-    if (CFG->GetBool("glb.statsubdirs", false))
+    if (UgrCFG->GetBool("glb.statsubdirs", false))
         statSubdirs(fi);
 
     *nfo = fi;

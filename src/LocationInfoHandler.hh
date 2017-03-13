@@ -95,14 +95,14 @@ public:
 
     void Init(ExtCacheHandler *cache) {
         // Get the max capacity from the config
-        maxitems = CFG->GetLong("infohandler.maxitems", 1000000);
+        maxitems = UgrCFG->GetLong("infohandler.maxitems", 1000000);
         // Get the lifetime of an entry after the last reference
-        maxttl = CFG->GetLong("infohandler.itemttl", 3600);
+        maxttl = UgrCFG->GetLong("infohandler.itemttl", 3600);
         // Get the maximum allowed lifetime of an entry
-        maxmaxttl = CFG->GetLong("infohandler.itemmaxttl", 86400);
-        maxttl_negative = CFG->GetLong("infohandler.itemttl_negative", 10);
+        maxmaxttl = UgrCFG->GetLong("infohandler.itemmaxttl", 86400);
+        maxttl_negative = UgrCFG->GetLong("infohandler.itemttl_negative", 10);
        
-        if (CFG->GetBool("infohandler.useextcache", true)) {
+        if (UgrCFG->GetBool("infohandler.useextcache", true)) {
             Info(UgrLogger::Lvl1, "LocationInfoHandler::Init", "Setting the ExtCacheHandler");
             extcache = cache;
         }

@@ -56,7 +56,7 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
   i = 0;
   do {
     char buf[1024];
-    CFG->ArrayGetString("glb.allowusers", buf, i);
+    UgrCFG->ArrayGetString("glb.allowusers", buf, i);
     if (!buf[0]) break;
     if ( (buflen = strlen(buf)) < 4) {
       Error(fname, "UgrAuthorization::isallowed Bad allowusers directive: '" << buf << "'");
@@ -157,7 +157,7 @@ bool UgrAuthorizationPlugin::isallowed(const char *fname,
     char buf[1024];
     
     
-    CFG->ArrayGetString("glb.allowgroups", buf, i);
+    UgrCFG->ArrayGetString("glb.allowgroups", buf, i);
     if (!buf[0]) break;  
     if ( (buflen = strlen(buf)) < 4) {
       Error(fname, "UgrAuthorization::isallowed Bad allowgroups directive: '" << buf << "'");

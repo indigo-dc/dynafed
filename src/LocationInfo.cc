@@ -389,7 +389,7 @@ void UgrFileInfo::takeStat(const struct stat &st) {
     
     status_statinfo = UgrFileInfo::Ok;
 
-    if ((long) st.st_nlink > CFG->GetLong("glb.maxlistitems", 2000)) {
+    if ((long) st.st_nlink > UgrCFG->GetLong("glb.maxlistitems", 2000)) {
         Info(UgrLogger::Lvl2, fname, "Setting " << name << " as non listable. nlink=" << st.st_nlink);
         subdirs.clear();
         status_items = UgrFileInfo::Error;

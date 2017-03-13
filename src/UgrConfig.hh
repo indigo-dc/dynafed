@@ -26,7 +26,7 @@
 
 
 /// The macro to be used to access the cfg options
-#define CFG (UgrConfig::GetInstance())
+#define UgrCFG (UgrConfig::GetInstance())
 
 // Utility to tokenize compound lines
 std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);

@@ -27,7 +27,7 @@
 #include <queue>
 
 void ExtCacheHandler::Init() {
-    maxttl = CFG->GetLong("extcache.memcached.ttl", 600);
+    maxttl = UgrCFG->GetLong("extcache.memcached.ttl", 600);
     if (maxttl <= 0) {
       Error("ExtCacheHandler::Init", "extcache.memcached.ttl cannot be smaller than 1 second. Setting to 600 secs instead of " << maxttl);
       maxttl = 600;
@@ -263,7 +263,7 @@ memcached_st* ExtCacheHandler::getconn() {
 
         // Configure the memcached behaviour
         Info(UgrLogger::Lvl3, fname, "Setting memcached protocol...");
-        if (CFG->GetBool("extcache.memcached.useBinaryProtocol", true)) {
+        if (UgrCFG->GetBool("extcache.memcached.useBinaryProtocol", true)) {
             r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
             if (r != MEMCACHED_SUCCESS) {
                 Error(fname, "Cannot set memcached protocol to binary. retval=" << r);
@@ -305,7 +305,7 @@ memcached_st* ExtCacheHandler::getconn() {
         char server[1024];
         do {
 
-            CFG->ArrayGetString("extcache.memcached.server", buf, i++);
+            UgrCFG->ArrayGetString("extcache.memcached.server", buf, i++);
 
             if (!buf[0]) break;
 
@@ -395,7 +395,7 @@ memcached_st* ExtCacheHandler::getsyncconn() {
 
         // Configure the memcached behaviour
         Info(UgrLogger::Lvl3, fname, "Setting memcached protocol...");
-        if (CFG->GetBool("extcache.memcached.useBinaryProtocol", true)) {
+        if (UgrCFG->GetBool("extcache.memcached.useBinaryProtocol", true)) {
             r = memcached_behavior_set(res, MEMCACHED_BEHAVIOR_BINARY_PROTOCOL, 1);
             if (r != MEMCACHED_SUCCESS) {
                 Error(fname, "Cannot set memcached protocol to binary. retval=" << r);
@@ -438,7 +438,7 @@ memcached_st* ExtCacheHandler::getsyncconn() {
         char server[1024];
         do {
 
-            CFG->ArrayGetString("extcache.memcached.server", buf, i++);
+            UgrCFG->ArrayGetString("extcache.memcached.server", buf, i++);
 
             if (!buf[0]) break;
 

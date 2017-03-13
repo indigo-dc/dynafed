@@ -197,7 +197,7 @@ static void configureHeader(const std::string & plugin_name,
     while(1) {
         std::ostringstream ss;
         ss << prefix << "." << "custom_header";
-        CFG->ArrayGetString(ss.str().c_str(), s, p++);
+        UgrCFG->ArrayGetString(ss.str().c_str(), s, p++);
         if (s) {
             Info(UgrLogger::Lvl1, plugin_name, " Configuring additional headers #" << p << ":" << s);
             vector<string> vs = tokenize(s, ":");

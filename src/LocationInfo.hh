@@ -222,7 +222,7 @@ public:
         //
         // As an addition, we also add the possibility of waiting for less plugins, in order to
         // be a bit fuzzy
-      if (pending_locations > CFG->GetLong("glb.waitlesslocations", 0)) return InProgress;
+      if (pending_locations > UgrCFG->GetLong("glb.waitlesslocations", 0)) return InProgress;
 
         if (status_locations == Ok) return Ok;
         return status_locations;

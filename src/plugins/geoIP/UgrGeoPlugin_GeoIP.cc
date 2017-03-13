@@ -55,7 +55,7 @@ using namespace std;
 
 
 UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
-    CFG->Set(&c.getConfig());
+    UgrCFG->Set(&c.getConfig());
 
     const char *fname = "UgrGeoPlugin::UgrGeoPlugin_GeoIP";
     Info(UgrLogger::Lvl1, fname, "Creating instance.");
@@ -65,7 +65,7 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
     
     
     // Approximately 10km by default
-    long ifuzz = CFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
+    long ifuzz = UgrCFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
     fuzz = ifuzz / 6371.0; // Radius of Earth in Km
     fuzz = fuzz * fuzz;
     Info(UgrLogger::Lvl4, "UgrFileItemGeoComp::applyFilterOnReplicaList", "Fuzz " << ifuzz << " normalized into " << fuzz);
