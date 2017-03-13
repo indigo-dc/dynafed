@@ -26,8 +26,8 @@
 
 
 #include "SimpleDebug.hh"
-#include "Config.hh"
-#include "UgrConfig.h"
+#include "Config.h"
+#include "UgrConfig.hh"
 #include "LocationInfo.hh"
 #include "LocationInfoHandler.hh"
 #include "HostsInfoHandler.hh"
@@ -127,7 +127,7 @@ public:
 
     virtual ~UgrConnector();
 
-    Config & getConfig() const;
+    UgrConfig & getConfig() const;
 
     UgrLogger & getLogger() const;
 

@@ -20,7 +20,7 @@
 #include "LocationInfo.hh"
 #include "UgrMemcached.pb.h"
 #include <iomanip>
-
+#include "UgrConfig.hh"
 
 using namespace boost;
 using namespace std;

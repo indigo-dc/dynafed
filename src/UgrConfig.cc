@@ -11,14 +11,14 @@
  * 
  */
 
-/** @file   Config.hh
+/** @file   UgrConfig.cc
  * @brief  A helper class that implements a configuration manager. A place where to get configuration parameters from
  * @author Fabrizio Furano
  * @date   Jan 2011
  */
 
 
-#include "Config.hh"
+#include "UgrConfig.hh"
 #include "SimpleDebug.hh"
 
 #include <iostream>
@@ -32,13 +32,13 @@ using namespace std;
 
 
 // The instance of our singleton
-Config *Config::inst = NULL;
+UgrConfig *UgrConfig::inst = NULL;
 
-Config *Config::GetInstance() {
-  if (Config::inst == NULL)
-    Config::inst = new Config();
+UgrConfig *UgrConfig::GetInstance() {
+  if (UgrConfig::inst == NULL)
+    UgrConfig::inst = new UgrConfig();
 
-  return Config::inst;
+  return UgrConfig::inst;
 }
 
 
@@ -95,17 +95,17 @@ void DoSubst(string &s) {
 
 }
 
-int Config::ProcessFile(char *filename) {
+int UgrConfig::ProcessFile(char *filename) {
   char fn[10240];
 
   // Do the parsing
   if (!filename || (strlen(filename) == 0)) {
     strcpy(fn, "/etc/ugr.conf");
-    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Using default config file " << fn);
+    Info(UgrLogger::Lvl1, "UgrConfig::ProcessFile", "Using default config file " << fn);
   }
   else {
     strcpy(fn, filename);
-    Info(UgrLogger::Lvl1, "Config::ProcessFile", "Reading config file " << fn);
+    Info(UgrLogger::Lvl1, "UgrConfig::ProcessFile", "Reading config file " << fn);
   }
 
   string line, token, val;
@@ -120,7 +120,7 @@ int Config::ProcessFile(char *filename) {
 
           // Avoid comments
           if (line[0] == '#') continue;
-          Info(UgrLogger::Lvl3, "Config::ProcessFile", "fn: " << fn << " line: '" << line << "'");
+          Info(UgrLogger::Lvl3, "UgrConfig::ProcessFile", "fn: " << fn << " line: '" << line << "'");
 
           if( strncasecmp(line.c_str(), "include", 7) == 0) {
               // only interested in the path
@@ -128,7 +128,7 @@ int Config::ProcessFile(char *filename) {
               TrimSpaces(line);
               // check if path is absolute
               if(line[0] != '/') {
-                  Error("Config::ProcessFile", "Directory path must be absolute. fn: " << fn << " line: '" << line << "'");
+                  Error("UgrConfig::ProcessFile", "Directory path must be absolute. fn: " << fn << " line: '" << line << "'");
                   continue;
               }
               configfiles = ReadDirectory(line);
@@ -167,23 +167,23 @@ int Config::ProcessFile(char *filename) {
                     token = buf2;
                     // check if key already exist
                     if(arrdata.count(token) == 1) {
-                        Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
+                        Info(UgrLogger::Lvl1, "UgrConfig::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
                     }
-                    Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
+                    Info(UgrLogger::Lvl4, "UgrConfig::ProcessFile", token << "[" << arrdata[token].size() << "] <-" << val);
                 arrdata[token].push_back(val);
               }
                   else {
                     if(data.count(token) == 1) {
-                        Info(UgrLogger::Lvl1, "Config::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
+                        Info(UgrLogger::Lvl1, "UgrConfig::ProcessFile", "Duplicate key, overwritting original value. fn: " << fn << " line: '" << line << "'");
                     }
-                    Info(UgrLogger::Lvl4, "Config::ProcessFile", token << "<-" << val);
+                    Info(UgrLogger::Lvl4, "UgrConfig::ProcessFile", token << "<-" << val);
                     data[token] = val;
                   }
               }
           }
         }
     }catch(std::exception & e){
-        Error("Config::ProcessFile", "Error during configuration file processing " << fn << " "<< e.what());
+        Error("UgrConfig::ProcessFile", "Error during configuration file processing " << fn << " "<< e.what());
         return -1;
     }
 
@@ -194,7 +194,7 @@ int Config::ProcessFile(char *filename) {
     }
 
   }else {
-    Error("Config::ProcessFile", "Unable to open file " << fn); 
+    Error("UgrConfig::ProcessFile", "Unable to open file " << fn); 
     return -1;
   }
 
@@ -217,43 +217,43 @@ int Config::ProcessFile(char *filename) {
 
 
 
-void Config::SetLong(const char *name, long val) {
+void UgrConfig::SetLong(const char *name, long val) {
   char buf[1024];
 
   sprintf(buf, "%ld", val);
   data[name] = buf;
 }
 
-void Config::SetString(const char *name, char *val) {
+void UgrConfig::SetString(const char *name, char *val) {
   data[name] = val;
 }
 
 
-long Config::GetLong(const char *name, long deflt) {
+long UgrConfig::GetLong(const char *name, long deflt) {
     return GetLong(std::string(name), deflt);
 }
 
-long Config::GetLong(const string &name, long deflt){
+long UgrConfig::GetLong(const string &name, long deflt){
     if (data.find(name) == data.end()) {
         std::string newname;
-        if(!Config::FindWithWildcard(name, &newname, deflt) )
+        if(!UgrConfig::FindWithWildcard(name, &newname, deflt) )
             return deflt;
         return atol( data[newname].c_str() );
     }        
     return atol( data[name].c_str() );
 }
 
-bool Config::GetBool(const char *name, bool deflt) 
+bool UgrConfig::GetBool(const char *name, bool deflt) 
 {
   return GetBool(std::string(name), deflt);
   
 }
 
-bool Config::GetBool(const string & name, bool deflt) 
+bool UgrConfig::GetBool(const string & name, bool deflt) 
 {
   if (data.find(name) == data.end()){
       std::string newname;  
-      if(!Config::FindWithWildcard(name, &newname, deflt) )
+      if(!UgrConfig::FindWithWildcard(name, &newname, deflt) )
           return deflt;    
       else {
           if (!strcasecmp(data[newname].c_str(), "yes")) return true;
@@ -269,23 +269,23 @@ bool Config::GetBool(const string & name, bool deflt)
   return false;
 }
 
-string Config::GetString(const char *name, char *deflt) {
+string UgrConfig::GetString(const char *name, char *deflt) {
 
   return GetString(std::string(name), std::string(deflt));
 }
 
-string Config::GetString(const string & name, const string & deflt) {
+string UgrConfig::GetString(const string & name, const string & deflt) {
 
   if (data.find(name) == data.end()) {
       std::string newname;  
-      if(!Config::FindWithWildcard(name, &newname, deflt) )
+      if(!UgrConfig::FindWithWildcard(name, &newname, deflt) )
           return deflt;
       return data[newname];
   }
   return data[name];
 }
 
-void Config::GetString(const char *name, char *val, char *deflt) {
+void UgrConfig::GetString(const char *name, char *val, char *deflt) {
 
   if (!val) return;
   if (data.find(name) == data.end()) {
@@ -297,7 +297,7 @@ void Config::GetString(const char *name, char *val, char *deflt) {
 
 }
 
-void Config::ArrayGetString(const char *name, char *val, int pos) {
+void UgrConfig::ArrayGetString(const char *name, char *val, int pos) {
 
   if (!val) return;
   if (arrdata.find(name) == arrdata.end()) {
@@ -323,7 +323,7 @@ vector<string> ReadDirectory(const string& path) {
     dp = opendir(path.c_str() );
 
     if(!dp) {
-        Error("Config::ReadDirectory", "Failed to open directory: " << path);
+        Error("UgrConfig::ReadDirectory", "Failed to open directory: " << path);
         return filename_vec;
     }
     

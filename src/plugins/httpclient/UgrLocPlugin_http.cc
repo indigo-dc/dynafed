@@ -25,7 +25,7 @@
 #include "UgrLocPlugin_http.hh"
 #include "../../PluginLoader.hh"
 #include "../../ExtCacheHandler.hh"
-#include "../../Config.hh"
+#include "UgrConfig.hh"
 #include <time.h>
 #include "libs/time_utils.h"
 #include "../utils/HttpPluginUtils.hh"

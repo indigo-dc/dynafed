@@ -21,7 +21,7 @@
 #define EXTCACHEHANDLER_HH
 
 
-#include "Config.hh"
+#include "Config.h"
 #include "LocationInfo.hh"
 
 #include <libmemcached/memcached.h>

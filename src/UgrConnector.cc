@@ -146,8 +146,8 @@ UgrConnector::~UgrConnector() {
 
 }
 
-Config & UgrConnector::getConfig() const{
-    return *Config::GetInstance();
+UgrConfig & UgrConnector::getConfig() const{
+    return *UgrConfig::GetInstance();
 }
 
 UgrLogger & UgrConnector::getLogger() const{

@@ -26,7 +26,7 @@
 
 
 /// The macro to be used to access the cfg options
-#define CFG (Config::GetInstance())
+#define CFG (UgrConfig::GetInstance())
 
 // Utility to tokenize compound lines
 std::vector<std::string> tokenize(const std::string& str, const std::string& delimiters);
@@ -45,11 +45,11 @@ std::vector<std::string> ReadDirectory(const std::string& path);
 /// ... and arrays of scalars/strings as well like:
 /// LoadPlugin[] myplugin myparametersforthisplugin
 /// LoadPlugin[] myplugin myparametersforthisplugin
-class Config {
+class UgrConfig {
 protected:
-    static Config *inst;
+    static UgrConfig *inst;
 
-    Config() {
+    UgrConfig() {
     };
 
     /// Stores the simple parameters
@@ -60,11 +60,11 @@ protected:
 public:
 
     /// We are a singleton
-    static Config *GetInstance();
+    static UgrConfig *GetInstance();
 
     /// Quirk to sync singletons with plugins in shared libs
 
-    static void Set(Config *i) {
+    static void Set(UgrConfig *i) {
         inst = i;
     }
 

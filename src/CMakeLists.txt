@@ -25,10 +25,28 @@ CHECK_INCLUDE_FILE_CXX(cstdatomic HAVE_CSTDATOMIC)
 set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS_OLD}")
 
 configure_file (
-	       "${PROJECT_SOURCE_DIR}/src/UgrConfig.h.in"
-	       "${PROJECT_BINARY_DIR}/src/UgrConfig.h"
+	       "${PROJECT_SOURCE_DIR}/src/Config.h.in"
+	       "${PROJECT_BINARY_DIR}/src/Config.h"
 )
 
+set(Ugr_default_plugin_dir ${PLUGIN_INSTALL_DIR})
+
+add_definitions( -DUGR_PLUGIN_DIR_DEFAULT="${Ugr_default_plugin_dir}")
+
+# Add the binary tree to the search path for include files
+# so that we can find our Config header file
+message("DIRS: ${PROJECT_BINARY_DIR}/src")
+
+include_directories(BEFORE "${PROJECT_BINARY_DIR}")
+include_directories(BEFORE "${PROJECT_BINARY_DIR}/src/")
+
+# Set up the includes to be used for boost 
+include_directories("${Boost_INCLUDE_DIRS}")
+
+# Set up the includes to be used for protobuf
+include_directories("$PROTOBUF_INCLUDE_DIRS}")
+
+include_directories("." "utils")
 
 # test here, welcome 
 # -------------------------
@@ -41,26 +59,11 @@ ADD_CUSTOM_COMMAND(
          DEPENDS UgrMemcached.proto
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-set(Ugr_SOURCES Config.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc UgrConnector.cc /
+set(Ugr_SOURCES UgrConfig.cc LocationInfo.cc LocationInfoHandler.cc LocationPlugin.cc UgrConnector.cc /
   PluginLoader.cc SimpleDebug.cc ExtCacheHandler.cc UgrMemcached.pb.cc PluginInterface.cc UgrLogger.cpp UgrPluginLoader.cc UgrAuthorization.cc)
 
 
-set(Ugr_default_plugin_dir ${PLUGIN_INSTALL_DIR})
 
-add_definitions( -DUGR_PLUGIN_DIR_DEFAULT="${Ugr_default_plugin_dir}")
-
-# Add the binary tree to the search path for include files
-# so that we can find our Config header file
-include_directories(${PROJECT_BINARY_DIR})
-include_directories(${PROJECT_BINARY_DIR}/src)
-
-# Set up the includes to be used for boost 
-include_directories(${Boost_INCLUDE_DIRS})
-
-# Set up the includes to be used for protobuf
-include_directories($PROTOBUF_INCLUDE_DIRS})
-
-include_directories("." "utils")
 
 add_subdirectory(utils)
 add_subdirectory(plugins)

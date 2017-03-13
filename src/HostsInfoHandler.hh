@@ -22,8 +22,6 @@
 #define HOSTSINFOHANDLER_HH
 
 
-#include "Config.hh"
-
 #include <string>
 #include <map>
 #include <boost/thread.hpp>

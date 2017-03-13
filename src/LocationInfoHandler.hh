@@ -19,7 +19,7 @@
 #ifndef LOCATIONINFOHANDLER_HH
 #define LOCATIONINFOHANDLER_HH
 
-#include "UgrConfig.h"
+#include "UgrConfig.hh"
 #include "ExtCacheHandler.hh"
 #include "LocationInfo.hh"
 

@@ -19,7 +19,7 @@
 #define LOCATIONPLUGIN_HH
 
 
-#include "Config.hh"
+#include "Config.h"
 #include "SimpleDebug.hh"
 #include "LocationInfoHandler.hh"
 #include "PluginInterface.hh"

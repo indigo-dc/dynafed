@@ -19,7 +19,8 @@
 #define LOCATIONINFO_HH
 
 
-#include "Config.hh"
+#include "Config.h"
+#include "UgrConfig.hh"
 
 #include <string>
 #include <set>
