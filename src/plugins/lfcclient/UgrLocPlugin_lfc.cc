@@ -73,28 +73,28 @@ LocationPlugin(c, parms) {
 }
 
 void UgrLocPlugin_lfc::load_configuration(const std::string & prefix){
-    Config * c = Config::GetInstance();
+
     std::string pref_dot = prefix + std::string(".");
 
-    const std::string proxy_cred = c->GetString(pref_dot + std::string("cli_proxy_cert"), "");
+    const std::string proxy_cred = UgrCFG->GetString(pref_dot + std::string("cli_proxy_cert"), "");
     if(proxy_cred.empty() == false){
         Info(UgrLogger::Lvl1, "UgrLocPlugin_lfc", " Client proxy credential:  " + proxy_cred);
         g_setenv("X509_USER_PROXY",proxy_cred.c_str(), TRUE);
     }
 
-    const std::string credential_path = c->GetString(pref_dot + std::string("cli_certificate"), "");
+    const std::string credential_path = UgrCFG->GetString(pref_dot + std::string("cli_certificate"), "");
     if(credential_path.empty() == false){
         Info(UgrLogger::Lvl1, "UgrLocPlugin_lfc", " Client certificate:  " + credential_path);
         g_setenv("X509_USER_CERT",credential_path.c_str(), TRUE);
     }
 
-    const std::string privatekey_path = c->GetString(pref_dot + std::string("cli_privatekey"), "");
+    const std::string privatekey_path = UgrCFG->GetString(pref_dot + std::string("cli_privatekey"), "");
     if(privatekey_path.empty() == false){
         Info(UgrLogger::Lvl1, "UgrLocPlugin_lfc", " Client private key:  " + privatekey_path);
         g_setenv("X509_USER_KEY",privatekey_path.c_str(), TRUE);
     }
 
-    const std::string csec_mech = c->GetString(pref_dot + std::string("csec_mech"), "");
+    const std::string csec_mech = UgrCFG->GetString(pref_dot + std::string("csec_mech"), "");
     if(csec_mech.empty() == false){
         Info(UgrLogger::Lvl1, "UgrLocPlugin_lfc", " Csec mechanism:  " + csec_mech);
         g_setenv("CSEC_MECH",csec_mech.c_str(), TRUE);
