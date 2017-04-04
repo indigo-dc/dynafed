@@ -15,5 +15,8 @@ file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/html")
 ADD_CUSTOM_TARGET(doc
   doxygen "${PROJECT_BINARY_DIR}/doc/Doxyfile.cfg")
 SET( l_doc "${CMAKE_CURRENT_BINARY_DIR}/doc/html/")
-install(DIRECTORY ${l_doc}
-                DESTINATION ${DOC_INSTALL_DIR}/html) # install examples
+install(DIRECTORY ${l_doc} DESTINATION ${DOC_INSTALL_DIR}/html) # install examples
+
+
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/whitepaper")
+install(${CMAKE_SOURCE_DIR}/doc/whitepaper/Doc_DynaFeds.pdf DESTINATION ${DOC_INSTALL_DIR}/whitepaper/) # install the whitepaper
