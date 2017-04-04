@@ -194,7 +194,7 @@ int UgrConnector::init(char *cfgfile) {
         }
 
         if (UgrCFG->ProcessFile(cfgfile)) {
-            Error(fname, "Error processing config file." << cfgfile << std::endl;);
+            Error(fname, "Error processing config file." << cfgfile << std::endl);
             return 1;
         }
 
@@ -202,23 +202,33 @@ int UgrConnector::init(char *cfgfile) {
         long debuglevel = UgrCFG->GetLong("glb.debug", 1);
         DebugSetLevel(debuglevel);
         UgrLogger::get()->SetStderrPrint(debug_stderr);
-	
-	// Now enable the logging of the components that have been explicitely requested
-	int i = 0;
-	do {
-	  char buf[1024];
-	  UgrCFG->ArrayGetString("glb.debug.components", buf, i);
-	  if (!buf[0]) break;
-	  UgrLogger::get()->setLogged(buf, true);
-	  ++i;
-	} while (1);
-
+        
+        // Now enable the logging of the components that have been explicitely requested
+        int i = 0;
+        do {
+          char buf[1024];
+          UgrCFG->ArrayGetString("glb.debug.components", buf, i);
+          if (!buf[0]) break;
+          UgrLogger::get()->setLogged(buf, true);
+          ++i;
+        } while (1);
+        
         // setup plugin directory
         plugin_dir = getPluginDirectory();
 
         // Get the tick pace from the config
         ticktime = UgrCFG->GetLong("glb.tick", 10);
 
+        // Mini sanity check on the cache parameters
+        if (UgrCFG->GetLong("infohandler.itemttl", 1) <= UgrCFG->GetLong("infohandler.itemmaxttl", 1)) {
+          Error(fname, "Fatal misconfiguration: infohandler.itemttl should always be smaller than infohandler.itemmaxttl" << std::endl);
+          return 1;
+        }
+        if (UgrCFG->GetLong("infohandler.itemttl", 1) <= UgrCFG->GetLong("infohandler.itemttl_negative", 1)) {
+          Error(fname, "Fatal misconfiguration: infohandler.itemttl_negative should always be smaller than infohandler.itemttl" << std::endl);
+          return 1;
+        }
+        
         // Init the extcache, as now we have the cfg parameters
         extCache.Init();
         this->locHandler.Init(&extCache);
