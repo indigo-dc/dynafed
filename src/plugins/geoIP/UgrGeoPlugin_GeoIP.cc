@@ -63,7 +63,6 @@ UgrGeoPlugin_GeoIP::UgrGeoPlugin_GeoIP(UgrConnector & c, std::vector<std::string
     gi = 0;
     init(parms);
     
-    
     // Approximately 10km by default
     long ifuzz = UgrCFG->GetLong("glb.filterplugin.geoip.fuzz", 10);
     fuzz = ifuzz / 6371.0; // Radius of Earth in Km
@@ -200,7 +199,10 @@ void UgrGeoPlugin_GeoIP::setReplicaLocation(UgrFileItem_replica &it) {
     Info(UgrLogger::Lvl4, fname, "pos:" << pos << " lastpos: " << lastPos);
     Info(UgrLogger::Lvl4, fname, "Got server: " << srv);
 
-    GeoIPRecord *gir = GeoIP_record_by_name(gi, (const char *)srv.c_str());
+    GeoIPRecord *gir = NULL;
+    
+    if (gi)
+      gir = GeoIP_record_by_name(gi, (const char *)srv.c_str());
 
     if (gir == NULL) {
         Error(fname, "GeoIP_record_by_name failed: " << srv.c_str());
@@ -229,7 +231,10 @@ void UgrGeoPlugin_GeoIP::getAddrLocation(const std::string &clientip, float &ltt
 
     if (clientip.empty()) return;
     
-    GeoIPRecord *gir = GeoIP_record_by_name(gi, (const char *)clientip.c_str());
+    GeoIPRecord *gir = NULL;
+    
+    if (gi)
+      gir = GeoIP_record_by_name(gi, (const char *)clientip.c_str());
 
     if (gir == NULL) {
         Error(fname, "GeoIP_record_by_name failed: " << clientip.c_str());
