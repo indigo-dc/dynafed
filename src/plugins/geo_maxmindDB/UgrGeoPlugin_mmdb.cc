@@ -52,7 +52,7 @@ using namespace std;
 UgrGeoPlugin_mmdb::UgrGeoPlugin_mmdb(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
   UgrCFG->Set(&c.getConfig());
   
-  const char *fname = "UgrGeoPlugin_mmdb::UgrGeoPlugin_GeoIP";
+	const char *fname = "UgrGeoPlugin_mmdb::UgrGeoPlugin_mmdb";
   Info(UgrLogger::Lvl1, fname, "Creating instance.");
   
   mmdb_ok = false;
