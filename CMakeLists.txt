@@ -21,7 +21,7 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo"
 
 ## plugin options
 OPTION(LFC_PLUGIN "Enable LFC client side plugin" TRUE)
-OPTION(GEOIP_PLUGIN "Enable GeoIP plugin for geography based redirection (obsolete)" FALSE)
+OPTION(GEOIP_PLUGIN "Enable GeoIP plugin for geography based redirection (obsolete)" TRUE)
 OPTION(MMDB_GEO_PLUGIN "Enable GeoIP plugin for geography based redirection" TRUE)
 OPTION(DAV_PLUGIN "Enable Webdav client side plugin" TRUE)
 OPTION(S3_PLUGIN "Enable S3 client side plugin" TRUE)

@@ -31,13 +31,14 @@ ELSE(LIBMMDB_PC_FOUND)
     PATHS ${MMDB_LIBRARY_DIR}
   )
 
-  IF(MMDB_GEO_LIB)
-    message(STATUS "Looking for MaxMind DB library - found ${MMDB_GEO_LIB}")
-  else(MMDB_GEO_LIB)
-    message(FATAL_ERROR "Could not find MaxMind DB library. If the MaxMind DB library is installed, you can run CMake again and specify its location with -DMMDB_LIBRARY_DIR=<path>")
-  ENDIF(MMDB_GEO_LIB)
 
   set(MMDB_GEO_LIBRARIES ${MMDB_GEO_LIB})
 
 ENDIF(LIBMMDB_PC_FOUND)
 
+
+  IF(MMDB_GEO_LIB)
+    message(STATUS "Looking for MaxMind DB library - found ${MMDB_GEO_LIB}")
+  else(MMDB_GEO_LIB)
+    message(FATAL_ERROR "Could not find MaxMind DB library. If the MaxMind DB library is installed, you can run CMake again and specify its location with -DMMDB_LIBRARY_DIR=<path>")
+  ENDIF(MMDB_GEO_LIB)
