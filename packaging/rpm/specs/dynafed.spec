@@ -14,7 +14,7 @@
 
 
 Name:				dynafed
-Version:			1.2.6
+Version:			1.3.0
 Release:			2%{?dist}
 Summary:			Ultra-scalable dynamic system for federating HTTP-based storage resources
 Group:				Applications/Internet
@@ -36,9 +36,10 @@ BuildRequires:		cmake
 BuildRequires:		dmlite-devel >= 0.8.0
 BuildRequires:		dmlite-private-devel  >= 0.8.0
 BuildRequires:		davix-devel >= 0.5.1
-BuildRequires:          lfc-devel >= 1.8.8
-BuildRequires:          gfal2-devel
+BuildRequires:		lfc-devel >= 1.8.8
+BuildRequires:		gfal2-devel
 BuildRequires:		GeoIP-devel
+BuildRequires:		libmaxminddb-devel
 BuildRequires:		libmemcached-devel
 BuildRequires:		openssl-devel
 BuildRequires:		protobuf-devel
@@ -168,6 +169,7 @@ make DESTDIR=%{buildroot} install
 %defattr (-,root,root)
 %{_libdir}/libugrconnector.so.*
 %{_libdir}/ugr/libugrgeoplugin_geoip.so
+%{_libdir}/ugr/libugrgeoplugin_mmdb.so
 %{_libdir}/ugr/libugrnoloopplugin.so
 %{_libdir}/ugr/libugrauthplugin_python*.so
 %config(noreplace) %{_sysconfdir}/ugr/ugr.conf

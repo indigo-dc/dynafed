@@ -25,10 +25,10 @@ if(MMDB_GEO_PLUGIN AND MMDB_GEO_LIB)
   # Configure the target for the consumer shared library that we want to provide
   add_library(ugrgeoplugin_mmdb SHARED ${UgrGeoPlugin_mmdb_SOURCES})
 
-set_target_properties(ugrgeoplugin_mmdb         PROPERTIES LINK_FLAGS "-rdynamic"
+  set_target_properties(ugrgeoplugin_mmdb         PROPERTIES LINK_FLAGS "-rdynamic"
                                                 LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/src/ugr)
 
-  target_link_libraries(ugrgeoplugin_mmdb "dl" ugrconnector ${MMDB_GEO_LIB})
+  target_link_libraries(ugrgeoplugin_mmdb "dl" ugrconnector ${MMDB_GEO_LIBRARIES})
 
 
   # How to install. This is a set of plugins that belong to a specific component

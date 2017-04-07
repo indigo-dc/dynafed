@@ -21,7 +21,8 @@ set(CMAKE_BUILD_TYPE "RelWithDebInfo"
 
 ## plugin options
 OPTION(LFC_PLUGIN "Enable LFC client side plugin" TRUE)
-OPTION(GEOIP_PLUGIN "Enable GeoIP plugin for geography based redirection" TRUE)
+OPTION(GEOIP_PLUGIN "Enable GeoIP plugin for geography based redirection (obsolete)" FALSE)
+OPTION(MMDB_GEO_PLUGIN "Enable GeoIP plugin for geography based redirection" TRUE)
 OPTION(DAV_PLUGIN "Enable Webdav client side plugin" TRUE)
 OPTION(S3_PLUGIN "Enable S3 client side plugin" TRUE)
 OPTION(AZURE_PLUGIN "Enable MS Azure client side plugin" TRUE)
@@ -37,8 +38,8 @@ option(UNIT_TESTS "enable or disable the unit tests" FALSE)
 
 # The version number
 set (UGR_VERSION_MAJOR 1)
-set (UGR_VERSION_MINOR 2)
-set (UGR_VERSION_PATCH 6)
+set (UGR_VERSION_MINOR 3)
+set (UGR_VERSION_PATCH 0)
 
 
 # Appends the cmake/modules path inside the MAKE_MODULE_PATH variable which stores the
@@ -78,8 +79,11 @@ find_package(DMLite 0.7)
 # generic pkgconfig module for Davix & co
 find_package(PkgConfig REQUIRED)
 
-#MaxMind GeoIP
+#MaxMind GeoIP (obsolete)
 find_package(GeoIP)
+
+#MaxMindDB, replaces GeoIP
+find_package(MaxMindDB)
 
 #Memcached
 find_package(LibMemCached REQUIRED)

@@ -19,4 +19,7 @@ install(DIRECTORY ${l_doc} DESTINATION ${DOC_INSTALL_DIR}/html) # install exampl
 
 
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/whitepaper")
-install(${CMAKE_SOURCE_DIR}/doc/whitepaper/Doc_DynaFeds.pdf DESTINATION ${DOC_INSTALL_DIR}/whitepaper/) # install the whitepaper
+
+install(FILES ${CMAKE_SOURCE_DIR}/doc/whitepaper/Doc_DynaFeds.pdf
+  DESTINATION ${DOC_INSTALL_DIR}/whitepaper/
+  PERMISSIONS  OWNER_READ GROUP_READ WORLD_READ ) # install the whitepaper

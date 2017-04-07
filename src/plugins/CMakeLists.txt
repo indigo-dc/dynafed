@@ -23,6 +23,7 @@ add_subdirectory(davclient_rucio)
 add_subdirectory(s3client)
 add_subdirectory(lfcclient)
 add_subdirectory(geoIP)
+add_subdirectory(geo_maxmindDB)
 add_subdirectory(noloop)
 
 
