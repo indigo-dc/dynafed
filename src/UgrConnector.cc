@@ -221,11 +221,13 @@ int UgrConnector::init(char *cfgfile) {
 
         // Mini sanity check on the cache parameters
         if (UgrCFG->GetLong("infohandler.itemttl", 1) > UgrCFG->GetLong("infohandler.itemmaxttl", 1)) {
-          Error(fname, "Fatal misconfiguration: infohandler.itemttl should always be smaller than infohandler.itemmaxttl" << std::endl);
+					Error(fname, "Fatal misconfiguration: infohandler.itemttl (" << UgrCFG->GetLong("infohandler.itemttl", 1) <<
+					") should always be smaller than infohandler.itemmaxttl (" << UgrCFG->GetLong("infohandler.itemmaxttl", 1) << ")" << std::endl);
           return 1;
         }
         if (UgrCFG->GetLong("infohandler.itemttl", 1) <= UgrCFG->GetLong("infohandler.itemttl_negative", 1)) {
-          Error(fname, "Fatal misconfiguration: infohandler.itemttl_negative should always be smaller than infohandler.itemttl" << std::endl);
+					Error(fname, "Fatal misconfiguration: infohandler.itemttl_negative (" << UgrCFG->GetLong("infohandler.itemttl_negative", 1) <<
+					") should always be smaller than infohandler.itemttl (" << UgrCFG->GetLong("infohandler.itemttl", 1) << ")" << std::endl);
           return 1;
         }
         
