@@ -220,7 +220,7 @@ int UgrConnector::init(char *cfgfile) {
         ticktime = UgrCFG->GetLong("glb.tick", 10);
 
         // Mini sanity check on the cache parameters
-        if (UgrCFG->GetLong("infohandler.itemttl", 1) <= UgrCFG->GetLong("infohandler.itemmaxttl", 1)) {
+        if (UgrCFG->GetLong("infohandler.itemttl", 1) > UgrCFG->GetLong("infohandler.itemmaxttl", 1)) {
           Error(fname, "Fatal misconfiguration: infohandler.itemttl should always be smaller than infohandler.itemmaxttl" << std::endl);
           return 1;
         }
