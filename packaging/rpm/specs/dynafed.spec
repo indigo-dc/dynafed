@@ -52,6 +52,8 @@ BuildRequires:		python-devel
 Requires:		rsyslog
 %endif
 
+Requires		GeoIP
+Requires		libmaxminddb
 
 %description
 The Dynafed project provides a dynamic, scalable HTTP resource
@@ -115,7 +117,8 @@ Requires:                       php-pecl-memcache
 %description dmlite-frontend
 Webdav frontend for %{name} using dmlite and lcgdm-dav
 
-
+%doc
+whitepaper/Doc_DynaFeds.pdf
 
 %clean
 rm -rf %{buildroot};

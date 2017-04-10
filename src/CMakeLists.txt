@@ -68,7 +68,7 @@ set(Ugr_SOURCES UgrConfig.cc LocationInfo.cc LocationInfoHandler.cc LocationPlug
 add_subdirectory(utils)
 add_subdirectory(plugins)
 add_subdirectory(test)
-
+add_subdirectory(doc)
 
 
 
