@@ -44,14 +44,16 @@
 
 
 #include "UgrGeoPlugin_mmdb.hh"
+#include "netdb.h"
 
 using namespace std;
 
 
 
+
 UgrGeoPlugin_mmdb::UgrGeoPlugin_mmdb(UgrConnector & c, std::vector<std::string> & parms)  : FilterPlugin(c, parms){
   UgrCFG->Set(&c.getConfig());
-  
+
 	const char *fname = "UgrGeoPlugin_mmdb::UgrGeoPlugin_mmdb";
   Info(UgrLogger::Lvl1, fname, "Creating instance.");
   
@@ -198,17 +200,33 @@ void UgrGeoPlugin_mmdb::setReplicaLocation(UgrFileItem_replica &it) {
   Info(UgrLogger::Lvl4, fname, "pos:" << pos << " lastpos: " << lastPos);
   Info(UgrLogger::Lvl4, fname, "Got server: " << srv);
   
-  // Do the mmdb lookup
-  int gai_error, mmdb_error;
-  MMDB_lookup_result_s result =
-    MMDB_lookup_string(&mmdb,
-                       (const char *)srv.c_str(), &gai_error, &mmdb_error);
-  if (0 != gai_error) { 
-    Error(fname, "MMDB_lookup_string failed. gai_error: " << gai_error);
+  // Do the dns lookup to get the ip address of the replica
+  struct addrinfo hints;
+  hints.ai_family   = AF_UNSPEC;
+  hints.ai_flags    = AI_ALL;
+  hints.ai_protocol = 0;
+  // We set ai_socktype so that we only get one result back
+  hints.ai_socktype = 0;
+  
+  struct addrinfo *addresses = NULL;
+  int gai_status = getaddrinfo(srv.c_str(), NULL, &hints, &addresses);
+  if (gai_status) {
+    Error(fname, "Can't lookup host '" << srv << "' gai_error: " << gai_status);
     return;
   }
+
+  // Do the mmdb lookup on the ip address
+  int mmdb_error;
+  MMDB_lookup_result_s result =
+    MMDB_lookup_sockaddr(&mmdb,
+                       addresses->ai_addr, &mmdb_error);
+    
+  if (NULL != addresses) {
+    freeaddrinfo(addresses);
+  }
+    
   if (MMDB_SUCCESS != mmdb_error) { 
-    Error(fname, "MMDB_lookup_string failed. mmdb_error: " << gai_error);
+    Error(fname, "MMDB_lookup_sockaddr failed. mmdb_error: " << mmdb_error);
     return;
   }
     
@@ -227,18 +245,29 @@ void UgrGeoPlugin_mmdb::setReplicaLocation(UgrFileItem_replica &it) {
   int status = MMDB_get_value(&result.entry, &entry_data,
                  "city", "names", "en", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    it.location = entry_data.utf8_string;
-    Info(UgrLogger::Lvl4, fname, "Got city: " << it.location);
+    
+    if (entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
+      it.location.assign( entry_data.utf8_string, entry_data.data_size );
+      Info(UgrLogger::Lvl4, fname, "Got city: " << it.location);
+    }
+    else 
+      Error(fname, "City lookup did not return a string. Internal error or Geo DB corruption.");
   }
 
   // No city ? Try with the country name
   status = MMDB_get_value(&result.entry, &entry_data,
                               "country", "names", "en", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    if (it.location.length() > 0)
-      it.location += ", ";
-    it.location += entry_data.utf8_string;
-    Info(UgrLogger::Lvl4, fname, "Got country: " << it.location);
+    if (entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
+      if (it.location.length() > 0)
+        it.location += ", ";
+      std::string l;
+      l.assign( entry_data.utf8_string, entry_data.data_size );
+      it.location += l;
+      Info(UgrLogger::Lvl4, fname, "Got country: " << it.location);
+    }
+    else 
+      Error(fname, "Country lookup did not return a string. Internal error or Geo DB corruption.");
   }
 
   // Now get the galactic coordinates
@@ -246,18 +275,26 @@ void UgrGeoPlugin_mmdb::setReplicaLocation(UgrFileItem_replica &it) {
   status = MMDB_get_value(&result.entry, &entry_data,
                           "location", "latitude", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    latitude += entry_data.double_value;
-    Info(UgrLogger::Lvl4, fname, "Got latitude: " << it.latitude);
+    if (entry_data.type == MMDB_DATA_TYPE_DOUBLE) {
+      latitude = entry_data.double_value;
+      Info(UgrLogger::Lvl4, fname, "Got latitude: " << latitude);
+    }
+    else 
+      Error(fname, "Latitude lookup did not return a double. Internal error or Geo DB corruption.");
   }
   status = MMDB_get_value(&result.entry, &entry_data,
                           "location", "longitude", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    longitude += entry_data.double_value;
-    Info(UgrLogger::Lvl4, fname, "Got longitude: " << it.longitude);
+    if (entry_data.type == MMDB_DATA_TYPE_DOUBLE) {
+      longitude = entry_data.double_value;
+      Info(UgrLogger::Lvl4, fname, "Got longitude: " << longitude);
+    }
+    else 
+      Error(fname, "Latitude lookup did not return a double. Internal error or Geo DB corruption.");
   }
   
   Info(UgrLogger::Lvl2, fname, "Set geo info: '" << it.name << "' srv: '"<< srv << "' loc: '" <<
-    it.location << "' coords: " << it.latitude << " " << it.longitude);
+    it.location << "' coords: " << latitude << " " << longitude);
   
   // Convert here into radians so we save a few operations later
   it.latitude = latitude / 180.0 * M_PI;
@@ -303,19 +340,21 @@ void UgrGeoPlugin_mmdb::getAddrLocation(const std::string &clientip, float &ltt,
   MMDB_entry_data_s entry_data;
   
   int status = MMDB_get_value(&result.entry, &entry_data,
-                              "city", "names", "en", NULL);
+                              "city", "names", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    location = entry_data.utf8_string;
+    location.assign( entry_data.utf8_string, entry_data.data_size );
     Info(UgrLogger::Lvl4, fname, "Got city: " << location);
   }
   
   // No city ? Try with the country name
   status = MMDB_get_value(&result.entry, &entry_data,
-                          "country", "names", "en", NULL);
+                          "country", "names", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
     if (location.length() > 0)
       location += ", ";
-    location += entry_data.utf8_string;
+    std::string l;
+    l.assign( entry_data.utf8_string, entry_data.data_size );
+    location += l;
     Info(UgrLogger::Lvl4, fname, "Got country: " << location);
   }
   
