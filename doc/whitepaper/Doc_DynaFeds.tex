@@ -81,7 +81,7 @@
 
 \center % Center everything on the page
 
-\textsc{\LARGE CERN IT-SDC}\\[1.5cm] % Name of your university/college
+\textsc{\LARGE CERN IT}\\[1.5cm] % Name of your university/college
 %\textsc{\Large Major Heading}\\[0.5cm] % Major heading such as course name
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
@@ -129,7 +129,8 @@ Fabrizio \textsc{Furano} \\ % Your name\\
 A number of storage elements and Grid data management components now offer standard protocol interfaces like WebDAV for access to their data repositories. Here we report on work that seeks to exploit the federation potential of these protocols and build a system that offers a unique view of the storage and metadata ensemble and the possibility of integration of other compatible resources such as those from cloud providers.
 The challenge, here undertaken by the providers of dCache and DPM, and pragmatically open to other Grid and Cloud storage solutions, is to build such a system while being able to accommodate  name translations from existing catalogues (e.g. LFCs), experiment-based metadata catalogues, or stateless algorithmic name translations, also known as ''trivial file catalogues''.
 Such so-called storage federations of standard protocols-based storage elements give a unique view of their content, thus promoting simplicity in accessing the data they contain and offering new possibilities for resilience and data placement strategies.
-The goal is to consider HTTP and NFS4.1-based storage elements and metadata catalogues and make them able to cooperate through an architecture that properly feeds the redirection mechanisms that they are based upon, thus giving the functionalities of a ''loosely coupled'' storage federation. One of the key requirements is to use standard clients (provided by OS'es or open source distributions, e.g. Web browsers) to access an already aggregated system; this approach is quite different from aggregating the repositories at the client side through some wrapper API, like for instance GFAL, or by developing new custom clients.
+The goal is to consider storage elements and metadata catalogues that can be queried through HTTP and WebDAV dialects (thus including S3 and MS Azure) and make them able to cooperate through an architecture that properly feeds
+the redirection mechanisms that they are based upon, thus giving the functionalities of a ''loosely coupled'' storage federation. One of the key requirements is to use standard clients (provided by OS'es or open source distributions, e.g. Web browsers) to access an already aggregated system; this approach is quite different from aggregating the repositories at the client side through some wrapper API, like for instance GFAL, or by developing new custom clients.
 Other technical challenges that will determine the success of this initiative include performance, latency and scalability, and the ability to create worldwide storage federations that are able to redirect clients to repositories that they can efficiently access, for instance trying to choose the endpoints that are closer or applying other criteria.
 We believe that the features of a loosely coupled federation of open-protocols-based storage elements will open many possibilities of evolving the current computing models without disrupting them, and, at the same time, will be able to operate with the existing infrastructures, follow their evolution path and add storage centers that can be acquired as a third-party service.
 \end{abstract}
@@ -237,7 +238,7 @@ So far, work is foreseen to verify the usability, in the described context, of t
 \subsection{Allow the system to apply geography-aware redirection choices}
 
 A feature that we implemented in the system internally associates geographical coordinates and information to each replica that is known to the federation, by invoking a loadable "Geo" plugin. The same plugin can associate this information to each client request for locating a replica. As a consequence, the system can select the replica that is geographically closer to the client that requested it.\\
-An easy implementation of the Geo plugin consisted in wrapping the GeoIP API \cite{geoip}, that seems to provide a more than adequate level of performance (on the order of one million queries per second, as output by its internal tests). The result is that the Dynamic Federation system is able to redirect a client to the replica that is the closest to it, in a very efficient way.
+An easy implementation of the Geo plugin consisted in wrapping the MMDB API \cite{geoip}, that seems to provide a more than adequate level of performance (on the order of one million queries per second, as output by its internal tests). The result is that the Dynamic Federation system is able to redirect a client to the replica that is the closest to it, in a very efficient way.
 
 
 \section{The system}
@@ -513,17 +514,6 @@ Syntax:\\
 Example:\\
 Sort all the replicas in ascending geographical distance from the client.
 \lstinline"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"
-
-\subsubsection{glb.filterplugin.geoip.fuzz}
-Tells to the GeoIP plugin to apply a fuzz value when sorting replicas according to their distance from the client. The unit of measure is kilometers, although some numerical approximation is to be expected.\\
-This has the effect of load balancing sites that are within 'fuzz' kilometers from the client.
-\\
-Syntax:\\
-\lstinline"glb.filterplugin.geoip.fuzz: <number>"
-\\
-Example:\\
-Load balance among replicas that are within a distance range of 10Km from the client.\\
-\lstinline"glb.filterplugin.geoip.fuzz: 10"
 
 \subsection{\label{globalxlation}Global name translation}
 
@@ -1081,9 +1071,78 @@ Any value that is different from \lstinline"yes" or \lstinline"true" will be tre
 
 
 
+\subsection{GeoIP plugin for geographical information (obsolete)}
+The GeoIP plugin uses the GeoIP library produced by MaxMind \cite{geoip} in order to extract geographical information for:
+
+\begin{itemize}
+\item the remote client that is querying Dynafed
+\item URLs of the remote replicas that Dynafed looks up
+\end{itemize}
 
 
+ This geographical information is used internally by Dynafed to choose the replica that is closest to the client, for redirection
+purposes. The kind of database that works best for the purposes of Dynafed is denominated "GeoLite City". A free version can
+be downloaded from the website \lstinline"http://www.maxmind.com"
 
+Syntax:\\
+\lstinline"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 <path to the GeoLiteCity DB>"\\
+
+Example:\\
+\lstinline"glb.filterplugin[]: libugrgeoplugin_geoip.so geoplug1 /usr/share/GeoIP/GeoLiteCity.dat"\\
+
+ NOTE: as of 2017, MaxMind does not support GeoIP anymore. The GeoIP library is still available in the common Linux distributions and
+ is usable (through this plugin) by anyone who owns one of the MaxMind's older database files. Please refer to Section \ref{MaxMindDB} for
+ the newer library.
+
+\subsubsection{glb.filterplugin.geoip.fuzz}
+Tells to the GeoIP plugin to apply a fuzz value when sorting replicas according to their distance from the client. The unit of measure is kilometers, although some numerical approximation is to be expected.\\
+This has the effect of load balancing sites that are within 'fuzz' kilometers from the client.\\
+
+
+Syntax:\\
+\lstinline"glb.filterplugin.mmdb.fuzz: <number>"
+\\
+
+
+Example:\\
+Load balance among replicas that are within a distance range of 10Km from the client.\\
+\lstinline"glb.filterplugin.mmdb.fuzz: 10"
+
+\subsection{MaxMindDB plugin for geographical information}
+\label{MaxMindDB}
+
+The MaxMindDB plugin uses the MaxMindDB library produced by MaxMind \cite{geoip} in order to extract geographical information for:
+
+\begin{itemize}
+\item the remote client that is querying Dynafed
+\item URLs of the remote replicas that Dynafed looks up
+\end{itemize}
+
+
+ This geographical information is used internally by Dynafed to choose the replica that is closest to the client, for redirection
+purposes. The kind of database that works best for the purposes of Dynafed is denominated "GeoLite2 City". A free version can
+be downloaded from the website \lstinline"http://www.maxmind.com"
+
+Syntax:\\
+\lstinline"glb.filterplugin[]: libugrgeoplugin_mmdb.so geoplug1 <path to the GeoLiteCity DB>"
+
+Example:\\
+\lstinline"glb.filterplugin[]: libugrgeoplugin_mmdb.so geoplug1 /usr/share/GeoIP/GeoLite2-City.mmdb"
+
+
+\subsubsection{glb.filterplugin.mmdb.fuzz}
+Tells to the GeoIP plugin to apply a fuzz value when sorting replicas according to their distance from the client. The unit of measure is kilometers, although some numerical approximation is to be expected.\\
+This has the effect of load balancing sites that are within 'fuzz' kilometers from the client.\\
+
+
+Syntax:\\
+\lstinline"glb.filterplugin.mmdb.fuzz: <number>"
+\\
+
+
+Example:\\
+Load balance among replicas that are within a distance range of 10Km from the client.\\
+\lstinline"glb.filterplugin.mmdb.fuzz: 10"
 
 
 
