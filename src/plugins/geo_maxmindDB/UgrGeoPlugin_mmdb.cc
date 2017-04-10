@@ -290,7 +290,7 @@ void UgrGeoPlugin_mmdb::setReplicaLocation(UgrFileItem_replica &it) {
       Info(UgrLogger::Lvl4, fname, "Got longitude: " << longitude);
     }
     else 
-      Error(fname, "Latitude lookup did not return a double. Internal error or Geo DB corruption.");
+      Error(fname, "Longitude lookup did not return a double. Internal error or Geo DB corruption.");
   }
   
   Info(UgrLogger::Lvl2, fname, "Set geo info: '" << it.name << "' srv: '"<< srv << "' loc: '" <<
@@ -340,36 +340,52 @@ void UgrGeoPlugin_mmdb::getAddrLocation(const std::string &clientip, float &ltt,
   MMDB_entry_data_s entry_data;
   
   int status = MMDB_get_value(&result.entry, &entry_data,
-                              "city", "names", NULL);
+                              "city", "names", "en", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    location.assign( entry_data.utf8_string, entry_data.data_size );
-    Info(UgrLogger::Lvl4, fname, "Got city: " << location);
+    if (entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
+      location.assign( entry_data.utf8_string, entry_data.data_size );
+      Info(UgrLogger::Lvl4, fname, "Got city: " << location);
+    }
+    else 
+      Error(fname, "City lookup did not return a string. Internal error or Geo DB corruption.");
   }
   
   // No city ? Try with the country name
   status = MMDB_get_value(&result.entry, &entry_data,
-                          "country", "names", NULL);
+                          "country", "names", "en", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    if (location.length() > 0)
-      location += ", ";
-    std::string l;
-    l.assign( entry_data.utf8_string, entry_data.data_size );
-    location += l;
-    Info(UgrLogger::Lvl4, fname, "Got country: " << location);
+    if (entry_data.type == MMDB_DATA_TYPE_UTF8_STRING) {
+      if (location.length() > 0)
+        location += ", ";
+      std::string l;
+      l.assign( entry_data.utf8_string, entry_data.data_size );
+      location += l;
+      Info(UgrLogger::Lvl4, fname, "Got country: " << location);
+    }
+    else 
+      Error(fname, "City lookup did not return a string. Internal error or Geo DB corruption.");
   }
   
   // Now get the galactic coordinates
   status = MMDB_get_value(&result.entry, &entry_data,
                           "location", "latitude", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    ltt = entry_data.double_value;
-    Info(UgrLogger::Lvl4, fname, "Got latitude: " << ltt);
+    if (entry_data.type == MMDB_DATA_TYPE_DOUBLE) {
+      ltt = entry_data.double_value;
+      Info(UgrLogger::Lvl4, fname, "Got latitude: " << ltt);
+    }
+    else 
+      Error(fname, "Latitude lookup did not return a double. Internal error or Geo DB corruption.");
   }
   status = MMDB_get_value(&result.entry, &entry_data,
                           "location", "longitude", NULL);
   if ((status == MMDB_SUCCESS) && (entry_data.has_data)) {
-    lng = entry_data.double_value;
-    Info(UgrLogger::Lvl4, fname, "Got longitude: " << lng);
+    if (entry_data.type == MMDB_DATA_TYPE_DOUBLE) {
+      lng = entry_data.double_value;
+      Info(UgrLogger::Lvl4, fname, "Got longitude: " << lng);
+    }
+    else 
+      Error(fname, "Latitude lookup did not return a double. Internal error or Geo DB corruption.");
   }
   
 
