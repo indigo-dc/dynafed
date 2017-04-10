@@ -52,8 +52,8 @@ BuildRequires:		python-devel
 Requires:		rsyslog
 %endif
 
-Requires		GeoIP
-Requires		libmaxminddb
+Requires:		GeoIP
+Requires:		libmaxminddb
 
 %description
 The Dynafed project provides a dynamic, scalable HTTP resource
