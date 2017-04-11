@@ -78,6 +78,6 @@
 \contentsline {subsection}{\numberline {6.13}Microsoft Azure plugin}{48}
 \contentsline {subsubsection}{\numberline {6.13.1}locplugin.$<$ID$>$.azure.key}{49}
 \contentsline {subsubsection}{\numberline {6.13.2}locplugin.$<$ID$>$.azure.signaturevalidity}{49}
-\contentsline {subsection}{\numberline {6.14}DAVrucio plugin}{49}
+\contentsline {subsection}{\numberline {6.14}DAVrucio plugin}{50}
 \contentsline {subsubsection}{\numberline {6.14.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{50}
 \contentsline {subsection}{\numberline {6.15}DMLite client plugin}{52}

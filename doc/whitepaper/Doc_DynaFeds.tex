@@ -1151,9 +1151,16 @@ Load balance among replicas that are within a distance range of 10Km from the cl
 
 
 \subsection{Microsoft Azure plugin}
-The Azure plugin is a location plugin allowing to include a container of Microsoft Azure Storage as part of the namespace. The Azure plugin supports read, write, delete and list operations.
+The Azure plugin is a location plugin allowing to include a container of Microsoft Azure Storage as part of the namespace. The Azure plugin supports read,
+write, delete and list operations.
 
-The Azure plugin supports the Azure credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already authenticated via the Azure REST query string authentication mechanism.\\
+\textbf{NOTE: Writing to an Azure-type endpoint needs a particular HTTP workflow to be able to upload files larger than 128MB. So far the DAVIX client supports it
+natively, thus DAVIX can write files of any size to an Azure endpoint. The maximum file size that other common mainstream clients can upload to an Azure storage
+may be limited to 128MB unless the client is used in a proper program or script that performs the operations that an Azure endpoint expects to upload a large file.
+For reading instead, any HTTP mainstream client will work with no known limitations.}
+
+The Azure plugin supports the Azure credential delegation mechanism. The federation clients are redirected to the federated Cloud storage already
+authenticated via the Azure REST query string authentication mechanism.\\
 The Azure plugin accepts the parameters of the HTTP plugin, plus a few that are related to the Azure signing process, listed here.\\
 
 Syntax:\\
@@ -1164,6 +1171,7 @@ Setup the Azure key used for the Azure REST authentication. This key can be foun
 
 Syntax:\\
 \lstinline"locplugin.<ID>.azure.key: <Azure key>"\\
+
 
 
 \subsubsection{locplugin.$<$ID$>$.azure.signaturevalidity}
