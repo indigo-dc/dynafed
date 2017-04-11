@@ -18,7 +18,8 @@ SET( l_doc "${CMAKE_CURRENT_BINARY_DIR}/doc/html/")
 install(DIRECTORY ${l_doc} DESTINATION ${DOC_INSTALL_DIR}/html) # install examples
 
 
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/whitepaper")
+#file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doc/whitepaper")
+#file(MAKE_DIRECTORY "${DOC_INSTALL_DIR}/whitepaper/")
 
 install(FILES ${CMAKE_SOURCE_DIR}/doc/whitepaper/Doc_DynaFeds.pdf
   DESTINATION ${DOC_INSTALL_DIR}/whitepaper/
