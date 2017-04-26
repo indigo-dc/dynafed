@@ -140,6 +140,54 @@ UgrFileInfo *LocationInfoHandler::getFileInfoOrCreateNewOne(UgrConnector& contex
 }
 
 
+
+
+int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) {
+	const char *fname = "LocationInfoHandler::wipeInfoOnLfn";
+	UgrFileInfo *fi = 0;
+	
+	UgrFileInfo::trimpath(lfn);
+	
+	// First, we have to remove it from the local cache, if present
+	{
+		boost::lock_guard<LocationInfoHandler> l(*this);
+		std::map< std::string, UgrFileInfo *>::iterator p;
+		
+		p = data.find(lfn);
+		if (p != data.end()) {
+			fi = p->second;
+			
+			// We cannot remove a pending or pinned item!
+			{
+				unique_lock<mutex> lck(*fi);
+				if (fi->getInfoStatus() == UgrFileInfo::InProgress) {
+					Info(UgrLogger::Lvl4,fname, "The item to wipe  is marked as pending. Cannot purge " << fi->name);
+					return 3;
+				}
+				if (fi->ispinned()) {
+					Info(UgrLogger::Lvl4,fname, "The item to wipe is marked as pinned. Cannot purge " << fi->name);
+					return 4;
+				}
+			}
+			
+			delete fi;
+			
+			// Create a new empty item
+			fi = new UgrFileInfo(context, lfn);
+			// Substitute it to the first one
+			p->second = fi;
+		}
+	}
+	
+	// Send the new empty item to the 2nd level, so that other processes will pick it up
+	if (fi) putFileInfoToCache(fi);
+	
+	return 0;
+}
+
+
+
+
 // Add the newly existing file to the subitems of the parent directory
 
 int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn, bool checkExtCache) {
