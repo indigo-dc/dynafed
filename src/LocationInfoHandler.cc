@@ -174,6 +174,7 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 				}
 			}
 			
+			
 			delete fi;
 			
 			// Create a new empty item
@@ -184,7 +185,10 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 	}
 	
 	// Send the new empty item to the 2nd level, so that other processes will pick it up
-	if (fi) putFileInfoToCache(fi);
+	if (fi) {
+    putFileInfoToCache(fi);
+    putSubitemsToCache(fi);
+  }
 	
   Info(UgrLogger::Lvl3,fname, "Exiting '" << lfn << "'");
 	return 0;

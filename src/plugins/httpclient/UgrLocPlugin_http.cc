@@ -635,6 +635,7 @@ std::vector<std::string> splitPath(const std::string& path) throw()
 {
   std::vector<std::string> components;
   size_t s, e;
+  std::string comp;
   
   if (!path.empty() && path[0] == '/')
     components.push_back("/");
@@ -643,11 +644,15 @@ std::vector<std::string> splitPath(const std::string& path) throw()
   while (s != std::string::npos) {
     e = path.find('/', s);
     if (e != std::string::npos) {
-      components.push_back(path.substr(s, e - s));
+      comp = path.substr(s, e - s);
+      if (comp.length() > 0)
+        components.push_back(comp);
       s = path.find_first_not_of('/', e);
     }
     else {
-      components.push_back(path.substr(s));
+      comp = path.substr(s);
+      if (comp.length() > 0)
+        components.push_back(comp);
       s = e;
     }
   }
@@ -679,8 +684,6 @@ std::string joinPath(const std::vector<std::string>& components) throw()
 
 int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
   const char *fname = "UgrLocPlugin_http::run_mkDirMinusPonSiteFN";
-  std::string new_lfn(sitefn);
-  std::string canonical_name(base_url_endpoint.getString());
   std::string xname;
   std::string alt_prefix;
   Davix::DavixError* davixerr = NULL;
@@ -690,19 +693,14 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
   // parent directories that are needed to write the given file
   // Beware, only its own endpoint, not the others
   
-  // do name translation, also checking if this is the right plugin with the right prefix
-  if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
-    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
-    return 1;
-  }
-  
-  if(concat_http_url_path(canonical_name, xname, canonical_name) == false){
+  // Check if the given URL matches this plugin
+  if (sitefn.find(base_url_endpoint.getString()) == string::npos) {
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "not for me '" << sitefn << "'");
     return 1;
   }
   
   
-  LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try preparing parent directories for " << canonical_name);
-  Davix::File f(dav_core, canonical_name);
+  LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try preparing parent directories for '" << sitefn << "'");
   
   std::vector<std::string> components = splitPath(sitefn);
   std::vector<std::string> todo;
@@ -720,6 +718,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
     // Try directly to mkdir the parent, in case of error try upper in the hierarchy
     // and memorize that the dir will have to be created
     LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try making parent directory: '" << ppath);
+    Davix::File f(dav_core, ppath);
     r = f.makeCollection(&params, &davixerr);
     if (r) {
       // No parent means that we have to create it later

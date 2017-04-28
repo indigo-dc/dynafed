@@ -585,7 +585,6 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
 UgrCode UgrConnector::mkDirMinusPonSiteFN(const std::string & sitefn) {
   
   const char *fname = "UgrConnector::mkDirMinusPonSiteFN";
-  std::string l_sfn(sitefn);
   std::shared_ptr<HandlerTraits> response_handler= std::make_shared<HandlerTraits>();
   
   
@@ -594,7 +593,7 @@ UgrCode UgrConnector::mkDirMinusPonSiteFN(const std::string & sitefn) {
   for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
     if ( (!(*it)->isSlave()) && ((*it)->isOK())
       && (*it)->getFlag(LocationPlugin::Writable)){
-      (*it)->async_mkDirMinusPonSiteFN(l_sfn, response_handler);
+      (*it)->async_mkDirMinusPonSiteFN(sitefn, response_handler);
       }
   }
   
@@ -603,7 +602,7 @@ UgrCode UgrConnector::mkDirMinusPonSiteFN(const std::string & sitefn) {
   }
   
   
-  Info(UgrLogger::Lvl2, fname,  "Exiting. sitefn: '" << l_sfn << "'");
+  Info(UgrLogger::Lvl2, fname,  "Exiting. sitefn: '" << sitefn << "'");
   
   return UgrCode();
   
