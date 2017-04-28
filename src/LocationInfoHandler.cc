@@ -148,6 +148,8 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 	
 	UgrFileInfo::trimpath(lfn);
 	
+  Info(UgrLogger::Lvl4,fname, "Going to remove from the cache '" << lfn << "'");
+  
 	// First, we have to remove it from the local cache, if present
 	{
 		boost::lock_guard<LocationInfoHandler> l(*this);
@@ -156,7 +158,9 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 		p = data.find(lfn);
 		if (p != data.end()) {
 			fi = p->second;
-			
+      
+      Info(UgrLogger::Lvl4,fname, "Found in 1st level cache '" << lfn << "'");
+      
 			// We cannot remove a pending or pinned item!
 			{
 				unique_lock<mutex> lck(*fi);
@@ -182,6 +186,7 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 	// Send the new empty item to the 2nd level, so that other processes will pick it up
 	if (fi) putFileInfoToCache(fi);
 	
+  Info(UgrLogger::Lvl3,fname, "Exiting '" << lfn << "'");
 	return 0;
 }
 
