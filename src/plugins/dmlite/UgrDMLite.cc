@@ -65,6 +65,8 @@ UgrFactory::UgrFactory() throw (DmException) {
     ugrlogmask = UgrLogger::get()->getMask(ugrlogname);
     Info(UgrLogger::Lvl3, "UgrFactory::UgrFactory", "UgrFactory starting");
 
+    createremoteparentdirs = true;
+    
     // Make sure that there is an UgrConnector ready to be used
     // NOTE: calls to this ctor MUST be serialized
     UgrCatalog::getUgrConnector();
@@ -75,11 +77,17 @@ UgrFactory::~UgrFactory()  {
 }
 
 void UgrFactory::configure(const std::string& key, const std::string& value) throw (DmException) {
-    if (!key.compare("Ugr_cfgfile")) {
-        cfgfile = value;
-	Info(UgrLogger::Lvl2, "UgrFactory::configure", "Getting config file: " << value);
-        UgrCatalog::getUgrConnector()->resetinit();
-    }
+  if (!key.compare("Ugr_cfgfile")) {
+    cfgfile = value;
+    
+    Info(UgrLogger::Lvl2, "UgrFactory::configure", "Getting config file: " << value);
+    UgrCatalog::getUgrConnector()->resetinit();
+  }
+  else if (!key.compare("Ugr_precreateremoteparentdirsonput")) {
+    Info(UgrLogger::Lvl2, "UgrFactory::configure", "key: '"<< key << "' <- " << value);
+    if ((value == "n") || (value =="no") || (value == "0") || (value == "false"))
+      createremoteparentdirs = false;
+  }
 }
 
 Catalog* UgrFactory::createCatalog(CatalogFactory* factory,
@@ -754,7 +762,7 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,
     UgrClientInfo(secCtx_->credentials.remoteAddress),
-						 vl );
+    vl );
 
   if(!code.isOK()){
       throw DmException(DMLITE_SYSERR(ugrToDmliteErrCode(code)), code.getString());
@@ -762,6 +770,9 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
   if (vl.size() > 0) {
     Chunk ck( vl[0].name, 0, 1234);
 
+    UgrCatalog::getUgrConnector()->mkDirMinusPonSiteFN(vl[0].name);
+    
+    
     // Done!
     Info(UgrLogger::Lvl3, "UgrPoolManager::whereToWrite", "Exiting. loc:" << ck.toString());
     return Location(1, ck);

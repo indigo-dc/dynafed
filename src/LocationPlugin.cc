@@ -312,8 +312,19 @@ int LocationPlugin::run_deleteDir(const std::string & lfn, std::shared_ptr<Delet
     return 1;
 }
 
-// Pushes a new op in the queue
 
+int LocationPlugin::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
+	const char *fname = "LocationPlugin::run_mkDirMinusPonSiteFN";
+	
+	LocPluginLogInfo(UgrLogger::Lvl4, fname,  get_Name() << " : No mkDirMinusPonSiteFN support for this plugin, default behavior");
+	// do nothing
+	return 1;
+}
+
+
+
+
+// Pushes a new op in the queue
 void LocationPlugin::pushOp(UgrFileInfo *fi, LocationInfoHandler *handler, workOp wop, char *newpfx) {
     const char *fname = "LocationPlugin::pushOp";
 
@@ -645,6 +656,18 @@ int LocationPlugin::async_deleteDir(const std::string &lfn, const std::shared_pt
     handler->incWorker();
     pushOp(std::bind(&executor_deleteDir, this, lfn, handler));
     return 0;
+}
+
+
+void executor_mkDirMinusPonSiteFN(LocationPlugin* p, std::string lfn, std::shared_ptr<HandlerTraits>  handler){
+  p->run_mkDirMinusPonSiteFN(lfn, handler);
+  handler->decWorker();
+}
+
+int LocationPlugin::async_mkDirMinusPonSiteFN(const std::string &lfn, const std::shared_ptr<HandlerTraits> & handler){
+  handler->incWorker();
+  pushOp(std::bind(&executor_mkDirMinusPonSiteFN, this, lfn, handler));
+  return 0;
 }
 
 // Waits max a number of seconds for a locate process to be complete

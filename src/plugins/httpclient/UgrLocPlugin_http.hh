@@ -74,6 +74,8 @@ public:
 
     virtual int run_deleteDir(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
 
+    virtual int run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler);
+
 protected:
     int flags;
     Davix::Uri base_url_endpoint;

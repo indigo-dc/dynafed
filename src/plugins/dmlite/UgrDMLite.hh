@@ -232,7 +232,7 @@ namespace dmlite {
 
     private:
         std::string cfgfile;
-
+        bool createremoteparentdirs;
     };
 
 

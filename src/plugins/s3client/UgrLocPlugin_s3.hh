@@ -62,6 +62,8 @@ public:
 
     virtual int run_deleteReplica(const std::string &lfn, std::shared_ptr<DeleteReplicaHandler> handler);
     
+    virtual int run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler);
+    
     virtual Davix::Uri signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime);
 protected:
     time_t signature_validity;

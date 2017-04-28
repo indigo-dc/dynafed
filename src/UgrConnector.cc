@@ -531,7 +531,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     UgrFileInfo* fi = NULL;
     stat(l_lfn, client, &fi);
         
-    // check if override
+    // check if ovewrite
     if(UgrCFG->GetBool("glb.allow_overwrite", true) == false){
         
         if(fi && fi->status_items !=  UgrFileInfo::NotFound){
@@ -574,10 +574,37 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
     if ( UgrCFG->GetBool("glb.addchildtoparentonput", true) )
       this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
-
-    Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations founds");
+    
+    Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations found");
     return UgrCode();
 
+}
+
+UgrCode UgrConnector::mkDirMinusPonSiteFN(const std::string & sitefn) {
+  
+  const char *fname = "UgrConnector::mkDirMinusPonSiteFN";
+  std::string l_sfn(sitefn);
+  std::shared_ptr<HandlerTraits> response_handler= std::make_shared<HandlerTraits>();
+  
+  
+  
+  // Ask all the non slave plugins that are online and writable
+  for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
+    if ( (!(*it)->isSlave()) && ((*it)->isOK())
+      && (*it)->getFlag(LocationPlugin::Writable)){
+      (*it)->async_mkDirMinusPonSiteFN(l_sfn, response_handler);
+      }
+  }
+  
+  if(response_handler->wait(UgrCFG->GetLong("glb.waittimeout", 30)) == false){
+    Error(fname, "Timeout creating remote parent directories for " << sitefn );
+  }
+  
+  
+  Info(UgrLogger::Lvl2, fname,  "Exiting. sitefn: '" << l_sfn << "'");
+  
+  return UgrCode();
+  
 }
 
 

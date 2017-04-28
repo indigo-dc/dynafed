@@ -204,7 +204,16 @@ public:
     /// @param new_locations: vector of possible replicas
     virtual UgrCode findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
 
-
+    
+    
+    /// Create a subdirectory and all its parents on all the plugins that
+    /// match the given sitefn (usually just one)
+    /// @param sitefn : the url of a remote replica
+    /// @param client: client informations
+    /// @param new_locations: vector of possible replicas
+    virtual UgrCode mkDirMinusPonSiteFN(const std::string & sitefn);
+    
+    
         
     /// Checks the permissions to do a operation
     /// Returns 0 if accepted

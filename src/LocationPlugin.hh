@@ -172,7 +172,7 @@ private:
     friend void executor_findNewLocation(LocationPlugin* p, std::string new_lfn, std::shared_ptr<NewLocationHandler>  handler);
     friend void executor_deleteReplica(LocationPlugin* p, std::string new_lfn, std::shared_ptr<DeleteReplicaHandler>  handler);
     friend void executor_deleteDir(LocationPlugin* p, std::string new_lfn, std::shared_ptr<DeleteReplicaHandler>  handler);
-
+    friend void executor_mkDirMinusPonSiteFN(LocationPlugin* p, std::string lfn, std::shared_ptr<HandlerTraits>  handler);
 public:
 
     enum workOp {
@@ -266,16 +266,21 @@ protected:
     virtual int run_findNewLocation(const std::string & new_lfn, std::shared_ptr<NewLocationHandler> handler);
 
 
-    /// execute a deleteReplica operation, this need to be implemented by the plugin
+    /// executes a deleteReplica operation, this need to be implemented by the plugin
     ///
     virtual int run_deleteReplica(const std::string & lfn, std::shared_ptr<DeleteReplicaHandler> handler);
 
 
-    /// execute a deleteDir operation, this need to be implemented by the plugin
+    /// executes a deleteDir operation, this need to be implemented by the plugin
     ///
     virtual int run_deleteDir(const std::string & lfn, std::shared_ptr<DeleteReplicaHandler> handler);
 
-
+		
+		/// executes a 'mkdir -p' operation on a replica URL, this need to be implemented by the plugin
+		///
+    virtual int run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler);
+		
+		
     // The simple, default global name translation
     std::vector<std::string> xlatepfx_from;
     std::string xlatepfx_to;
@@ -404,7 +409,17 @@ public:
     /// Execute a delete operation on this plugin asynchronously. this call run_deleteDir internally
     ///
     int async_deleteDir(const std::string & lfn, const std::shared_ptr<DeleteReplicaHandler> & handler);
-
+    
+    ///
+    /// \brief async_mkDirMinusPonSiteFN
+    /// \param lfn
+    /// \param handler
+    /// \return 0 if success, negative if plugin error
+    ///
+    /// Execute a 'mkdir -p' operation on this plugin asynchronously. this call run_mkDirMinusPonSiteFN internally
+    ///
+    int async_mkDirMinusPonSiteFN(const std::string & lfn, const std::shared_ptr<HandlerTraits> & handler);
+    
     /// Asynchronously check if this plugin knows about the given replica
     /// Eventually add the replica
     /// @param fi UgrFileInfo instance to populate

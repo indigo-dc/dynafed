@@ -425,6 +425,18 @@ int UgrLocPlugin_s3::run_deleteReplica(const string & lfn, const std::shared_ptr
 
 
 
+
+int UgrLocPlugin_s3::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
+  const char *fname = "UgrLocPlugin_http::run_mkDirMinusPonSiteFN";
+
+  
+  LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Of course S3 does not need to prepare parent directories for " << sitefn);
+  
+  
+  return 0;
+}
+
+
 void UgrLocPlugin_s3::configure_S3_parameter(const std::string & prefix){
 
     const std::string s3_priv_key = pluginGetParam<std::string>(prefix, "s3.priv_key");

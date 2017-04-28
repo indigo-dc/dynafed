@@ -631,6 +631,149 @@ int UgrLocPlugin_http::run_deleteDir(const string & lfn, const std::shared_ptr<D
 
 }
 
+std::vector<std::string> splitPath(const std::string& path) throw()
+{
+  std::vector<std::string> components;
+  size_t s, e;
+  
+  if (!path.empty() && path[0] == '/')
+    components.push_back("/");
+  
+  s = path.find_first_not_of('/');
+  while (s != std::string::npos) {
+    e = path.find('/', s);
+    if (e != std::string::npos) {
+      components.push_back(path.substr(s, e - s));
+      s = path.find_first_not_of('/', e);
+    }
+    else {
+      components.push_back(path.substr(s));
+      s = e;
+    }
+  }
+  
+  return components;
+}
+
+
+
+std::string joinPath(const std::vector<std::string>& components) throw()
+{
+  std::vector<std::string>::const_iterator i;
+  std::string path;
+  
+  for (i = components.begin(); i != components.end(); ++i) {
+    if (*i != "/")
+      path += *i + "/";
+    else
+      path += "/";
+  }
+  
+  if (!path.empty())
+    path.erase(--path.end());
+  
+  return path;
+}
+
+
+
+int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
+  const char *fname = "UgrLocPlugin_http::run_mkDirMinusPonSiteFN";
+  std::string new_lfn(sitefn);
+  std::string canonical_name(base_url_endpoint.getString());
+  std::string xname;
+  std::string alt_prefix;
+  Davix::DavixError* davixerr = NULL;
+  int r = 0;
+  
+  // Given the filename, make sure that its endpoint contains the
+  // parent directories that are needed to write the given file
+  // Beware, only its own endpoint, not the others
+  
+  // do name translation, also checking if this is the right plugin with the right prefix
+  if(doNameXlation(new_lfn, xname, wop_Nop, alt_prefix) != 0){
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can not be translated " << new_lfn);
+    return 1;
+  }
+  
+  if(concat_http_url_path(canonical_name, xname, canonical_name) == false){
+    return 1;
+  }
+  
+  
+  LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try preparing parent directories for " << canonical_name);
+  Davix::File f(dav_core, canonical_name);
+  
+  std::vector<std::string> components = splitPath(sitefn);
+  std::vector<std::string> todo;
+  std::string name;
+  
+  // The last item is a filename, we don't need it
+  components.pop_back();
+  
+  // Make sure that all the parent dirs exist
+  
+  do {
+    
+    std::string ppath = joinPath(components);
+    
+    // Try directly to mkdir the parent, in case of error try upper in the hierarchy
+    // and memorize that the dir will have to be created
+    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try making parent directory: '" << ppath);
+    r = f.makeCollection(&params, &davixerr);
+    if (r) {
+      // No parent means that we have to create it later
+      LocPluginLogInfoThr(UgrLogger::Lvl2, fname, "Can't create parent: '" << ppath << "' err: " << davixerr->getStatus() << " '" <<
+      davixerr->getErrMsg() << "'");
+      davixerr->clearError(&davixerr);
+      
+      name = components.back();
+      components.pop_back();
+      
+      todo.push_back(ppath);
+    }
+    else {
+      
+      // We met a parent directory that does exist
+      
+      break;
+    }
+    
+  } while ( !components.empty() );
+  
+  
+  // Here we have a todo list of directories that we have to create
+  // .... so we do it
+  
+  
+  while (!todo.empty()) {
+    std::string p = todo.back();
+    todo.pop_back();
+    
+    Davix::File f(dav_core, p);
+    r = f.makeCollection(&params, &davixerr);
+    if (r) {
+      if (davixerr) {
+        LocPluginLogErr(fname, "Can't create parent: '" << p << "' ret: " << r << " err: " << davixerr->getStatus() << " '" <<
+        davixerr->getErrMsg() << "'");
+      }
+      else {
+        LocPluginLogErr(fname, "Can't create parent: '" << p << "' ret: " << r << " no error info available.");
+      }
+      
+      davixerr->clearError(&davixerr);
+      
+      // Not being able to create a directory is a failure
+      return r;
+    }
+    
+  }
+  
+  
+  return 0;
+}
+
+
 
 // concat URI + path
 bool UgrLocPlugin_http::concat_http_url_path(const std::string & base_uri, const std::string & path, std::string & canonical){
