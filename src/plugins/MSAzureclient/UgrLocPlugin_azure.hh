@@ -39,7 +39,9 @@ public:
     virtual ~UgrLocPlugin_Azure(){}
     
     virtual Davix::Uri signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime);
-
+    
+    virtual int run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler);
+    
 private:
 
     void configure_Azure_parameters(const std::string & str);

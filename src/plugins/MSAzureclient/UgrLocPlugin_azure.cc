@@ -95,6 +95,16 @@ bool UgrLocPlugin_Azure::concat_url_path(const std::string & base_uri, const std
 
 
 
+int UgrLocPlugin_Azure::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
+  const char *fname = "UgrLocPlugin_Azure::run_mkDirMinusPonSiteFN";
+  
+  
+  LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "Of course Azure does not need to prepare parent directories for " << sitefn);
+  
+  
+  return 0;
+}
+
 Davix::Uri UgrLocPlugin_Azure::signURI(const Davix::RequestParams & params, const std::string & method, const Davix::Uri & url, Davix::HeaderVec headers, const time_t expirationTime) {
 
     return Davix::Azure::signURI(params.getAzureKey(), method, url, expirationTime);
