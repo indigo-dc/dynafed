@@ -631,7 +631,7 @@ int UgrLocPlugin_http::run_deleteDir(const string & lfn, const std::shared_ptr<D
 
 }
 
-std::vector<std::string> splitPath(const std::string& path) throw()
+std::vector<std::string> splitUrl(const std::string& path) throw()
 {
   std::vector<std::string> components;
   size_t s, e;
@@ -662,7 +662,7 @@ std::vector<std::string> splitPath(const std::string& path) throw()
 
 
 
-std::string joinPath(const std::vector<std::string>& components) throw()
+std::string joinUrl(const std::vector<std::string>& components) throw()
 {
   std::vector<std::string>::const_iterator i;
   std::string path;
@@ -672,8 +672,13 @@ std::string joinPath(const std::vector<std::string>& components) throw()
       path += *i + "/";
     else
       path += "/";
+    
+    // Yeah, the first item is the protocol name (e.g. "https://")
+    if (i == components.begin())
+      path += "/";
   }
   
+  // Remove the slash at the end
   if (!path.empty())
     path.erase(--path.end());
   
@@ -702,7 +707,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
   
   LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try preparing parent directories for '" << sitefn << "'");
   
-  std::vector<std::string> components = splitPath(sitefn);
+  std::vector<std::string> components = splitUrl(sitefn);
   std::vector<std::string> todo;
   std::string name;
   
@@ -710,10 +715,12 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
   components.pop_back();
   
   // Make sure that all the parent dirs exist
-  
-  do {
+  // This limit is hardcoded, and avoids creating parent directories that are obvious (e.g. the VO name)
+  // or that make no sense (e.g. the protocol name)
+  while ( components.size() > 6 ) {
+
     
-    std::string ppath = joinPath(components);
+    std::string ppath = joinUrl(components);
     
     // Try directly to mkdir the parent, in case of error try upper in the hierarchy
     // and memorize that the dir will have to be created
@@ -738,7 +745,8 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
       break;
     }
     
-  } while ( !components.empty() );
+  
+  }
   
   
   // Here we have a todo list of directories that we have to create
