@@ -687,7 +687,7 @@ std::string joinUrl(const std::vector<std::string>& components) throw()
 
 
 
-int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler){
+int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::shared_ptr<HandlerTraits> handler) {
   const char *fname = "UgrLocPlugin_http::run_mkDirMinusPonSiteFN";
   std::string xname;
   std::string alt_prefix;
@@ -724,7 +724,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
     
     // Try directly to mkdir the parent, in case of error try upper in the hierarchy
     // and memorize that the dir will have to be created
-    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try making parent directory: '" << ppath);
+    LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Try making parent directory: '" << ppath << "'");
     Davix::File f(dav_core, ppath);
     r = f.makeCollection(&params, &davixerr);
     if (r) {
@@ -757,6 +757,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
     std::string p = todo.back();
     todo.pop_back();
     
+    LocPluginLogInfoThr(UgrLogger::Lvl1, fname, "Making parent directory: '" << p << "'");
     Davix::File f(dav_core, p);
     r = f.makeCollection(&params, &davixerr);
     if (r) {
@@ -776,7 +777,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
     
   }
   
-  
+  LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Successfully created parent directories for '" << sitefn << "'");
   return 0;
 }
 
