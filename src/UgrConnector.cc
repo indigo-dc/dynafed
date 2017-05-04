@@ -521,6 +521,146 @@ UgrCode UgrConnector::removeDir(const std::string &lfn, const UgrClientInfo &cli
 }
 
 
+
+
+
+
+
+
+std::vector<std::string> splitPath(const std::string& path) throw()
+{
+  std::vector<std::string> components;
+  size_t s, e;
+  std::string comp;
+  
+  if (!path.empty() && path[0] == '/')
+    components.push_back("/");
+  
+  s = path.find_first_not_of('/');
+  while (s != std::string::npos) {
+    e = path.find('/', s);
+    if (e != std::string::npos) {
+      comp = path.substr(s, e - s);
+      if (comp.length() > 0)
+        components.push_back(comp);
+      s = path.find_first_not_of('/', e);
+    }
+    else {
+      comp = path.substr(s);
+      if (comp.length() > 0)
+        components.push_back(comp);
+      s = e;
+    }
+  }
+  
+  return components;
+}
+
+
+
+std::string joinPath(const std::vector<std::string>& components) throw()
+{
+  std::vector<std::string>::const_iterator i;
+  std::string path;
+  
+  for (i = components.begin(); i != components.end(); ++i) {
+    if (*i != "/")
+      path += *i + "/";
+    else
+      path += "/";
+    
+  }
+  
+  // Remove the slash at the end
+  if (!path.empty())
+    path.erase(--path.end());
+  
+  return path;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & client) {
+  // TODO: ugrconnector::mkdir always succeeds and inserts all the non-existing parent dirs into the cache
+  // from LCGDM-2373
+  const char *fname = "grConnector::makeDir";
+  std::string xname;
+  std::string alt_prefix;
+  int r = 0;
+  
+  Info(UgrLogger::Lvl2, fname, "Make (Fake) all the parent directories for '" << lfn << "'");
+  
+  std::vector<std::string> components = splitPath(lfn);
+  
+  // The last item is a filename, we don't need it
+  components.pop_back();
+  UgrFileItem precitm;
+  
+  // Make sure that all the parent dirs exist
+  while ( components.size() ) {
+    UgrFileInfo *nfo;
+    
+    std::string ppath = joinPath(components);
+    // Here we can only stat the parent, to guess whether it exists or not
+    r = stat(ppath, client, &nfo);
+    {
+      boost::lock_guard<UgrFileInfo > l(*nfo);
+      UgrFileItem itm;
+      
+      if (nfo->status_statinfo == UgrFileInfo::NotFound) {
+        // No parent means that we have to fake its existence
+        Info(UgrLogger::Lvl2, fname, "Can't stat parent: '" << ppath << "' ... we a re going to fake its temporary existence");
+        
+        nfo->unixflags = 0777;
+        nfo->size = 0;
+        
+        if (precitm.name.size() > 0)
+          nfo->subdirs.insert(precitm);
+        
+        // Send, if needed, to the external cache. This is not really the best thing, no better ideas by now
+        this->locHandler.putFileInfoToCache(nfo);
+        
+        // Send, if needed, to the external cache
+        this->locHandler.putSubitemsToCache(nfo);
+        
+        // The current (fake) dir will be a subdir of its parent
+        precitm.name = components.back();
+        components.pop_back();
+      
+      }
+      else {
+        // We met a parent directory that does exist
+        
+        if (precitm.name.size() > 0)
+          nfo->subdirs.insert(precitm);
+        
+        // Send, if needed, to the external cache. This is not really the best thing, no better ideas by now
+        this->locHandler.putFileInfoToCache(nfo);
+        
+        // Send, if needed, to the external cache
+        this->locHandler.putSubitemsToCache(nfo);
+        break;
+      }
+    }
+    
+  }
+  
+  
+  Info(UgrLogger::Lvl3, fname, "Successfully created parent directories for '" << lfn << "'");
+  return UgrCode();
+  
+}
+
 UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);

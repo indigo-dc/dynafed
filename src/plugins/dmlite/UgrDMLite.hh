@@ -72,6 +72,9 @@ namespace dmlite {
         virtual void removeDir(const std::string&) throw (DmException);
 
         virtual void changeDir(const std::string&) throw (DmException);
+        
+        virtual void makeDir(const std::string&, mode_t) throw (DmException);
+        
         virtual std::string getWorkingDir(void) throw (DmException);
 
         virtual Directory* openDir(const std::string&) throw (DmException);

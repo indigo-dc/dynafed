@@ -195,7 +195,14 @@ public:
     /// @param replicas_to_delete
     virtual UgrCode removeDir(const std::string & lfn, const UgrClientInfo & client, UgrReplicaVec & replicas_to_delete);
 
-
+    /// Create a directory in the federated namespace
+    /// For subtle technical reasons, the right way for this func to work
+    /// is just to insert a dir into the cached namespace
+    ///
+    /// @param lfn  The unique key to the directory, typically its logical file name
+    /// @param client The credentials of the client to be eventually authorized
+    /// @param replicas_to_delete
+    virtual UgrCode makeDir(const std::string & lfn, const UgrClientInfo & client);
 
     /// Return a list of prefered locations for a new resource
     /// The location is selected based on client credential, client location, endpoints configuration
@@ -208,6 +215,8 @@ public:
     
     /// Create a subdirectory and all its parents on all the plugins that
     /// match the given sitefn (usually just one)
+    /// NOTE: this function takes a site-filename, NOT a logical federated filename
+    ///
     /// @param sitefn : the url of a remote replica
     /// @param client: client informations
     /// @param new_locations: vector of possible replicas
