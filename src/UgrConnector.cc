@@ -603,9 +603,8 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
   Info(UgrLogger::Lvl2, fname, "Make (Fake) all the parent directories for '" << l_lfn << "'");
   
   std::vector<std::string> components = splitPath(l_lfn);
+
   
-  // The last item is a filename, we don't need it
-  components.pop_back();
   UgrFileItem precitm;
   
   // Make sure that all the parent dirs exist
