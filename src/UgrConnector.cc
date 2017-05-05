@@ -593,14 +593,16 @@ std::string joinPath(const std::vector<std::string>& components) throw()
 UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & client) {
   // TODO: ugrconnector::mkdir always succeeds and inserts all the non-existing parent dirs into the cache
   // from LCGDM-2373
-  const char *fname = "grConnector::makeDir";
-  std::string xname;
-  std::string alt_prefix;
+  const char *fname = "UgrConnector::makeDir";
+  std::string l_lfn(lfn);
   int r = 0;
   
-  Info(UgrLogger::Lvl2, fname, "Make (Fake) all the parent directories for '" << lfn << "'");
+  UgrFileInfo::trimpath(l_lfn);
+  do_n2n(l_lfn);
   
-  std::vector<std::string> components = splitPath(lfn);
+  Info(UgrLogger::Lvl2, fname, "Make (Fake) all the parent directories for '" << l_lfn << "'");
+  
+  std::vector<std::string> components = splitPath(l_lfn);
   
   // The last item is a filename, we don't need it
   components.pop_back();
@@ -608,7 +610,8 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
   
   // Make sure that all the parent dirs exist
   while ( components.size() ) {
-    UgrFileInfo *nfo;
+    UgrFileInfo *nfo = NULL;
+    bool dosend = false;
     
     std::string ppath = joinPath(components);
     // Here we can only stat the parent, to guess whether it exists or not
@@ -627,11 +630,8 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
         if (precitm.name.size() > 0)
           nfo->subdirs.insert(precitm);
         
-        // Send, if needed, to the external cache. This is not really the best thing, no better ideas by now
-        this->locHandler.putFileInfoToCache(nfo);
+        dosend = true;
         
-        // Send, if needed, to the external cache
-        this->locHandler.putSubitemsToCache(nfo);
         
         // The current (fake) dir will be a subdir of its parent
         precitm.name = components.back();
@@ -639,24 +639,30 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
       
       }
       else {
-        // We met a parent directory that does exist
-        
+        // We met a parent directory that does exist         
         if (precitm.name.size() > 0)
-          nfo->subdirs.insert(precitm);
+            nfo->subdirs.insert(precitm);
         
-        // Send, if needed, to the external cache. This is not really the best thing, no better ideas by now
-        this->locHandler.putFileInfoToCache(nfo);
-        
-        // Send, if needed, to the external cache
-        this->locHandler.putSubitemsToCache(nfo);
+        dosend = true;
+
         break;
       }
     }
     
+    if (nfo && dosend) {
+      // Send, if needed, to the external cache. This is not really the best thing, no better ideas by now
+      this->locHandler.putFileInfoToCache(nfo);
+      
+      // Send, if needed, to the external cache
+      this->locHandler.putSubitemsToCache(nfo);
+    }
+    
+    
+    
   }
   
   
-  Info(UgrLogger::Lvl3, fname, "Successfully created parent directories for '" << lfn << "'");
+  Info(UgrLogger::Lvl3, fname, "Successfully created parent directories for '" << l_lfn << "'");
   return UgrCode();
   
 }
