@@ -621,10 +621,12 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
       
       if (nfo->status_statinfo == UgrFileInfo::NotFound) {
         // No parent means that we have to fake its existence
-        Info(UgrLogger::Lvl2, fname, "Can't stat parent: '" << ppath << "' ... we a re going to fake its temporary existence");
+        Info(UgrLogger::Lvl2, fname, "Can't stat parent: '" << ppath << "' ... we are going to fake its temporary existence");
         
         nfo->unixflags = 0777;
         nfo->size = 0;
+        nfo->status_statinfo == UgrFileInfo::Ok;
+        nfo->status_items == UgrFileInfo::Ok;
         
         if (precitm.name.size() > 0)
           nfo->subdirs.insert(precitm);
