@@ -406,7 +406,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     // Send, if needed, to the external cache
     this->locHandler.putFileInfoToCache(fi);
 
-    Info(UgrLogger::Lvl2, fname, "Stat-ed " << l_lfn << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
+    Info(UgrLogger::Lvl2, fname, "Stat-ed '" << l_lfn << "' addr: " << fi << " sz:" << fi->size << " fl:" << fi->unixflags << " Status: " << fi->getStatStatus() <<
             " status_statinfo: " << fi->status_statinfo << " pending_statinfo: " << fi->pending_statinfo);
     return 0;
 }
@@ -595,10 +595,9 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
   // from LCGDM-2373
   const char *fname = "UgrConnector::makeDir";
   std::string l_lfn(lfn);
-  int r = 0;
   
   UgrFileInfo::trimpath(l_lfn);
-  do_n2n(l_lfn);
+  //do_n2n(l_lfn);
   
   Info(UgrLogger::Lvl2, fname, "Make (Fake) all the parent directories for '" << l_lfn << "'");
   
@@ -614,19 +613,18 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
     
     std::string ppath = joinPath(components);
     // Here we can only stat the parent, to guess whether it exists or not
-    r = stat(ppath, client, &nfo);
+    stat(ppath, client, &nfo);
     {
       boost::lock_guard<UgrFileInfo > l(*nfo);
-      UgrFileItem itm;
       
       if (nfo->status_statinfo == UgrFileInfo::NotFound) {
         // No parent means that we have to fake its existence
         Info(UgrLogger::Lvl2, fname, "Can't stat parent: '" << ppath << "' ... we are going to fake its temporary existence");
         
-        nfo->unixflags = 0777;
+        nfo->unixflags = 0777 | S_IFDIR;
         nfo->size = 0;
-        nfo->status_statinfo == UgrFileInfo::Ok;
-        nfo->status_items == UgrFileInfo::Ok;
+        nfo->status_statinfo = UgrFileInfo::Ok;
+        nfo->status_items = UgrFileInfo::Ok;
         
         if (precitm.name.size() > 0)
           nfo->subdirs.insert(precitm);
