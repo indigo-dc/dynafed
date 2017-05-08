@@ -188,7 +188,7 @@ int UgrConfig::ProcessFile(char *filename) {
     }
 
     if(!configfiles.empty() ) {
-        for(unsigned int i; i < configfiles.size(); ++i) {
+        for(unsigned int i = 0; i < configfiles.size(); ++i) {
             ProcessFile((char *)configfiles[i].c_str() );
         }
     }
