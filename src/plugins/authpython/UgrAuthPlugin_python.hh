@@ -41,7 +41,7 @@ public:
                          const std::string &clientName,
                          const std::string &remoteAddress,
                          const std::vector<std::string> &fqans,
-                         const std::vector<std::string> &keys,
+                         const std::vector< std::pair<std::string, std::string> > &keys,
                          const char *reqresource, const char reqmode);
   
 private:
@@ -55,5 +55,5 @@ private:
                   const char *resource,
                   const char reqmode,
                   const std::vector<std::string> &fqans,
-                  const std::vector<std::string> &keys);
+                 const std::vector< std::pair<std::string, std::string> > &keys );
 };

@@ -1017,7 +1017,7 @@ int UgrConnector::checkperm(const char *fname,
                           const std::string &clientName,
                           const std::string &remoteAddress,
                           const std::vector<std::string> &fqans,
-                          const std::vector<std::string> &keys,
+                          const std::vector< std::pair<std::string, std::string> > &keys,
                           char *reqresource, char reqmode) {
     
     bool ok = false;

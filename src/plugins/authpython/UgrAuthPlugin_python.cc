@@ -170,11 +170,11 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
                                           const char *resource,
                                           const char reqmode,
                                           const std::vector<std::string> &fqans,
-                                          const std::vector<std::string> &keys)
+                                          const std::vector< std::pair<std::string, std::string> > &keys)
 { 
   const char *fname = "UgrAuthorizationPlugin_py::pyxeqfunc2";
   
-  PyObject *pFqans, *pKeys, *pValue, *pArgs;
+  PyObject *pFqans, *pKeys, *pCouple, *pValue, *pArgs;
   int pos = 0;
   
   if (pFunc && PyCallable_Check(pFunc)) {
@@ -215,11 +215,14 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
       
     }
     
-    // all the keys go into a pytuple
+    // all the key/values go into a pytuple of couples
     pKeys = PyTuple_New(keys.size());
     for (unsigned int j = 0; j < keys.size(); j++) {
-      pValue = PyString_FromString(keys[j].c_str());
-
+      // What we will insert is a couple of strings representing key/value
+      pCouple = PyTuple_New(2);
+      
+      // First item: key
+      pValue = PyString_FromString(keys[j].first.c_str());
       if (!pValue) {
         if (PyErr_Occurred())
           logpythonerror(fname);
@@ -227,13 +230,35 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
         Py_DECREF(pArgs);
         Py_DECREF(pFqans);
         Py_DECREF(pKeys);
+        Py_DECREF(pCouple);
         PyErr_Clear();
-        Error(fname, "Cannot convert key " << j << ": '" << keys[j] << "'");
+        Error(fname, "Cannot convert key " << j << ": '" << keys[j].first << "'");
         return 1;
       }
-        
       /* pValue reference stolen here: */
-      PyTuple_SetItem(pKeys, j, pValue);
+      PyTuple_SetItem(pCouple, 0, pValue);
+      
+      // Second item: value
+      pValue = PyString_FromString(keys[j].second.c_str());
+      if (!pValue) {
+        if (PyErr_Occurred())
+          logpythonerror(fname);
+        
+        Py_DECREF(pArgs);
+        Py_DECREF(pFqans);
+        Py_DECREF(pKeys);
+        Py_DECREF(pCouple);
+        PyErr_Clear();
+        Error(fname, "Cannot convert key " << j << ": '" << keys[j].second << "'");
+        return 1;
+      }
+      /* pValue reference stolen here: */
+      PyTuple_SetItem(pCouple, 1, pValue);
+      
+      
+      // Now we insert the couple into the tuple
+      /* pValue reference stolen here: */
+      PyTuple_SetItem(pKeys, j, pCouple);
       
     }
     
@@ -359,7 +384,7 @@ bool UgrAuthorizationPlugin_py::isallowed(const char *fname,
                                                   const std::string &clientName,
                                                   const std::string &remoteAddress,
                                                   const std::vector<std::string> &fqans,
-                                                  const std::vector<std::string> &keys,
+                                                  const std::vector<std::pair<std::string, std::string>> &keys,
                                                   const char *reqresource, const char reqmode) {
 
   int retval = 0;

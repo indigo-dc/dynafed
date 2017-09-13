@@ -141,8 +141,31 @@ static void registerPluginUgr(PluginManager* pm) throw (DmException) {
 /// Checks the permissions inside a given func
 /// throws an exception if not allowed
 void checkperm(const char *fname, UgrConnector *ugr, const SecurityCredentials &c, char *reqresource, char reqmode) throw (DmException) {
-
-  if ( ugr->checkperm(fname, c.clientName, c.remoteAddress, c.fqans, c.getKeys(), reqresource, reqmode) ) {
+  
+  // Now build the keyvalue pairs (sob)
+  std::vector< std::pair<std::string, std::string> > keyvals;
+  std::vector< std::string > kk = c.getKeys();
+  for (unsigned int i = 0; i < kk.size(); i++) {
+    
+    // Get the key
+    std::string k = kk[i];
+    if (!k.length()) continue;
+    
+    // Get the value, maliciously
+    std::string v;
+    try {
+      std::string v = boost::any_cast<std::string>(c[k]);
+    } catch ( ... ) {
+      v.clear();
+    }
+    
+    std::pair<std::string, std::string> pp;
+    pp.first = k;
+    pp.second = v;
+    keyvals.push_back( pp );
+  }
+  
+  if ( ugr->checkperm(fname, c.clientName, c.remoteAddress, c.fqans, keyvals, reqresource, reqmode) ) {
 
     // Not allowed. Throw a damn exception
 
@@ -153,13 +176,15 @@ void checkperm(const char *fname, UgrConnector *ugr, const SecurityCredentials &
       ss << c.fqans[i];
       if (i < c.fqans.size() - 1) ss << ",";
     }
-    std::vector<std::string> vs = c.getKeys();
-    if (vs.size() > 0) {
+    
+    if (keyvals.size() > 0) {
       ss << " Other keys: ";
-      for (unsigned int i = 0; i < vs.size(); i++ ) {
-        ss << vs[i];
-        if (i < vs.size() - 1) ss << ",";
+      for (unsigned int i = 0; i < keyvals.size(); i++ ) {
+        ss << "'" << keyvals[i].first << "':'" << keyvals[i].second << "'";
+        if (i < keyvals.size() - 1) ss << ",";
       }
+    } else {
+      ss << " Other keys: (none)";
     }
 
     throw DmException(EACCES, ss.str());

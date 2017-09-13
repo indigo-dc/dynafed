@@ -57,8 +57,11 @@ int main(int argc, char **argv) {
   string privs = argv[6];
   int res;
 
+  std::vector< std::pair<std::string, std::string> > keys;
+  keys.push_back( std::make_pair<std::string, std::string>("ugh1", "argh1") );
+  keys.push_back( std::make_pair<std::string, std::string>("ugh2", "argh2") );
   
-  if ( (res = ugr.checkperm("testperm.cc", user, "localhost", groups, groups, (char *)resource.c_str(), privs[0])) ) {
+  if ( (res = ugr.checkperm("testperm.cc", user, "localhost", groups, keys, (char *)resource.c_str(), privs[0])) ) {
     
     // Not allowed. Explain why
     
