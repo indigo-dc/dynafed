@@ -1,6 +1,6 @@
 Dynafed's aim is to support the creation of
-flexble, high performance, high scalability storage federations
-out of independent WebDAV services.
+flexible, high performance, high scalability storage federations
+out of independent WebDAV, S3 or Azure services.
 
 For more information on the project:
 
