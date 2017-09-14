@@ -329,7 +329,7 @@ void fillstat(struct stat &st, UgrFileInfo *nfo) {
 DmStatus UgrCatalog::extendedStat(dmlite::ExtendedStat& st, const std::string& path, bool followsym) throw (DmException) {
     UgrFileInfo *nfo = 0;
     std::string abspath = getAbsPath(const_cast<std::string&> (path));
-    checkperm("UgrCatalog::extendedStat", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'r');
+    //checkperm("UgrCatalog::extendedStat", getUgrConnector(), this->secCredentials, (char *)abspath.c_str(), 'r');
 
     if (!getUgrConnector()->stat((std::string&)abspath, UgrClientInfo(secCredentials.remoteAddress), &nfo) &&
         nfo &&
