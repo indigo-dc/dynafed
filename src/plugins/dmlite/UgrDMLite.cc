@@ -154,7 +154,7 @@ void checkperm(const char *fname, UgrConnector *ugr, const SecurityCredentials &
     // Get the value, maliciously
     std::string v;
     try {
-      std::string v = boost::any_cast<std::string>(c[k]);
+      v = c.getString(k, "");
     } catch ( ... ) {
       v.clear();
     }
