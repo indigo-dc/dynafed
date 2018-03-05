@@ -171,7 +171,7 @@ static boost::filesystem::path getPluginDirectory(){
          if (is_directory(plugin_dir)) {
              Info(UgrLogger::Lvl2, fname, "Define Ugr plugin directory to: " << plugin_dir);
          } else {
-             throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, get_generic_category()));
+             throw filesystem_error("ugr plugin path is not a directory ", plugin_dir, error_code(ENOTDIR, generic_category()));
          }
      } catch (filesystem_error & e) {
          Error(fname, "Invalid plugin directory" << plugin_dir << ", error " << e.what());
