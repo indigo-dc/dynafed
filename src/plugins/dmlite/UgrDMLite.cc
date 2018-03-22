@@ -824,6 +824,11 @@ Location UgrPoolManager::whereToWrite(const std::string& path) throw (DmExceptio
   if (vl.size() > 0) {
     Chunk ck( vl[0].name, 0, 1234);
 
+    // Note that we pass a full URL here, already translated for usage into
+    // a particular endpoint
+    // This is to avoid creating empty directories in all the remote endpoints
+    // Only the endpoints that match the destination of the write will receive the directory
+    // This is needed because accessing individual plugins from here would be highly problematic
     UgrCatalog::getUgrConnector()->mkDirMinusPonSiteFN(vl[0].name);
     
     

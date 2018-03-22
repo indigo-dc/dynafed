@@ -67,6 +67,13 @@ namespace dmlite {
         virtual DmStatus extendedStat(ExtendedStat&, const std::string&, bool) throw (DmException);
         virtual ExtendedStat extendedStat(const std::string&, bool) throw (DmException);
 
+        virtual void getChecksum(const std::string& path,
+                    const std::string& csumtype,
+                    std::string& csumvalue,
+                    const std::string& pfn, const bool forcerecalc, const int waitsecs) throw (DmException) {
+                      csumvalue = "";
+                    }                    
+                    
         virtual void unlink(const std::string&) throw (DmException);
 
         virtual void removeDir(const std::string&) throw (DmException);

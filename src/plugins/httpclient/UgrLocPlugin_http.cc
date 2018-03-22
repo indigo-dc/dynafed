@@ -698,9 +698,30 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
   // parent directories that are needed to write the given file
   // Beware, only its own endpoint, not the others
   
-  // Check if the given URL matches this plugin
-  if (sitefn.find(base_url_endpoint.getString()) == string::npos) {
-    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "not for me '" << sitefn << "'");
+  // Check if the given URL matches this plugin, beware of the protocol part
+  size_t pos = sitefn.find(':');
+  if (pos == string::npos) {
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "does not even look like an URL '" << sitefn << "'");
+    return 1;
+  }
+  std::string sitefn_noproto;
+  try {
+    sitefn_noproto = sitefn.substr(pos+3);
+  } catch (...) {
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "can't remove protocol part from '" << sitefn << "'");
+    return 1;
+  }
+  
+  std::string baseurl_noproto = base_url_endpoint.getString();
+  pos = baseurl_noproto.find(':');
+  if (pos == string::npos) {
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "base_url does not even look like an URL '" << baseurl_noproto << "'");
+    return 1;
+  }
+  baseurl_noproto.erase(0, pos+3);
+  
+  if (sitefn_noproto.find(baseurl_noproto) == string::npos) {
+    LocPluginLogInfoThr(UgrLogger::Lvl4, fname, "not for me '" << sitefn_noproto << "'");
     return 1;
   }
   
@@ -717,7 +738,7 @@ int UgrLocPlugin_http::run_mkDirMinusPonSiteFN(const std::string &sitefn, std::s
   // Make sure that all the parent dirs exist
   // This limit is hardcoded, and avoids creating parent directories that are obvious (e.g. the VO name)
   // or that make no sense (e.g. the protocol name)
-  while ( components.size() > 6 ) {
+  while ( components.size() > 5 ) {
 
     
     std::string ppath = joinUrl(components);
