@@ -514,7 +514,9 @@ UgrCode UgrConnector::removeDir(const std::string &lfn, const UgrClientInfo &cli
 
     // apply filters
     filterAndSortReplicaList(replicas_to_delete, client);
-
+   
+    locHandler.wipeInfoOnLfn(*this, l_lfn);
+    
     Info(UgrLogger::Lvl2, fname, "Deleted "<< deleted_number << " replicas, " << replicas_to_delete.size() << " to delete");
 
     return UgrCode();
