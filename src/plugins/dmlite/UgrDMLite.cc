@@ -843,11 +843,11 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 }
 
 
-int UgrPoolManager::filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
+DmStatus UgrPoolManager::filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
   return -1;
 }
 
-int UgrPoolManager::filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
+DmStatus UgrPoolManager::filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
   return -1;
 }
 
