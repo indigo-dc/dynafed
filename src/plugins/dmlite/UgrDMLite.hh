@@ -46,7 +46,7 @@ namespace dmlite {
     class UgrCatalog : public DummyCatalog {
     public:
         /// Constructor
-        UgrCatalog() throw (DmException);
+        UgrCatalog();
 
         /// Destructor
         ~UgrCatalog() ;
@@ -54,41 +54,41 @@ namespace dmlite {
         // Overloading
         virtual std::string getImplId() const throw ();
 
-        virtual void setSecurityContext(const dmlite::SecurityContext*) throw (DmException);
+        virtual void setSecurityContext(const dmlite::SecurityContext*);
 
-        void set(const std::string&, va_list) throw (DmException);
+        void set(const std::string&, va_list);
 
-        virtual void setStackInstance(StackInstance* si) throw (DmException) {
+        virtual void setStackInstance(StackInstance* si) {
         };
 
-        virtual std::vector<Replica> getReplicas(const std::string&) throw (DmException);
+        virtual std::vector<Replica> getReplicas(const std::string&);
 
 
-        virtual DmStatus extendedStat(ExtendedStat&, const std::string&, bool) throw (DmException);
-        virtual ExtendedStat extendedStat(const std::string&, bool) throw (DmException);
+        virtual DmStatus extendedStat(ExtendedStat&, const std::string&, bool);
+        virtual ExtendedStat extendedStat(const std::string&, bool);
 
         virtual void getChecksum(const std::string& path,
                     const std::string& csumtype,
                     std::string& csumvalue,
-                    const std::string& pfn, const bool forcerecalc, const int waitsecs) throw (DmException) {
+                    const std::string& pfn, const bool forcerecalc, const int waitsecs) {
                       csumvalue = "";
                     }                    
                     
-        virtual void unlink(const std::string&) throw (DmException);
+        virtual void unlink(const std::string&);
 
-        virtual void removeDir(const std::string&) throw (DmException);
+        virtual void removeDir(const std::string&);
 
-        virtual void changeDir(const std::string&) throw (DmException);
+        virtual void changeDir(const std::string&);
         
-        virtual void makeDir(const std::string&, mode_t) throw (DmException);
+        virtual void makeDir(const std::string&, mode_t);
         
-        virtual std::string getWorkingDir(void) throw (DmException);
+        virtual std::string getWorkingDir(void);
 
-        virtual Directory* openDir(const std::string&) throw (DmException);
-        virtual void closeDir(Directory*) throw (DmException);
+        virtual Directory* openDir(const std::string&);
+        virtual void closeDir(Directory*);
 
-        virtual struct dirent* readDir(Directory*) throw (DmException);
-        virtual ExtendedStat* readDirx(Directory*) throw (DmException);
+        virtual struct dirent* readDir(Directory*);
+        virtual ExtendedStat* readDirx(Directory*);
 
         static UgrConnector *getUgrConnector() {
             if (!UgrCatalog::conn) UgrCatalog::conn = new UgrConnector();
@@ -127,52 +127,52 @@ namespace dmlite {
 
         /// Create a security context from the credentials.
         /// @param cred The security credentials.
-        virtual SecurityContext* createSecurityContext(const SecurityCredentials& cred) throw (DmException);
-	virtual SecurityContext* createSecurityContext() throw (DmException);
+        virtual SecurityContext* createSecurityContext(const SecurityCredentials& cred);
+	virtual SecurityContext* createSecurityContext();
 
         /// Create a new group.
         /// @param gname The new group name.
 
-        virtual GroupInfo newGroup(const std::string& gname) throw (DmException) {
+        virtual GroupInfo newGroup(const std::string& gname) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-	virtual GroupInfo getGroup(const std::string& groupName) throw (DmException);
+	virtual GroupInfo getGroup(const std::string& groupName);
 
-        virtual std::vector<dmlite::GroupInfo> getGroups() throw (DmException) {
+        virtual std::vector<dmlite::GroupInfo> getGroups() {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual void updateGroup(const dmlite::GroupInfo& g) throw (DmException) {
+        virtual void updateGroup(const dmlite::GroupInfo& g) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual void deleteGroup(const std::string& g) throw (DmException) {
+        virtual void deleteGroup(const std::string& g) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual UserInfo newUser(const std::string& uname) throw (DmException) {
+        virtual UserInfo newUser(const std::string& uname) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual dmlite::UserInfo getUser(const std::string&) throw (DmException);
+        virtual dmlite::UserInfo getUser(const std::string&);
 
-        virtual std::vector<dmlite::UserInfo> getUsers() throw (DmException) {
+        virtual std::vector<dmlite::UserInfo> getUsers() {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual void updateUser(const dmlite::UserInfo&) throw (DmException) {
+        virtual void updateUser(const dmlite::UserInfo&) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
-        virtual void deleteUser(const std::string&) throw (DmException) {
+        virtual void deleteUser(const std::string&) {
             throw DmException(DMLITE_NO_USER_MAPPING, std::string("Not supported on a federation."));
         };
 
         virtual void getIdMap(const std::string& userName,
                 const std::vector<std::string>& groupNames,
                 UserInfo* user,
-                std::vector<GroupInfo>* groups) throw (DmException);
+                std::vector<GroupInfo>* groups);
 
     protected:
         SecurityCredentials cred;
@@ -186,21 +186,23 @@ namespace dmlite {
 
   class UgrPoolManager: public PoolManager {
   public:
-    UgrPoolManager(UgrFactory* factory) throw (DmException);
+    UgrPoolManager(UgrFactory* factory);
     ~UgrPoolManager();
 
     std::string getImplId() const throw ();
 
-    void setStackInstance(StackInstance* si) throw (DmException);
-    void setSecurityContext(const SecurityContext*) throw (DmException);
+    void setStackInstance(StackInstance* si);
+    void setSecurityContext(const SecurityContext*);
 
-    std::vector<Pool> getPools(PoolAvailability availability = kAny) throw (DmException);
-    Pool getPool(const std::string&) throw (DmException);
+    std::vector<Pool> getPools(PoolAvailability availability = kAny);
+    Pool getPool(const std::string&);
 
-    Location whereToRead (const std::string& path) throw (DmException);
-    Location whereToRead (ino_t inode)             throw (DmException);
-    Location whereToWrite(const std::string& path) throw (DmException);
+    Location whereToRead (const std::string& path);
+    Location whereToRead (ino_t inode)            ;
+    Location whereToWrite(const std::string& path);
 
+    virtual int filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata)  ;
+    virtual int filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata)  ;
   private:
 
     StackInstance* si_;
@@ -218,23 +220,23 @@ namespace dmlite {
     class UgrFactory : public CatalogFactory, public AuthnFactory, public PoolManagerFactory {
     public:
         /// Constructor
-        UgrFactory() throw (DmException);
+        UgrFactory();
         /// Destructor
         ~UgrFactory() ;
 
-        virtual void configure(const std::string& key, const std::string& value) throw (DmException);
+        virtual void configure(const std::string& key, const std::string& value);
         Catalog* createCatalog(CatalogFactory* factory,
-                PluginManager* pm) throw (DmException);
+                PluginManager* pm);
 
-        Catalog* createCatalog(PluginManager* pm) throw (DmException) {
+        Catalog* createCatalog(PluginManager* pm) {
             return createCatalog(NULL, pm);
         }
 
-        Authn* createAuthn(PluginManager* pm) throw (DmException) {
+        Authn* createAuthn(PluginManager* pm) {
             return new UgrAuthn();
         };
 
-	PoolManager* createPoolManager(PluginManager*) throw (DmException) {
+	PoolManager* createPoolManager(PluginManager*) {
 	  return new UgrPoolManager(this);
 
 	}
