@@ -844,7 +844,7 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 }
 
 
-DmStatus UgrPoolManager::filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
+DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
   
   Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file push. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << localsrcpath << "' dest: '" << remotedesturl << "'");
   // If not already running, start the copy job using the TaskExec, as a local process
@@ -996,7 +996,7 @@ DmStatus UgrPoolManager::filePush(const std::string& localsrcpath, const std::st
   
 }
 
-DmStatus UgrPoolManager::filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
+DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
   
   Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << localdestpath << "'");
   // If not already running, start the copy job using the TaskExec, as a local process
