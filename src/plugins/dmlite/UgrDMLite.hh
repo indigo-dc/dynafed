@@ -34,7 +34,7 @@
 #include <set>
 #include <boost/thread.hpp>
 #include "../../UgrConnector.hh"
-
+#include <dmlite/cpp/TaskExec.h>
 
 namespace dmlite {
 
@@ -184,7 +184,7 @@ namespace dmlite {
 
   class UgrFactory;
 
-  class UgrPoolManager: public PoolManager {
+  class UgrPoolManager: public PoolManager, private dmTaskExec {
   public:
     UgrPoolManager(UgrFactory* factory);
     ~UgrPoolManager();
@@ -201,8 +201,13 @@ namespace dmlite {
     Location whereToRead (ino_t inode)            ;
     Location whereToWrite(const std::string& path);
 
-    virtual DmStatus filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata)  ;
-    virtual DmStatus filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata)  ;
+    virtual DmStatus filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
+    virtual DmStatus filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
+    
+    /// Event invoked internally to log stuff
+    virtual void onLoggingRequest(Logger::Level lvl, std::string const & msg);
+    /// Event invoked internally to log stuff
+    virtual void onErrLoggingRequest(std::string const & msg);
   private:
 
     StackInstance* si_;

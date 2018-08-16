@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include "UgrAuthorization.hh"
+#include <string.h>
 
 #include "dmlite/cpp/utils/urls.h"
 
@@ -843,13 +844,317 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 }
 
 
-DmStatus UgrPoolManager::filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
-  return -1;
+DmStatus UgrPoolManager::filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
+  
+  Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file push. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << localsrcpath << "' dest: '" << remotedesturl << "'");
+  // If not already running, start the copy job using the TaskExec, as a local process
+  
+  // We don't have a ticker to give life to this sad API, so we do what we can
+  // to avoid bloating it with one more thread
+  dmTaskExec::tick();
+  
+  // Use the stackinstance as a context for repeated calls of this function
+  int id = 0;
+  if (si_->contains("ugr-3cp-taskid"))
+    id = boost::any_cast<int>(si_->get("ugr-3cp-taskid"));
+  
+  if (id <= 0) {
+    
+    
+    checkperm("UgrPoolManager::filePush", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localsrcpath.c_str(), 'r');
+    
+    // We have the local LFN to be copied from. This needs to be located by Ugr and used
+    // as a source for the copy
+    // Note that a file not found will be signalled by an exception here, which will reach the caller
+    Location copysrc = whereToRead(localsrcpath);
+    
+    std::vector<std::string> params;
+    std::string x509proxypath;
+    if (si_->contains("x509_delegated_proxy_path")) {
+      // Beware, this info may come from the frontend, e.g. lcgdm-dav
+      x509proxypath = boost::any_cast<std::string>(si_->get("x509_delegated_proxy_path"));
+    }
+    
+    Info(Logger::Lvl1, "UgrPoolManager", "Starting file push. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << copysrc[0].url.toString() << "' dest: '" << remotedesturl << "' proxy: '" << x509proxypath << "'");
+    
+    params.push_back(UgrCFG->GetString("glb.filepushhook", (char *)"/usr/bin/ugr-filepush"));
+    params.push_back(boost::lexical_cast<std::string>(cksumcheck));
+    if ((!cksumtype) || (!cksumtype[0]))
+      params.push_back("<nochecksumtype>");
+    else
+      params.push_back(cksumtype);
+    params.push_back(copysrc[0].url.toString());
+    params.push_back(remotedesturl);
+    params.push_back(x509proxypath);
+    
+    // TODO: pass any other interesting parameter, e.g. a transfer bearer token
+    
+    
+    // TODO: if the stackinstance contains all the keys passed by Apache, give a
+    // configfile-based way to pass selected items
+    
+    id = this->submitCmd(params);
+    
+    if(id < 0) {
+      return DmStatus(500, SSTR("An error occured - unable to initiate file push."));
+    }
+    
+    this->goCmd(id);
+    boost::any to_append = id;
+    si_->set("ugr-3cp-taskid", to_append);
+    
+    
+  }
+  
+  // Wait for the job to finish, max 10 secs
+  int runres = waitResult(id, 1);
+  
+  // finished or not yet, let's pick the current task output
+  std::string myout;
+  if (getTaskStdout(id, myout)) 
+    return DmStatus(500, SSTR("An error occured - unable to retrieve job output."));
+  
+  
+  // If the additional stdout is parsable as a GFAL/FTS performance marker,
+  // do it and fill the struct. Parse only what has not yet been parsed
+  int stdoutprocessed = 0;
+  
+  if (si_->contains("ugr-3cp-stdoutprocessed"))
+    stdoutprocessed = boost::any_cast<int>(si_->get("ugr-3cp-stdoutprocessed"));
+  
+  const char *p = strstr(myout.c_str()+stdoutprocessed, "monitor: ");
+  
+  if (p) {
+    const char *myfmt = "monitor: %s %s %f %ld %ld %ld";
+    char buf1[1024], buf2[1024];
+    long elapsed, inst, xferred;
+    float avg;
+    int nfields = sscanf(p, myfmt, buf1, buf2, &avg, &inst, &xferred, &elapsed);
+    if (nfields == 6) {
+      
+      // Yep, we got a perf marker, log it
+      //       Info(UgrLogger::Lvl2, "UgrPoolManager",
+      //            SSTR("Got perf marker. Timestamp: " << progressdata->timestamp <<
+      //            " stripe idx: " << progressdata->stripeindex <<
+      //            " stripe bytes: " << progressdata->stripexferred <<
+      //            " stripe totcount: " << progressdata->totstripecount <<
+      //            " localsrc: '" << localsrcpath <<
+      //            "' remotedest: '" << remotedesturl << "'"));
+      
+      Info(UgrLogger::Lvl2, "UgrPoolManager",
+           SSTR("Got perf marker. src: '" << buf1 << "' dst: '" << buf2 <<
+           " avg: " << avg << " inst: " << inst <<
+           " xferred: " << xferred <<
+           " elapsed: " << elapsed));
+      
+      progressdata->stripexferred = xferred;
+      progressdata->stripeindex = 0;
+      progressdata->timestamp = time(0);
+      progressdata->totstripecount = 1;
+      
+      
+    }
+    
+    // Anyway advance the last parsed position
+    boost::any to_append = (int)((p-myout.c_str()) + strlen(myfmt));
+    si_->set("ugr-3cp-stdoutprocessed", to_append);
+    
+  } else {
+    // Anyway advance the last parsed position
+    int app = myout.length()-10;
+    
+    if (app > 0) {
+      boost::any to_append = (int)myout.length();
+      si_->set("ugr-3cp-stdoutprocessed", to_append);
+    }
+    
+    
+  }
+  
+  // Send OK or EAGAIN, with the performance marker filled
+  Info(UgrLogger::Lvl4, "UgrPoolManager",
+       SSTR("runres: " << runres));
+//   
+  if (!runres) {
+    // finished, let's see if it was success or failure
+    dmTask *t = getTask(id);
+    if (!t)
+      return DmStatus(500, SSTR("Can't find my task id " << id << " Internal error"));
+    
+    if (!t->resultcode)
+      return DmStatus();
+    
+    // If it looks like an HTTP number let's forward the original result code
+    if ((t->resultcode >= 200) && (t->resultcode < 600))
+      return DmStatus(t->resultcode, SSTR("Task id " << id << " failed copying '" << localsrcpath << "' to '" << remotedesturl << "' result code: " << t->resultcode));
+    
+    // Otherwise 422 will blame the user. HE gave bad URLs, not us!
+    return DmStatus(422, SSTR("Task id " << id << " failed copying '" << localsrcpath << "' to '" << remotedesturl << "' result code: " << t->resultcode));
+  }
+  
+  return DmStatus(EAGAIN, SSTR("Task id " << id << " has not yet finished"));
+  
 }
 
-DmStatus UgrPoolManager::filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferprogmarker *progressdata) {
-  return -1;
+DmStatus UgrPoolManager::filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
+  
+  Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << localdestpath << "'");
+  // If not already running, start the copy job using the TaskExec, as a local process
+  
+  // We don't have a ticker to give life to this sad API, so we do what we can
+  // to avoid bloating it with one more thread
+  dmTaskExec::tick();
+  
+  // Use the stackinstance as a context for repeated calls of this function
+  int id = 0;
+  if (si_->contains("ugr-3cp-taskid"))
+    id = boost::any_cast<int>(si_->get("ugr-3cp-taskid"));
+  
+  if (id <= 0) {
+    
+    // Beware, we need to write into the local SE
+    checkperm("UgrPoolManager::filePull", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localdestpath.c_str(), 'w');
+    
+    // We have the local LFN to be copied to. This needs to be located by Ugr and used
+    // as a dest for the copy
+    // Note that a file not found will be signalled by an exception here, which will reach the caller
+    Location copylocaldest = whereToWrite(localdestpath);
+    
+    std::vector<std::string> params;
+    std::string x509proxypath;
+    if (si_->contains("x509_delegated_proxy_path")) {
+      // Beware, this info may come from the frontend, e.g. lcgdm-dav
+      x509proxypath = boost::any_cast<std::string>(si_->get("x509_delegated_proxy_path"));
+    }
+    
+    Info(Logger::Lvl1, "UgrPoolManager", "Starting file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << copylocaldest[0].url.toString() << "' proxy: '" << x509proxypath << "'");
+    
+    params.push_back(UgrCFG->GetString("glb.filepullhook", (char *)"/usr/bin/ugr-filemover"));
+    params.push_back(boost::lexical_cast<std::string>(cksumcheck));
+    if ((!cksumtype) || (!cksumtype[0]))
+      params.push_back("<nochecksumtype>");
+    else
+      params.push_back(cksumtype);
+    params.push_back(remotesrcurl);
+    params.push_back(copylocaldest[0].url.toString());
+    params.push_back(x509proxypath);
+    
+    // TODO: pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both
+    
+    
+    // TODO: if the stackinstance contains all the keys passed by Apache, give a
+    // configfile-based way to pass selected items
+    
+    id = this->submitCmd(params);
+    
+    if(id < 0) {
+      return DmStatus(500, SSTR("An error occured - unable to initiate file push."));
+    }
+    
+    this->goCmd(id);
+    boost::any to_append = id;
+    si_->set("ugr-3cp-taskid", to_append);
+    
+    
+  }
+  
+  // Wait for the job to finish, max 10 secs
+  int runres = waitResult(id, 1);
+  
+  // finished or not yet, let's pick the current task output
+  std::string myout;
+  if (getTaskStdout(id, myout)) 
+    return DmStatus(500, SSTR("An error occured - unable to retrieve job output."));
+  
+  
+  // If the additional stdout is parsable as a GFAL/FTS performance marker,
+  // do it and fill the struct. Parse only what has not yet been parsed
+  int stdoutprocessed = 0;
+  
+  if (si_->contains("ugr-3cp-stdoutprocessed"))
+    stdoutprocessed = boost::any_cast<int>(si_->get("ugr-3cp-stdoutprocessed"));
+  
+  const char *p = strstr(myout.c_str()+stdoutprocessed, "monitor: ");
+  
+  if (p) {
+    const char *myfmt = "monitor: %s %s %f %ld %ld %ld";
+    char buf1[1024], buf2[1024];
+    long elapsed, inst, xferred;
+    float avg;
+    int nfields = sscanf(p, myfmt, buf1, buf2, &avg, &inst, &xferred, &elapsed);
+    if (nfields == 6) {
+      
+      // Yep, we got a perf marker, log it
+      //       Info(UgrLogger::Lvl2, "UgrPoolManager",
+      //            SSTR("Got perf marker. Timestamp: " << progressdata->timestamp <<
+      //            " stripe idx: " << progressdata->stripeindex <<
+      //            " stripe bytes: " << progressdata->stripexferred <<
+      //            " stripe totcount: " << progressdata->totstripecount <<
+      //            " localsrc: '" << localsrcpath <<
+      //            "' remotedest: '" << remotedesturl << "'"));
+      
+      Info(UgrLogger::Lvl2, "UgrPoolManager",
+           SSTR("Got perf marker. src: '" << buf1 << "' dst: '" << buf2 <<
+           " avg: " << avg << " inst: " << inst <<
+           " xferred: " << xferred <<
+           " elapsed: " << elapsed));
+      
+      progressdata->stripexferred = xferred;
+      progressdata->stripeindex = 0;
+      progressdata->timestamp = time(0);
+      progressdata->totstripecount = 1;
+      
+      
+    }
+    
+    // Anyway advance the last parsed position
+    boost::any to_append = (int)((p-myout.c_str()) + strlen(myfmt));
+    si_->set("ugr-3cp-stdoutprocessed", to_append);
+    
+  } else {
+    // Anyway advance the last parsed position
+    int app = myout.length()-10;
+    
+    if (app > 0) {
+      boost::any to_append = (int)myout.length();
+      si_->set("ugr-3cp-stdoutprocessed", to_append);
+    }
+    
+    
+  }
+  
+  // Send OK or EAGAIN, with the performance marker filled
+  Info(UgrLogger::Lvl4, "UgrPoolManager",
+       SSTR("runres: " << runres));
+  //   
+  if (!runres) {
+    // finished, let's see if it was success or failure
+    dmTask *t = getTask(id);
+    if (!t)
+      return DmStatus(500, SSTR("Can't find my task id " << id << " Internal error"));
+    
+    if (!t->resultcode)
+      return DmStatus();
+    
+    // If it looks like an HTTP number let's forward the original result code
+    if ((t->resultcode >= 200) && (t->resultcode < 600))
+      return DmStatus(t->resultcode, SSTR("Task id " << id << " failed pulling '" << remotesrcurl << "' to '" << localdestpath << "' result code: " << t->resultcode));
+    
+    // Otherwise 422 will blame the user. HE gave bad URLs, not us!
+    return DmStatus(422, SSTR("Task id " << id << " failed pulling '" << remotesrcurl << "' to '" << localdestpath << "' result code: " << t->resultcode));
+  }
+  
+  return DmStatus(EAGAIN, SSTR("Task id " << id << " has not yet finished"));
 }
 
 
+/// Event invoked internally to log stuff
+void UgrPoolManager::onLoggingRequest(Logger::Level lvl, std::string const & msg) {
+  Info(lvl, "UgrPoolManager", msg);
+}
 
+
+/// Event invoked internally to log stuff
+void UgrPoolManager::onErrLoggingRequest(std::string const & msg) {
+  Error("UgrPoolManager", msg);
+}
