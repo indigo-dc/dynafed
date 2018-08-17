@@ -33,8 +33,8 @@ BuildRequires:			boost148-devel >= 1.48.0
 ## Provides: libugrconnector.so.1.2.2()(64bit)
 
 BuildRequires:		cmake
-BuildRequires:		dmlite-devel >= 0.11.0
-BuildRequires:		dmlite-private-devel  >= 0.11.0
+BuildRequires:		dmlite-devel >= 1.11.0
+BuildRequires:		dmlite-private-devel  >= 1.11.0
 BuildRequires:		davix-devel >= 0.6.2
 BuildRequires:		lfc-devel >= 1.8.8
 BuildRequires:		gfal2-devel
