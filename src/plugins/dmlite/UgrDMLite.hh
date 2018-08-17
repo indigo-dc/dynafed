@@ -201,8 +201,8 @@ namespace dmlite {
     Location whereToRead (ino_t inode)            ;
     Location whereToWrite(const std::string& path);
 
-    virtual DmStatus filePush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
-    virtual DmStatus filePull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
+    virtual DmStatus fileCopyPush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
+    virtual DmStatus fileCopyPull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata)  ;
     
     /// Event invoked internally to log stuff
     virtual void onLoggingRequest(Logger::Level lvl, std::string const & msg);
