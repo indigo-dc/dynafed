@@ -175,7 +175,7 @@ UgrLogger::~UgrLogger()
 
 void UgrLogger::log(Level lvl, const std::string & msg) const
 {
-    syslog(LOG_ERR, "%s", msg.c_str());
+    syslog(LOG_INFO, "%s", msg.c_str());
 
     if(stderr_log){
         std::cerr << msg << std::endl;
