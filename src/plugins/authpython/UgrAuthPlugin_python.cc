@@ -271,6 +271,9 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
     
   Info(UgrLogger::Lvl4, fname, "Invoking func");
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+  
   {
     struct timespec t1, t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
@@ -297,7 +300,9 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
     if (PyErr_Occurred())
       logpythonerror(fname);
 
-      
+    /* Release the thread. No Python API allowed beyond this point. */
+    PyGILState_Release(gstate);
+    
     Error(fname, "Call failed.");
     return 1;
   }
@@ -305,6 +310,9 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
   
   PyErr_Clear();
+  
+  /* Release the thread. No Python API allowed beyond this point. */
+  PyGILState_Release(gstate);
   
   return 0;
 }
