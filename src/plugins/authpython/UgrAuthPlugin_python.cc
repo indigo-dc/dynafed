@@ -136,6 +136,7 @@ int UgrAuthorizationPlugin_py::pyinit(myPyFuncInfo &funcnfo)
     exit(255);
   }
 
+
 }
 
 
@@ -340,6 +341,8 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
   const char *fname = "UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py";
 
   // Load from the cfg file the definitions of the scripts/funcs to call
+  PyEval_InitThreads();
+  PyEval_ReleaseLock();
   Py_Initialize();
 
   Py_InitModule("mylog", logMethods);
