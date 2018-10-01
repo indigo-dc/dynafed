@@ -95,7 +95,7 @@ Plugin for the Logical File catalog system for %{name}
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
-Requires:                       dmlite-libs%{?_isa} >= 0.8.0
+Requires:                       dmlite-libs%{?_isa} >= 1.11.0
 
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
@@ -106,7 +106,7 @@ Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
 Requires:                       lcgdm-dav-server
-Requires:                       dmlite-libs%{?_isa} >= 0.8.0
+Requires:                       dmlite-libs%{?_isa} >= 1.11.0
 %if %systemd == 0
 Requires:                       mod_proxy_fcgi
 %endif
@@ -220,6 +220,8 @@ make DESTDIR=%{buildroot} install
 /var/www/html/dashboard/*
 
 %changelog
+* Wed Sept 26, 2018 Fabrizio Furano <furano at cern.ch> - 1.4.0
+ - now requires dmlite >= 1.11
 * Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.1-1
  - Little packaging fixes for inclusion into EPEL
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap
