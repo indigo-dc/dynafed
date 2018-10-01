@@ -220,7 +220,7 @@ make DESTDIR=%{buildroot} install
 /var/www/html/dashboard/*
 
 %changelog
-* Wed Sept 26 2018 Fabrizio Furano <furano at cern.ch> - 1.4.0
+* Wed Sep 26 2018 Fabrizio Furano <furano at cern.ch> - 1.4.0
  - now requires dmlite >= 1.11
 * Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.1-1
  - Little packaging fixes for inclusion into EPEL
