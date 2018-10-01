@@ -717,7 +717,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
         applyHooksNewReplica(*it);
     }
 
-    // sort all answer geographically
+    // sort geographically
     filterAndSortReplicaList(new_locations, client);
 
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing

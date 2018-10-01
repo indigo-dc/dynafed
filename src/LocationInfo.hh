@@ -84,21 +84,25 @@ public:
         pluginID = -1;
     };
 
-    // Some info about the location, e.g. galactic coordinates
+    /// Some info about the location, e.g. galactic coordinates
     std::string location;
 
-    // Status Information
+    /// Status Information
     Status status;
     
-    // Some info about the geographical location
+    /// Some info about the geographical location
     float latitude;
     float longitude;
     
     /// The index of the plugin that inserted this replica
     short pluginID;
     
-    // To help saving memory while doing geo distance calculations
+    /// To help saving memory while doing geo distance calculations
     float tempDistance;
+    
+    /// Alternative URL to reach the replica. In the case of an S3 PUT this will be a signed URL
+    /// where to send a POST request
+    std::string alternativeUrl;
 };
 
 

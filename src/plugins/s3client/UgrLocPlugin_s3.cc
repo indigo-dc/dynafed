@@ -355,15 +355,24 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
     try{
 
         Davix::HeaderVec vec;
-        std::string new_Location;
-
-        Davix::Uri signed_location = signURI(params, "PUT", canonical_name, vec, signature_validity);
+        std::string new_Location, new_Location_post;
+        Davix::Uri signed_location, signed_location_post;
+        
+        // Sign the main location that has been found
+        signed_location = signURI(params, "PUT", canonical_name, vec, signature_validity);
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation " << signed_location);
-
         new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
         HttpUtils::pathHttpNomalize(new_Location);
+        
+        // Clients willing to upload a huge file need to be able to send a signed POST request
+        // The new replica instance will have to carry this information too
+        signed_location_post = signURI(params, "POST", canonical_name, vec, signature_validity);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation for POST " << signed_location);
+        new_Location_post = HttpUtils::protocolHttpNormalize(signed_location.getString());
+        HttpUtils::pathHttpNomalize(new_Location_post);
+        
 
-        handler->addReplica(new_Location, getID());
+        handler->addReplica(new_Location, new_Location_post, getID());
         
 
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << signed_location);

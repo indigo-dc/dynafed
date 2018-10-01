@@ -192,16 +192,28 @@ private:
 class ReplicasHandler : public HandlerTraits, public boost::noncopyable{
 public:
 
-    inline void addReplica(const std::string & str, int pluginID){
+    inline void addReplica(const std::string & name, int pluginID){
         UgrFileItem_replica r;
         r.pluginID = pluginID;
-        r.name = str;
+        r.name = name;
+        
         {
             boost::lock_guard<boost::mutex> l(mu_);
             new_locations_vec_.push_back(std::move(r));
         }
     }
 
+    inline void addReplica(const std::string & name, const std::string & alturl, int pluginID){
+      UgrFileItem_replica r;
+      r.pluginID = pluginID;
+      r.name = name;
+      r.alternativeUrl = alturl;
+      {
+        boost::lock_guard<boost::mutex> l(mu_);
+        new_locations_vec_.push_back(std::move(r));
+      }
+    }
+    
     inline void addReplica(const UgrFileItem_replica & rep, int pluginID){
             boost::lock_guard<boost::mutex> l(mu_);
             new_locations_vec_.push_back(rep);

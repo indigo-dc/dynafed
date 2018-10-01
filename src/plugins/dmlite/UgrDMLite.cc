@@ -37,7 +37,8 @@
 #include "UgrAuthorization.hh"
 #include <string.h>
 
-#include "dmlite/cpp/utils/urls.h"
+#include <dmlite/cpp/utils/urls.h>
+#include <dmlite/cpp/pooldriver.h>
 
 using namespace dmlite;
 
@@ -824,7 +825,9 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
   }
   if (vl.size() > 0) {
     Chunk ck( vl[0].name, 0, 1234);
-
+    /// Some implementations need to pass two urls per chunk, e.g. one for PUT and one for POST
+    ck.url_alt = vl[0].alternativeUrl;
+    
     // Note that we pass a full URL here, already translated for usage into
     // a particular endpoint
     // This is to avoid creating empty directories in all the remote endpoints
