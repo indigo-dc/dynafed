@@ -204,12 +204,12 @@ public:
     /// @param replicas_to_delete
     virtual UgrCode makeDir(const std::string & lfn, const UgrClientInfo & client);
 
-    /// Return a list of prefered locations for a new resource
-    /// The location is selected based on client credential, client location, endpoints configuration
+    /// Return a list of locations for a new resource
+    /// The location is selected based on client credential, client location, endpoints configuration, file size
     /// @param new_lfn : lfn of the new resource
     /// @param client: client informations
     /// @param new_locations: vector of possible replicas
-    virtual UgrCode findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations);
+    virtual UgrCode findNewLocation(const std::string & new_lfn, off64_t filesz, const UgrClientInfo & client, UgrReplicaVec & new_locations);
 
     
     

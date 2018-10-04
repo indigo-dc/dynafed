@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
     UgrReplicaVec res;
     UgrClientInfo client(argv[4]);
-    ugr.findNewLocation(fn, client, res);
+    ugr.findNewLocation(fn, 123, client, res);
 
 
     if(res.size() ==0){

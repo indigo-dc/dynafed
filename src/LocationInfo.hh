@@ -41,12 +41,17 @@ class UgrConnector;
 ////
 class UgrClientInfo{
 public:
-    UgrClientInfo() { };
-    UgrClientInfo(const std::string & ip1) : ip(ip1) { }
-    UgrClientInfo(const std::string & ip1, std::vector<std::string> & grps) : groups(grps),  ip(ip1){ }
+    UgrClientInfo(): s3uploadpluginid(-1) { };
+    UgrClientInfo(const std::string & ip1) : ip(ip1), s3uploadpluginid(-1) {  }
+    UgrClientInfo(const std::string & ip1, std::vector<std::string> & grps) : groups(grps),  ip(ip1), s3uploadpluginid(-1) { }
 
     std::vector<std::string> groups;
     std::string ip;
+    
+    // The client may have an upload ID coming from S3
+    std::string s3uploadid;
+    // The client may want to restrict the search to just one plugin
+    int s3uploadpluginid;
 };
 
 /// The information that we have about a subitem, e.g. an item in a directory listing,

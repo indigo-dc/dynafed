@@ -364,18 +364,64 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
         HttpUtils::pathHttpNomalize(new_Location);
         
-        // Clients willing to upload a huge file need to be able to send a signed POST request
-        // The new replica instance will have to carry this information too
-        signed_location_post = signURI(params, "POST", canonical_name, vec, signature_validity);
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation for POST " << signed_location);
-        new_Location_post = HttpUtils::protocolHttpNormalize(signed_location.getString());
-        HttpUtils::pathHttpNomalize(new_Location_post);
+        // If the client wants to uploaad a large file let's prepare things for an S3 multipart upload
+        if (handler->filesize > 2*1024*1024*1024L) {
+          if ( !handler->s3uploadID.length() ) {
+            // Clients willing to upload a huge file need to be able to send a signed POST request
+            // The new replica instance will have to carry this information too
+            std::string ss(canonical_name);
+            ss += "?uploads";
+            signed_location_post = signURI(params, "POST", ss, vec, signature_validity);
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation for POST " << signed_location_post);
+            new_Location_post = HttpUtils::protocolHttpNormalize(signed_location_post.getString());
+            HttpUtils::pathHttpNomalize(new_Location_post);
         
 
-        handler->addReplica(new_Location, new_Location_post, getID());
+            handler->addReplica(new_Location, new_Location_post, getID());
+          }
+          else {
+            
+            char buf[4096];
+            
+            // We have an s3 uploadid for a large file. Prepare a sufficient number 
+            // of presigned urls to use
+            int nchunks = handler->filesize / (1024*1024*512L);
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Producing " << nchunks << " chunks. Filesize: " << handler->filesize);
+            for (int i = 1; i <= nchunks; i++) {
+              std::string ss(canonical_name);
+              
+              sprintf(buf, "?partNumber=%d&uploadId=%s", i, handler->s3uploadID.c_str());
+              ss += buf;
+              
+              // Sign the main location that has been found
+              vec.clear();
+              Davix::Uri sloc = signURI(params, "PUT", ss, vec, signature_validity);
+              
+              LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation (partnumber: " << i << " uploadId: '" << handler->s3uploadID << "') " << sloc);
+              
+              new_Location = HttpUtils::protocolHttpNormalize(sloc.getString());
+              HttpUtils::pathHttpNomalize(new_Location);
+              handler->addReplica(new_Location, new_Location, getID());
+            }
+              
+            // And now the final POST
+            std::string ss(canonical_name);
+            sprintf(buf, "?uploadId=%s", handler->s3uploadID.c_str());
+            ss += buf;
+            
+            // Sign the main location that has been found
+            signed_location = signURI(params, "POST", ss, vec, signature_validity);
+            LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Obtain signed newLocation (final uploadId: '" << handler->s3uploadID << "') " << signed_location);
+            new_Location = HttpUtils::protocolHttpNormalize(signed_location.getString());
+            HttpUtils::pathHttpNomalize(new_Location);
+            handler->addReplica(new_Location, new_Location_post, getID());
+          }
+        }
+        else
+          handler->addReplica(new_Location, new_Location_post, getID());
         
 
-        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << signed_location);
+        LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success. Items: " << handler->size());
         return 0;
 
     }catch(Davix::DavixException & e){

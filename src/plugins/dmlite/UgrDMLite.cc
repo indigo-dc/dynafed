@@ -815,18 +815,43 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 
   checkperm("UgrPoolManager::whereToWrite", UgrCatalog::getUgrConnector(), secCtx_->credentials, (char *)path.c_str(), 'w');
 
+  off64_t reqsz = 0;
+  try {
+    reqsz = Extensible::anyToU64(this->si_->get("requested_size"));
+  } catch ( ... ) {}
+  
+  UgrClientInfo cnfo(secCtx_->credentials.remoteAddress);
+  try {
+    cnfo.s3uploadid = Extensible::anyToString(this->si_->get("x-s3-uploadid"));
+  } catch ( ... ) {}
+  
+  try {
+    cnfo.s3uploadpluginid = Extensible::anyToLong(this->si_->get("x-ugrpluginid"));
+  } catch ( ... ) {}
+  
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,
-    UgrClientInfo(secCtx_->credentials.remoteAddress),
+    reqsz,
+    cnfo,
     vl );
 
   if(!code.isOK()){
       throw DmException(DMLITE_SYSERR(ugrToDmliteErrCode(code)), code.getString());
   }
+  
+  
   if (vl.size() > 0) {
-    Chunk ck( vl[0].name, 0, 1234);
-    /// Some implementations need to pass two urls per chunk, e.g. one for PUT and one for POST
-    ck.url_alt = vl[0].alternativeUrl;
+    Location loc;
+    
+    for (uint16_t i = 0; i < vl.size(); i++) {
+      Chunk ck( vl[i].name, 0, 1);
+      /// Some implementations need to pass two urls per chunk, e.g. one for PUT and one for POST
+      ck.url_alt = vl[i].alternativeUrl;
+      char buf[32];
+      sprintf(buf, "%d", vl[i].pluginID);
+      ck.chunkid = buf;
+      loc.push_back(ck);
+    }
     
     // Note that we pass a full URL here, already translated for usage into
     // a particular endpoint
@@ -837,8 +862,8 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
     
     
     // Done!
-    Info(UgrLogger::Lvl3, "UgrPoolManager::whereToWrite", "Exiting. loc:" << ck.toString());
-    return Location(1, ck);
+    Info(UgrLogger::Lvl3, "UgrPoolManager::whereToWrite", "Exiting. nlocations: " << vl.size() << " first loc:" << vl[0].name);
+    return loc;
   }
 
   Error("UgrPoolManager::whereToWrite", " Didn't get a destination from writing : " << path);

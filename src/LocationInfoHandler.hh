@@ -191,7 +191,11 @@ private:
 ///
 class ReplicasHandler : public HandlerTraits, public boost::noncopyable{
 public:
-
+    // If a plugin understands the content of this field, it may
+    // decide to insert enough items to be used for a multipart upload
+    std::string s3uploadID;
+    off_t filesize;
+  
     inline void addReplica(const std::string & name, int pluginID){
         UgrFileItem_replica r;
         r.pluginID = pluginID;
@@ -229,7 +233,11 @@ public:
         return res;
     }
 
-
+    inline int size() {
+        boost::lock_guard<boost::mutex> l(mu_);
+        return new_locations_vec_.size();
+    }
+      
 private:
     boost::mutex mu_;
     UgrReplicaVec new_locations_vec_;

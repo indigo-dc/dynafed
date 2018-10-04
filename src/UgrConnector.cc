@@ -668,11 +668,14 @@ UgrCode UgrConnector::makeDir(const std::string & lfn, const UgrClientInfo & cli
   
 }
 
-UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClientInfo & client, UgrReplicaVec & new_locations){
+UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, off64_t filesz, const UgrClientInfo & client, UgrReplicaVec & new_locations){
     const char *fname = "UgrConnector::findNewLocation";
     std::string l_lfn(new_lfn);
     std::shared_ptr<NewLocationHandler> response_handler= std::make_shared<NewLocationHandler>();
 
+    response_handler->filesize = filesz;
+    response_handler->s3uploadID = client.s3uploadid;
+    
     UgrFileInfo::trimpath(l_lfn);
     do_n2n(l_lfn);
 
@@ -695,10 +698,22 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
     fi->setToNoInfo();
     
     // Ask all the non slave plugins that are online
+    // Limit the search to one plugin if requested so...
+    
     for (auto it = locPlugins.begin(); it < locPlugins.end(); ++it) {
         if ( (!(*it)->isSlave()) && ((*it)->isOK())
-             && (*it)->getFlag(LocationPlugin::Writable)){
+             && (*it)->getFlag(LocationPlugin::Writable)) {
+          
+          // If the client requested a search through a specific plugin...
+          if (client.s3uploadpluginid >= 0) {
+            Info(UgrLogger::Lvl2, fname,  "Find new location for '" << l_lfn << "' restricting to pluginid " << client.s3uploadpluginid);
+            
+            if (client.s3uploadpluginid == (*it)->getID())
+              (*it)->async_findNewLocation(l_lfn, response_handler);
+          }
+          else // otherwise do it through all the plugins
             (*it)->async_findNewLocation(l_lfn, response_handler);
+          
         }
     }
 
@@ -713,13 +728,15 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, const UgrClie
 
 
     // apply hooks now
-    for(auto it = new_locations.begin(); it < new_locations.end(); ++it){
+    if (client.s3uploadpluginid < 0)
+      for(auto it = new_locations.begin(); it < new_locations.end(); ++it){
         applyHooksNewReplica(*it);
-    }
+      }
 
     // sort geographically
-    filterAndSortReplicaList(new_locations, client);
-
+    if (client.s3uploadpluginid < 0)
+      filterAndSortReplicaList(new_locations, client);
+    
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
     if ( UgrCFG->GetBool("glb.addchildtoparentonput", true) )
       this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
