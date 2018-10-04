@@ -45,7 +45,12 @@ public:
                          const char *reqresource, const char reqmode);
   
 private:
+  
+  
+  boost::mutex mtx;
+  
   myPyFuncInfo info_pyfunc;
+  static bool python_initdone;
   
   int pyinit(myPyFuncInfo &funcnfo);
   int pyterm(myPyFuncInfo &funcnfo);

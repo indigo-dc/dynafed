@@ -14,9 +14,19 @@
 
 
 
+
+bool UgrAuthorizationPlugin_py::python_initdone = false;
+
+
+
+
+
 PyObject* log_CaptureStdout(PyObject* self, PyObject* pArgs)
 {
+  
   char* LogStr = NULL;
+  
+  
   if (!PyArg_ParseTuple(pArgs, "s", &LogStr)) return NULL;
   
   
@@ -28,6 +38,8 @@ PyObject* log_CaptureStdout(PyObject* self, PyObject* pArgs)
   // WriteFile(hFile, LogStr...
   
   Py_INCREF(Py_None);
+  
+  
   return Py_None;
 }
 
@@ -35,12 +47,15 @@ PyObject* log_CaptureStdout(PyObject* self, PyObject* pArgs)
 PyObject* log_CaptureStderr(PyObject* self, PyObject* pArgs)
 {
   char* LogStr = NULL;
+  
+  
   if (!PyArg_ParseTuple(pArgs, "s", &LogStr)) return NULL;
   
   Info(UgrLogger::Lvl2, "PythonStderr", LogStr);
   //printf("%s", LogStr);
   
   Py_INCREF(Py_None);
+  
   return Py_None;
 }
 
@@ -178,6 +193,7 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
   PyObject *pFqans, *pKeys, *pCouple, *pValue, *pArgs;
   int pos = 0;
   
+  
   if (pFunc && PyCallable_Check(pFunc)) {
     pArgs = PyTuple_New(6); // CHANGEME
     
@@ -208,6 +224,7 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
         Py_DECREF(pFqans);
         PyErr_Clear();
         Error(fname, "Cannot convert fqan " << j << ": '" << fqans[j] << "'");
+        
         return 1;
       }
         
@@ -234,6 +251,7 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
         Py_DECREF(pCouple);
         PyErr_Clear();
         Error(fname, "Cannot convert key " << j << ": '" << keys[j].first << "'");
+        
         return 1;
       }
       /* pValue reference stolen here: */
@@ -251,6 +269,7 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
         Py_DECREF(pCouple);
         PyErr_Clear();
         Error(fname, "Cannot convert key " << j << ": '" << keys[j].second << "'");
+        
         return 1;
       }
       /* pValue reference stolen here: */
@@ -272,15 +291,17 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
     
   Info(UgrLogger::Lvl4, fname, "Invoking func");
-  PyGILState_STATE gstate;
-  gstate = PyGILState_Ensure();
+
   
   {
     struct timespec t1, t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
     
+    
     pValue = PyObject_CallObject(pFunc, pArgs);
+    
     Py_DECREF(pArgs);
+    
     
     // Finish measuring the time needed
     clock_gettime(CLOCK_MONOTONIC, &t2);
@@ -295,14 +316,13 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
   if (pValue != NULL) {
     retval = PyInt_AsLong(pValue);
     Info(UgrLogger::Lvl3, fname, "Result of call: " << retval);
+    
     Py_DECREF(pValue);
   }
   else {
     if (PyErr_Occurred())
       logpythonerror(fname);
 
-    /* Release the thread. No Python API allowed beyond this point. */
-    PyGILState_Release(gstate);
     
     Error(fname, "Call failed.");
     return 1;
@@ -311,9 +331,7 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
   
   PyErr_Clear();
-  
-  /* Release the thread. No Python API allowed beyond this point. */
-  PyGILState_Release(gstate);
+
   
   return 0;
 }
@@ -336,33 +354,47 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
 UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vector<std::string> & parms) : UgrAuthorizationPlugin(c, parms) {
   
-  
-  
   const char *fname = "UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py";
-
-  // Load from the cfg file the definitions of the scripts/funcs to call
-  PyEval_InitThreads();
-  PyEval_ReleaseLock();
-  Py_Initialize();
-
-  Py_InitModule("mylog", logMethods);
-  PyRun_SimpleString(
-                     "import mylog\n"
-                     "import sys\n"
-                     "class StdoutCatcher:\n"
-                     "\tdef write(self, str):\n"
-                     "\t\tmylog.CaptureStdout(str)\n"
-                     "class StderrCatcher:\n"
-                     "\tdef write(self, str):\n"
-                     "\t\tmylog.CaptureStderr(str)\n"
-                     "sys.stdout = StdoutCatcher()\n"
-                     "sys.stderr = StderrCatcher()\n"
-                     "sys.path.append(\"/\")\n"
-                     "sys.path.append(\"/etc/ugr/conf.d/\")\n"
-                     );
-
   
-
+  {
+    boost::lock_guard<boost::mutex> l(mtx);
+    if (!python_initdone) {
+      python_initdone = true;
+      
+      // Load from the cfg file the definitions of the scripts/funcs to call
+      PyEval_InitThreads();
+      
+      Py_Initialize();
+      
+      Py_InitModule("mylog", logMethods);
+      PyRun_SimpleString(
+        "import mylog\n"
+        "import sys\n"
+        "class StdoutCatcher:\n"
+        "\tdef write(self, str):\n"
+        "\t\tmylog.CaptureStdout(str)\n"
+        "class StderrCatcher:\n"
+        "\tdef write(self, str):\n"
+        "\t\tmylog.CaptureStderr(str)\n"
+        "sys.stdout = StdoutCatcher()\n"
+        "sys.stderr = StderrCatcher()\n"
+        "sys.path.append(\"/\")\n"
+        "sys.path.append(\"/etc/ugr/conf.d/\")\n"
+      );
+      
+      
+      /*
+       * 
+       *  PyRun_SimpleString(
+       *    "import sys\n"
+       *    "sys.path.append(\"/\")\n"
+       *    "sys.path.append(\"/etc/ugr/conf.d/\")\n"
+       *  );*/
+      
+      PyEval_ReleaseLock();
+    }
+  }
+  
   // Take the parms
   if (parms.size() != 4) {
     pyterm(info_pyfunc);
@@ -398,9 +430,20 @@ bool UgrAuthorizationPlugin_py::isallowed(const char *fname,
                                                   const std::vector<std::pair<std::string, std::string>> &keys,
                                                   const char *reqresource, const char reqmode) {
 
+  
+  
+  
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
+  
   int retval = 0;
   int r = pyxeqfunc2(retval, info_pyfunc.pFunc, clientName, remoteAddress, reqresource, reqmode, fqans, keys);
 
+  
+  /* Release the thread. No Python API allowed beyond this point. */
+  PyGILState_Release(gstate);
+  
+  
   // A value of 0 got from a successful execution means allowed
   if (!r && !retval) {
     Info(UgrLogger::Lvl3, "isallowed", "Allowed. clientname: '" << clientName << "' remoteaddr: '" << remoteAddress << "' mode: " << reqmode );
