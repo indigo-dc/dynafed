@@ -357,15 +357,66 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
   const char *fname = "UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py";
   
   {
-    boost::lock_guard<boost::mutex> l(mtx);
-    if (!python_initdone) {
+    
+    //
+    // Various hacks for initializing python, inspired by
+    // mod_python
+    // https://github.com/grisha/mod_python/blob/master/src/mod_python.c
+    //
+    
+
+    if (!python_initdone || !Py_IsInitialized()) {
       python_initdone = true;
       
-      // Load from the cfg file the definitions of the scripts/funcs to call
-      PyEval_InitThreads();
+      //
+      // Diabolic python version checks
+      //
+      const char *py_compile_version = PY_VERSION;
+      const char *py_dynamic_version = 0;
+      
+      
+      py_dynamic_version = strtok((char *)Py_GetVersion(), " ");
+      
+      if (strcmp(py_compile_version, py_dynamic_version) != 0) {
+        Error(fname, "python_init: Python version mismatch, expected '" <<
+          py_compile_version << "', found '" << py_dynamic_version << "'");
+        Error(fname, "python_init: Python executable found '" <<
+                     Py_GetProgramFullPath() << "'");
+        Error(fname, "python_init: Python path being used '" << 
+                     Py_GetPath() << "'");
+        Error(fname, "python_init: ... continuing initialization anyway.");
+      }
+      else
+        Info(UgrLogger::Lvl1, fname, "python_init: found Python version  '" <<
+        py_dynamic_version << "'");
+      
+      
+      /* disable user site directories */
+      Py_NoUserSiteDirectory = 1;
+      
+      /* Initialze the main interpreter. */
+      #if PY_MAJOR_VERSION == 2 && \
+      (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
+      /*
+       * We do not want site.py to
+       * be imported because as of Python 2.7.9 it would cause a
+       * circular dependency related to _locale which breaks
+       * graceful restart so we set Py_NoSiteFlag to 1 just for this
+       * one time. (https://github.com/grisha/mod_python/issues/46)
+       */
+      Py_NoSiteFlag = 1;
+      #endif
+      
       
       Py_Initialize();
       
+      #if PY_MAJOR_VERSION == 2 && \
+      (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
+      Py_NoSiteFlag = 0;
+      #endif
+      
+      PyEval_InitThreads();
+            
       Py_InitModule("mylog", logMethods);
       PyRun_SimpleString(
         "import mylog\n"
