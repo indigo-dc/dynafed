@@ -1076,15 +1076,21 @@ are necessary for the client to go through the workflow.\\
 The workflow is as follows:
 \begin{enumerate}
  \item Client sends generic PUT request for a large file to dynafed
- \item If an S3 backend is chosen for the upload, Dynafed will respod to the client with the usual redirection response,
- decorated with an additional header that contains the pre-signed URL needed to initiate the multipart upload
- \item The client detects the header and realizes it has to initiate a multipart upload
- \item The client sends a POST request to the S3 backend, the ersponse will contain the uploadid needed
- to upload the chunks
- \item the client sends a PUT request to dynafed, specifying the uploadid and the ugrpluginid,
- and will get back a liist of presigned URLs that can be used to upload the various parts
+ \item If an S3 backend is chosen for the upload, Dynafed will respond to the client with the usual redirection response,
+ decorated with:
+ \subitem a header line  \lstinline"x-ugrs3posturl" that contains the pre-signed URL needed to initiate the multipart upload (a POST request to the S3
+ backend chosen by Ugr)
+ \subitem a header line \lstinline"x-ugrpluginid" that identifies the Ugr plugin that has been chosen to receive the large upload
+ \item The client detects the headers and realizes it has to initiate a multipart upload. A client that is unable to detect this will normally
+ follow the signed redirection towards the S3 endpoint, which will likely not accept the upload of the large file.
+ \item The client sends a POST request to the S3 backend, the response will contain the uploadid needed
+ to upload the chunks.
+ \item the client sends a PUT request to dynafed, specifying the headers \lstinline"x-s3-uploadid" coming from the S3 backend and the \lstinline"x-ugrpluginid"
+ coming from Ugr, and will get back a list of presigned URLs that can be used to upload the various parts
  of the file. Tha last URL is needed to commit the content and finish the upload (POST).
 \end{enumerate}
+For further information, the reader is encouraged to refer to the Amazon Web Services REST API documentation:\\
+\lstinline"https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html"
 
 
 

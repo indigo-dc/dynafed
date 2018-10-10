@@ -71,13 +71,14 @@
 \contentsline {subsubsection}{\numberline {6.10.3}locplugin.$<$ID$>$.s3.region}{44}
 \contentsline {subsubsection}{\numberline {6.10.4}locplugin.$<$ID$>$.s3.signaturevalidity}{45}
 \contentsline {subsubsection}{\numberline {6.10.5}locplugin.$<$ID$>$.s3.alternate}{45}
-\contentsline {subsection}{\numberline {6.11}GeoIP plugin for geographical information (obsolete)}{46}
-\contentsline {subsubsection}{\numberline {6.11.1}glb.filterplugin.geoip.fuzz}{47}
-\contentsline {subsection}{\numberline {6.12}MaxMindDB plugin for geographical information}{47}
-\contentsline {subsubsection}{\numberline {6.12.1}glb.filterplugin.mmdb.fuzz}{48}
-\contentsline {subsection}{\numberline {6.13}Microsoft Azure plugin}{48}
-\contentsline {subsubsection}{\numberline {6.13.1}locplugin.$<$ID$>$.azure.key}{49}
-\contentsline {subsubsection}{\numberline {6.13.2}locplugin.$<$ID$>$.azure.signaturevalidity}{49}
-\contentsline {subsection}{\numberline {6.14}DAVrucio plugin}{50}
-\contentsline {subsubsection}{\numberline {6.14.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{50}
-\contentsline {subsection}{\numberline {6.15}DMLite client plugin}{52}
+\contentsline {subsubsection}{\numberline {6.10.6}A note on S3 multipart uploads}{46}
+\contentsline {subsection}{\numberline {6.11}GeoIP plugin for geographical information (obsolete)}{47}
+\contentsline {subsubsection}{\numberline {6.11.1}glb.filterplugin.geoip.fuzz}{48}
+\contentsline {subsection}{\numberline {6.12}MaxMindDB plugin for geographical information}{48}
+\contentsline {subsubsection}{\numberline {6.12.1}glb.filterplugin.mmdb.fuzz}{49}
+\contentsline {subsection}{\numberline {6.13}Microsoft Azure plugin}{49}
+\contentsline {subsubsection}{\numberline {6.13.1}locplugin.$<$ID$>$.azure.key}{50}
+\contentsline {subsubsection}{\numberline {6.13.2}locplugin.$<$ID$>$.azure.signaturevalidity}{50}
+\contentsline {subsection}{\numberline {6.14}DAVrucio plugin}{51}
+\contentsline {subsubsection}{\numberline {6.14.1}locplugin.$<$ID$>$.xlatepfx\_ruciohash}{51}
+\contentsline {subsection}{\numberline {6.15}DMLite client plugin}{53}
