@@ -86,7 +86,7 @@
 %\textsc{\large Minor Heading}\\[0.5cm] % Minor heading such as course title
 
 \HRule \\[0.4cm]
-{ \huge \bfseries Dynafed v1.3.2}\\[0.4cm] % Title of your document
+{ \huge \bfseries Dynafed v1.3.3}\\[0.4cm] % Title of your document
 \HRule \\[1.5cm]
 
 \begin{minipage}{0.4\textwidth}
@@ -345,7 +345,7 @@ The complete scheme is shown in Figure \ref{fig_n2n}. Starting from the left, th
  
  \lstinline"http://<host>/myfed/dteam/mydir/myfile" .\\\
  
- Then, internally, if the path starts with the prefix specified in \textit{n2n\_pfx}, this prefix is stripped from the path and the \textit{n2n\_newpfx} is put in its place.
+ Then, internally, if the path starts with one of the prefixes specified in \textit{n2n\_pfx}, this prefix is stripped from the path and the \textit{n2n\_newpfx} is put in its place.
  
  The resulting path/filename is what is handled by the internal workspace, and propagated to the plugins.
  
@@ -521,9 +521,10 @@ UGR can process the file paths it is requested, in order to normalize them by me
 
 \subsubsection{glb.n2n\_pfx}
 
-Remove the given prefix, if found in the requested URL.\\
+\lstinline"glb.n2n_pfx" defines a list of prefixes which will be substituted by \lstinline"glb.n2n_newpfx" during name translation. If more than one prefix is defined then matches will be tried with the longest prefix first and the first match will be accepted.
+
 Syntax:\\
-\lstinline"glb.n2n_pfx: <string_prefix>"
+\lstinline"glb.n2n_pfx: <string_prefix> [<string_prefix> ...]"
 
 Default value: none
 \\
