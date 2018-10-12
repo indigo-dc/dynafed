@@ -927,7 +927,11 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     const dmlite::SecurityContext *secctx = si_->getSecurityContext();
     if (secctx) {
       hdrline = secctx->credentials.getString("http.Authentication", "");
-      if (hdrline.size()) params.push_back(hdrline);
+      if (hdrline.size()) {
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authentication header to file pusher: '" << hdrline << "'");
+        
+        params.push_back(hdrline);
+      }
       else
         params.push_back("");
       
@@ -944,7 +948,10 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
         hdrkey += buf;
         
         hdrline = secctx->credentials.getString(hdrkey, "");
-        if (hdrline.size()) params.push_back(hdrline);
+        if (hdrline.size()) {
+          Info(Logger::Lvl4, "UgrPoolManager", "Passing '" << buf << "' header to file pusher: '" << hdrline << "'");
+          params.push_back(hdrline);
+        }
         else
           params.push_back("");
         
@@ -1109,7 +1116,10 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     const dmlite::SecurityContext *secctx = si_->getSecurityContext();
     if (secctx) {
       hdrline = secctx->credentials.getString("http.Authentication", "");
-      if (hdrline.size()) params.push_back(hdrline);
+      if (hdrline.size()) {
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authentication header to file pusher: '" << hdrline << "'");
+        params.push_back(hdrline);
+      }
         else
           params.push_back("");
 
@@ -1126,7 +1136,10 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
       hdrkey += buf;
       
       hdrline = secctx->credentials.getString(hdrkey, "");
-      if (hdrline.size()) params.push_back(hdrline);
+      if (hdrline.size()) {
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing '" << buf << "' header to file puller: '" << hdrline << "'");
+        params.push_back(hdrline);
+      }
       else
         params.push_back("");
       
