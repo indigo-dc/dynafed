@@ -675,6 +675,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, off64_t files
 
     response_handler->filesize = filesz;
     response_handler->s3uploadID = client.s3uploadid;
+    response_handler->nchunks = client.nchunks;
     
     UgrFileInfo::trimpath(l_lfn);
     do_n2n(l_lfn);

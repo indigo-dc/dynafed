@@ -365,7 +365,7 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
         HttpUtils::pathHttpNomalize(new_Location);
         
         // If the client wants to uploaad a large file let's prepare things for an S3 multipart upload
-        if (handler->filesize > 2*1024*1024*1024L) {
+//         if (handler->filesize > 2*1024*1024*1024L) {
           if ( !handler->s3uploadID.length() ) {
             // Clients willing to upload a huge file need to be able to send a signed POST request
             // The new replica instance will have to carry this information too
@@ -385,7 +385,15 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
             
             // We have an s3 uploadid for a large file. Prepare a sufficient number 
             // of presigned urls to use
-            int nchunks = handler->filesize / (1024*1024*512L);
+            int nchunks = handler->nchunks;
+            
+            if (!nchunks)
+              nchunks = handler->filesize / (1024*1024*512L);
+            
+            // If the size is not provided then just provide a bunch of 50 chunks
+            if (!nchunks)
+              nchunks = 50;
+            
             LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "Producing " << nchunks << " chunks. Filesize: " << handler->filesize);
             for (int i = 1; i <= nchunks; i++) {
               std::string ss(canonical_name);
@@ -416,9 +424,9 @@ int UgrLocPlugin_s3::run_findNewLocation(const std::string & lfn, std::shared_pt
             HttpUtils::pathHttpNomalize(new_Location);
             handler->addReplica(new_Location, new_Location_post, getID());
           }
-        }
-        else
-          handler->addReplica(new_Location, new_Location_post, getID());
+//         }
+//         else
+//           handler->addReplica(new_Location, new_Location_post, getID());
         
 
         LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success. Items: " << handler->size());

@@ -829,6 +829,10 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
     cnfo.s3uploadpluginid = Extensible::anyToLong(this->si_->get("x-ugrpluginid"));
   } catch ( ... ) {}
   
+  try {
+    cnfo.nchunks = Extensible::anyToLong(this->si_->get("x-s3-upload-nchunks"));
+  } catch ( ... ) {}
+  
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
     path,
     reqsz,
@@ -915,11 +919,42 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     params.push_back(remotedesturl);
     params.push_back(x509proxypath);
     
-    // TODO: pass any other interesting parameter, e.g. a transfer bearer token
     
+    // pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both
     
-    // TODO: if the stackinstance contains all the keys passed by Apache, give a
-    // configfile-based way to pass selected items
+    // Surely we pass the Authentication header
+    std::string hdrline;
+    const dmlite::SecurityContext *secctx = si_->getSecurityContext();
+    if (secctx) {
+      hdrline = secctx->credentials.getString("http.Authentication", "");
+      if (hdrline.size()) params.push_back(hdrline);
+      else
+        params.push_back("");
+      
+      
+      // if the stackinstance contains all the keys passed by Apache, give a
+      // configfile-based way to pass selected items
+      int i = 0;
+      do {
+        char buf[1024];
+        UgrCFG->ArrayGetString("glb.filepush.header2params", buf, i);
+        if (!buf[0]) break;
+        
+        std::string hdrkey = "http.";
+        hdrkey += buf;
+        
+        hdrline = secctx->credentials.getString(hdrkey, "");
+        if (hdrline.size()) params.push_back(hdrline);
+        else
+          params.push_back("");
+        
+        ++i;
+      } while (1);
+      
+    }
+    else
+      params.push_back("");
+    
     
     id = this->submitCmd(params);
     
@@ -1067,16 +1102,46 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     params.push_back(copylocaldest[0].url.toString());
     params.push_back(x509proxypath);
     
-    // TODO: pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both
+    // pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both
     
+    // Surely we pass the Authentication header
+    std::string hdrline;
+    const dmlite::SecurityContext *secctx = si_->getSecurityContext();
+    if (secctx) {
+      hdrline = secctx->credentials.getString("http.Authentication", "");
+      if (hdrline.size()) params.push_back(hdrline);
+        else
+          params.push_back("");
+
     
-    // TODO: if the stackinstance contains all the keys passed by Apache, give a
+    // if the stackinstance contains all the keys passed by Apache, give a
     // configfile-based way to pass selected items
+    int i = 0;
+    do {
+      char buf[1024];
+      UgrCFG->ArrayGetString("glb.filepull.header2params", buf, i);
+      if (!buf[0]) break;
+      
+      std::string hdrkey = "http.";
+      hdrkey += buf;
+      
+      hdrline = secctx->credentials.getString(hdrkey, "");
+      if (hdrline.size()) params.push_back(hdrline);
+      else
+        params.push_back("");
+      
+      ++i;
+    } while (1);
+    
+    }
+    else
+      params.push_back("");
+    
     
     id = this->submitCmd(params);
     
     if(id < 0) {
-      return DmStatus(500, SSTR("An error occured - unable to initiate file push."));
+      return DmStatus(500, SSTR("An error occured - unable to initiate file pull."));
     }
     
     this->goCmd(id);

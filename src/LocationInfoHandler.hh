@@ -195,7 +195,8 @@ public:
     // decide to insert enough items to be used for a multipart upload
     std::string s3uploadID;
     off_t filesize;
-  
+    int64_t nchunks;
+    
     inline void addReplica(const std::string & name, int pluginID){
         UgrFileItem_replica r;
         r.pluginID = pluginID;

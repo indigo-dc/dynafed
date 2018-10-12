@@ -41,9 +41,9 @@ class UgrConnector;
 ////
 class UgrClientInfo{
 public:
-    UgrClientInfo(): s3uploadpluginid(-1) { };
-    UgrClientInfo(const std::string & ip1) : ip(ip1), s3uploadpluginid(-1) {  }
-    UgrClientInfo(const std::string & ip1, std::vector<std::string> & grps) : groups(grps),  ip(ip1), s3uploadpluginid(-1) { }
+    UgrClientInfo(): s3uploadpluginid(-1), nchunks(0) { };
+    UgrClientInfo(const std::string & ip1) : ip(ip1), s3uploadpluginid(-1), nchunks(0) {  }
+    UgrClientInfo(const std::string & ip1, std::vector<std::string> & grps) : groups(grps),  ip(ip1), s3uploadpluginid(-1), nchunks(0) { }
 
     std::vector<std::string> groups;
     std::string ip;
@@ -52,6 +52,8 @@ public:
     std::string s3uploadid;
     // The client may want to restrict the search to just one plugin
     int s3uploadpluginid;
+    // The client may want to assk for a certain number of chunks for S3 uploads
+    int64_t nchunks;
 };
 
 /// The information that we have about a subitem, e.g. an item in a directory listing,
