@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
   UgrConnector ugr;
   UgrClientInfo cli_info("localhost");
   
-  long long cnt = atoll(argv[1]);
+  //long long cnt = atoll(argv[1]);
   
   cout << "Initializing" << endl;
   if (ugr.init(argv[2]))

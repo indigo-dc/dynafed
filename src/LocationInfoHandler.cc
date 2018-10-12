@@ -199,7 +199,8 @@ int LocationInfoHandler::wipeInfoOnLfn(UgrConnector& context, std::string &lfn) 
 
 // Add the newly existing file to the subitems of the parent directory
 
-int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn, bool checkExtCache) {
+int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::string &lfn,
+                                                 bool checkExtCache, bool recursive) {
      const char *fname = "LocationInfoHandler::addChildToParentSubItem";
      bool doinsert = false;
      UgrFileInfo *fi = 0;
@@ -213,7 +214,11 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
          parent = lfn.substr(0, pos);
          child = lfn.substr(pos + 1);
      }
+     else return 0;
 
+     if (parent.length() <= 1) return 0;
+     if (child.length() == 0) return 0;
+     
      {
          boost::lock_guard<LocationInfoHandler> l(*this);
 
@@ -222,8 +227,13 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
          p = data.find(parent);
          if (p == data.end()) {
              // parent item not found in memory and we don't want to check extenal cache, just return
-             if(!checkExtCache) return 0;
-             
+             if(!checkExtCache) {
+               if (!recursive)
+                 return 0;
+               
+               return addChildToParentSubitem(context, parent,
+                                              checkExtCache, recursive);
+             }
              // If we reached the max number of items, delete as much as we can
              while (data.size() > maxitems) {
                  if (purgeLRUitem()) break;
@@ -279,7 +289,12 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
             // If we had an empty fi element and we could not fill it from the ext cache
             // then we exit and delete the now useless object.
             delete fi;
-            return 1;
+            
+            if (!recursive)
+              return 1;
+            
+            return addChildToParentSubitem(context, parent,
+                                           checkExtCache, recursive);
         }
         // If parent item is found, we also need the subitems since we need to add one more
         // No checks, if we are here we already have a fi object to take care of
@@ -306,8 +321,13 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
      }
      
      // if in lite mode, we don't need to push to ext cache, just return
-     if(!checkExtCache)
+     if(!checkExtCache) {
+       if (!recursive)
          return 0;
+       
+       return addChildToParentSubitem(context, parent,
+                                      checkExtCache, recursive);
+     }
 
      // Insert to internal cache only if parent entry did not exist there
      if (doinsert) {
@@ -320,7 +340,11 @@ int LocationInfoHandler::addChildToParentSubitem(UgrConnector& context, std::str
      putFileInfoToCache(fi);
      putSubitemsToCache(fi);
      
-     return 0;
+     if (!recursive)
+       return 0;
+     
+     return addChildToParentSubitem(context, parent,
+                                    checkExtCache, recursive);
 
 }
 

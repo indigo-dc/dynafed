@@ -399,7 +399,7 @@ int UgrConnector::stat(std::string &lfn, const UgrClientInfo &client, UgrFileInf
     }
 
     if ( addtoparent && UgrCFG->GetBool("glb.addchildtoparentonstat", true) )
-      this->locHandler.addChildToParentSubitem(*this, l_lfn, false);
+      this->locHandler.addChildToParentSubitem(*this, l_lfn, false, true);
 
     *nfo = fi;
 
@@ -740,7 +740,7 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, off64_t files
     
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
     if ( UgrCFG->GetBool("glb.addchildtoparentonput", true) )
-      this->locHandler.addChildToParentSubitem(*this, l_lfn, true);
+      this->locHandler.addChildToParentSubitem(*this, l_lfn, true, true);
     
     Info(UgrLogger::Lvl2, fname, new_locations.size() << " new locations found");
     return UgrCode();
