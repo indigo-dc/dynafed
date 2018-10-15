@@ -105,7 +105,7 @@ Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
 Requires:                       %{name}%{?_isa} = %{version}-%{release}
 Requires:                       %{_libdir}/httpd/modules/mod_lcgdm_dav.so
-Requires:                       lcgdm-dav-server
+Requires:                       lcgdm-dav-server >= 0.22
 Requires:                       dmlite-libs%{?_isa} >= 1.11.0
 %if %systemd == 0
 Requires:                       mod_proxy_fcgi
