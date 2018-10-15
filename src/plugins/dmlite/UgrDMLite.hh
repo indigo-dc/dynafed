@@ -68,11 +68,11 @@ namespace dmlite {
         virtual ExtendedStat extendedStat(const std::string&, bool);
 
         virtual void getChecksum(const std::string& path,
-                    const std::string& csumtype,
-                    std::string& csumvalue,
-                    const std::string& pfn, const bool forcerecalc, const int waitsecs) {
-                      csumvalue = "";
-                    }                    
+                                             const std::string& csumtype,
+                                             std::string& csumvalue,
+                                             const std::string& pfn,
+                                             const bool forcerecalc,
+                                             const int waitsecs);
                     
         virtual void unlink(const std::string&);
 

@@ -214,6 +214,25 @@ UgrCatalog::~UgrCatalog()  {
     // Nothing
 }
 
+
+void UgrCatalog::getChecksum(const std::string& path,
+                                         const std::string& csumtype,
+                                         std::string& csumvalue,
+                                         const std::string& pfn,
+                                         const bool forcerecalc,
+                                         const int waitsecs)   { 
+  
+  // If UgrConnector becommes able to aggregate checksums, here
+  // we will take the decision about how to treat them
+  //
+  // For the time being, Ugr will always tell the frontend to do a redirection
+  //
+  csumvalue = "";
+  Info(UgrLogger::Lvl2, "UgrCatalog::getReplicas", "Requesting redirection to the file location. path: '" << path << "'");
+  
+  throw DmException(DMLITE_RDR_ON_CHECKSUM, "UgrConnector initialization failed.");
+}
+
 std::string UgrCatalog::getImplId() const throw () {
     return std::string("UgrCatalog");
 }
