@@ -86,7 +86,9 @@ protected:
     
     /// Info needed for a simple implementation of n2n functionalities
     /// Prefix to substitute and new prefix
-    std::string n2n_pfx, n2n_newpfx;
+    std::string n2n_newpfx;
+    std::vector<std::string> n2n_pfx_v;
+    
     void do_n2n(std::string &path);
 
     /// Start the async stat process

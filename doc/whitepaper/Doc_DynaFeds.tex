@@ -345,7 +345,7 @@ The complete scheme is shown in Figure \ref{fig_n2n}. Starting from the left, th
  
  \lstinline"http://<host>/myfed/dteam/mydir/myfile" .\\\
  
- Then, internally, if the path starts with the prefix specified in \textit{n2n\_pfx}, this prefix is stripped from the path and the \textit{n2n\_newpfx} is put in its place.
+ Then, internally, if the path starts with one of the prefixes specified in \textit{n2n\_pfx}, this prefix is stripped from the path and the \textit{n2n\_newpfx} is put in its place.
  
  The resulting path/filename is what is handled by the internal workspace, and propagated to the plugins.
  
@@ -466,6 +466,43 @@ Setting \lstinline"glb.addchildtoparentonstat" to \lstinline"false" disables thi
  Example:\\
 \lstinline"glb.addchildtoparentonstat: <false>"\\
 
+\subsubsection{glb.filepullhook}
+ Specifies the full path to an executable (or executable script) that can pull a file from an external URL into one of the endpoints of the federation.\\
+ 
+ Syntax:\\
+ 
+ \lstinline"glb.filepullhook: <path to executable>"\\
+ 
+ For more information on Third Party COPY requests, please see the section \ref{noteonTPC}.\\
+ 
+\subsubsection{glb.filepushhook}
+ Specifies the full path to an executable (or executable script) that can push a file from one of the endpoints of the federation towards an external URL .\\
+ 
+ Syntax:\\
+ 
+ \lstinline"glb.filepushhook: <path to executable>"\\
+ 
+ For more information on Third Party COPY requests, please see the section \ref{noteonTPC}.\\
+ 
+\subsubsection{glb.filepull.header2params[]}
+ Map a given request header (in the case of HTTP requests) into one or more parameters that will be passed to a file pulling script.\\
+ 
+ Syntax:\\
+ 
+ \lstinline"glb.filepull.header2params[]: x-http-usefulheader"\\
+ 
+  For more information on Third Party COPY requests, please see section \ref{noteonTPC}.\\
+  
+\subsubsection{glb.filepush.header2params[]}
+ Map a given request header (in the case of HTTP requests) into one or more parameters that will be passed to a file pushing script.\\
+ 
+ Syntax:\\
+ 
+ \lstinline"glb.filepush.header2params[]: x-http-usefulheader"\\
+ 
+  For more information on Third Party COPY requests, please see section \ref{noteonTPC}.\\
+  
+
 
 \subsubsection{\label{glb.locplugin}glb.locplugin}
 
@@ -521,22 +558,25 @@ UGR can process the file paths it is requested, in order to normalize them by me
 
 \subsubsection{glb.n2n\_pfx}
 
-Remove the given prefix, if found in the requested URL.\\
+\lstinline"glb.n2n_pfx" defines a list of prefixes which will be substituted by \lstinline"glb.n2n_newpfx" during name translation. If more than one prefix is defined then matches will be tried with the longest prefix first and the first match will be accepted.
+
 Syntax:\\
-\lstinline"glb.n2n_pfx: <string_prefix>"
+\lstinline"glb.n2n_pfx: <string_prefix> [<string_prefix> ...]"
 
 Default value: none
 \\
 Example:\\
 
-\lstinline"glb.n2n_pfx: /myfed"
+\lstinline"glb.n2n_pfx: /myfed /myfed2"
 
-If the requested path starts with \lstinline"/myfed", remove this prefix, so that internally in UGR that file is known without prefix.
+If the requested path starts with \lstinline"/myfed" or \lstinline"/myfed2", remove this prefix, so that internally in UGR that file is known without prefix.
 
 If the user requests /myfed/atlas/fabrizio/testfile.txt, internally the file will be known as /atlas/fabrizio/testfile.txt\\
-The practical consequence of this example is that the federation will be browseable with the prefix ``myfed'', like:\\
-\lstinline"http://myfederation.myhost/myfed/<path>/<file>"
- 
+If the user requests /myfed2/atlas/fabrizio/testfile.txt, internally the file will be known as /atlas/fabrizio/testfile.txt\\
+The practical consequence of this example is that the federation will be browseable with the prefix ``myfed'' or the prefix ``myfed2'', like:\\
+\lstinline"http://myfederation.myhost/myfed/<path>/<file>" or \\
+\lstinline"http://myfederation.myhost/myfed2/<path>/<file>"
+
 \subsubsection{glb.n2n\_newpfx}
 
 After having eventually stripped out a prefix with the \lstinline"n2n_pfx" directive, replace it with a new prefix.\\
@@ -1094,7 +1134,7 @@ request with a header line \lstinline"x-s3-upload-nchunks".}\\
 For further information, the reader is encouraged to refer to the Amazon Web Services REST API documentation:\\
 \lstinline"https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html"
 
-\subsubsection{A note on third party copy requests}
+\subsection{\label{noteonTPC}A note on third party copy requests}
 Dynafed (depending on the used frontend, but here we assume Apache HTTPD) reacts to third party copy (TPC) requests by
 executing an external helper script.\\
 In the case of a \textit{pull file copy} (i.e. the copy of a file \textbf{towards} one of the federated endpoints) Ugr will invoke the script
@@ -1103,6 +1143,22 @@ In the case of a \textit{push file copy} (i.e. the copy of a file \textbf{from} 
 indicated by the configuration directove \lstinline"glb.filepushhook", whose default value is \lstinline"/usr/bin/ugr-filepush".\\
 In both cases, the standard output of the script will be processed by Ugr looking for the \textit{GFAL/FTS performance markers}, whose
 values will be forwarded to the client in the way that FTS expects.\\
+What follows is the list of the parameters passed to both scripts:\\
+\lstinline"/usr/bin/ugr-filepush cksumcheck cksumtype srcURL destURL x509proxypath auth <additional optional parameters>"\\
+\lstinline"/usr/bin/ugr-filepull cksumcheck cksumtype srcURL destURL x509proxypath auth <additional optional parameters>"\\
+where:\\
+\begin{itemize}
+ \item \lstinline"cksumcheck" is an integer, whose value is nonzero if the copy has to verify the checksums
+ \item \lstinline"cksumtype" is a string identifying the checksum type that has to be used, e.g. \lstinline"adler32"
+ \item \lstinline"srcURL" is the full URL of the source file
+ \item \lstinline"destURL" is the full URL of the destination file
+ \item \lstinline"x509proxypath" is a local path pointing to the x509 delegated proxy certificate of the user that requested the file copy
+ \item \lstinline"auth" is additional authorization information. In the case of Apache HTTPD this field comes from the
+ content of the \lstinline"Authentication" header of the original COPY request
+ \item \lstinline"additional optional parameters" are filled by copying the value of selected HTTP
+ headers. To activate this mechanism, the Ugr configuration must provide one or more directives
+ \lstinline"glb.filepull.header2params[]" or \lstinline"glb.filepush.header2params[]", respectively for file push or pull requests.
+\end{itemize}
 
 
 

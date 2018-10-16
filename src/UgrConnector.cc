@@ -272,11 +272,24 @@ int UgrConnector::init(char *cfgfile) {
             authorizationPlugins.push_back(p);
         }
         
-        n2n_pfx = UgrCFG->GetString("glb.n2n_pfx", (char *) "");
+        
+        // Populate vector of prefixes
+        size_t p1=0, p2=0;
+        std::string pfx_str = UgrCFG->GetString("glb.n2n_pfx", (char *) "");
+        // Split on space character and populate vector
+        while ( (p2=pfx_str.find_first_of(" ", p1)) != std::string::npos ) {
+          n2n_pfx_v.push_back(pfx_str.substr(p1, p2-p1));
+          UgrFileInfo::trimpath(n2n_pfx_v.back());
+          p1=p2+1;
+        }   
+        n2n_pfx_v.push_back(pfx_str.substr(p1));
+        UgrFileInfo::trimpath(n2n_pfx_v.back());
+        // Must have the longest paths first
+        sort(n2n_pfx_v.begin(), n2n_pfx_v.end(), std::greater<std::string>());
+        
         n2n_newpfx = UgrCFG->GetString("glb.n2n_newpfx", (char *) "");
-        UgrFileInfo::trimpath(n2n_pfx);
         UgrFileInfo::trimpath(n2n_newpfx);
-        Info(UgrLogger::Lvl1, fname, "N2N pfx: '" << n2n_pfx << "' newpfx: '" << n2n_newpfx << "'");
+        Info(UgrLogger::Lvl1, fname, "N2N prefixes: '" << pfx_str << "' newpfx: '" << n2n_newpfx << "'");
 
 
         Info(UgrLogger::Lvl3, fname, "Starting the plugins.");
@@ -313,19 +326,23 @@ bool UgrConnector::isEndpointOK(int pluginID) {
 }
 
 void UgrConnector::do_n2n(std::string &path) {
-    if ((n2n_pfx.size() == 0) || (path.find(n2n_pfx) == 0)) {
-
-        if ((n2n_newpfx.size() > 0) || (n2n_pfx.size() > 0)) {
-
-            path = n2n_newpfx + path.substr(n2n_pfx.size());
-
-            // Avoid double slashes at the beginning. This is well spent CPU time, even if it may hide a bad configuration.
-            if (path.substr(0, 2) == "//")
-                path.erase(0, 1);
-
-        }
+  for (auto p = n2n_pfx_v.begin(); p != n2n_pfx_v.end(); ++p) {
+    
+    if ((p->size() == 0) || (path.find(*p) == 0)) {
+      
+      if ((n2n_newpfx.size() > 0) || (p->size() > 0)) {
+        
+        path = n2n_newpfx + path.substr(p->size());
+        
+        // Avoid double slashes at the beginning. This is well spent CPU time, even if it may hide a bad configuration.
+        if (path.substr(0, 2) == "//")
+          path.erase(0, 1);
+        
+        break;
+      }
     }
-
+  }
+  
 }
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
