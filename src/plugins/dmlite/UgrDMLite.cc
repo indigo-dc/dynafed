@@ -1118,7 +1118,7 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     
     Info(Logger::Lvl1, "UgrPoolManager", "Starting file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << copylocaldest[0].url.toString() << "' proxy: '" << x509proxypath << "'");
     
-    params.push_back(UgrCFG->GetString("glb.filepullhook", (char *)"/usr/bin/ugr-filemover"));
+    params.push_back(UgrCFG->GetString("glb.filepullhook", (char *)"/usr/bin/ugr-filepull"));
     params.push_back(boost::lexical_cast<std::string>(cksumcheck));
     if ((!cksumtype) || (!cksumtype[0]))
       params.push_back("<nochecksumtype>");

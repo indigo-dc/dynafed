@@ -1089,8 +1089,20 @@ The workflow is as follows:
  coming from Ugr, and will get back a list of presigned URLs that can be used to upload the various parts
  of the file. Tha last URL is needed to commit the content and finish the upload (POST).
 \end{enumerate}
+\textit{By default Ugr will produce a fixed number of pre-signed URLs. The client may ask for a specified number by providing the last PUT
+request with a header line \lstinline"x-s3-upload-nchunks".}\\
 For further information, the reader is encouraged to refer to the Amazon Web Services REST API documentation:\\
 \lstinline"https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html"
+
+\subsubsection{A note on third party copy requests}
+Dynafed (depending on the used frontend, but here we assume Apache HTTPD) reacts to third party copy (TPC) requests by
+executing an external helper script.\\
+In the case of a \textit{pull file copy} (i.e. the copy of a file \textbf{towards} one of the federated endpoints) Ugr will invoke the script
+indicated by the configuration directove \lstinline"glb.filepullhook", whose default value is \lstinline"/usr/bin/ugr-filepull".\\
+In the case of a \textit{push file copy} (i.e. the copy of a file \textbf{from} one of the federated endpoints) Ugr will invoke the script
+indicated by the configuration directove \lstinline"glb.filepushhook", whose default value is \lstinline"/usr/bin/ugr-filepush".\\
+In both cases, the standard output of the script will be processed by Ugr looking for the \textit{GFAL/FTS performance markers}, whose
+values will be forwarded to the client in the way that FTS expects.\\
 
 
 
