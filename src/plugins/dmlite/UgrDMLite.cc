@@ -836,20 +836,24 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 
   off64_t reqsz = 0;
   try {
-    reqsz = Extensible::anyToU64(this->si_->get("requested_size"));
+    if (this->si_->contains("requested_size"))
+      reqsz = Extensible::anyToU64(this->si_->get("requested_size"));
   } catch ( ... ) {}
   
   UgrClientInfo cnfo(secCtx_->credentials.remoteAddress);
   try {
-    cnfo.s3uploadid = Extensible::anyToString(this->si_->get("x-s3-uploadid"));
+    if (this->si_->contains("x-s3-uploadid"))
+      cnfo.s3uploadid = Extensible::anyToString(this->si_->get("x-s3-uploadid"));
   } catch ( ... ) {}
   
   try {
-    cnfo.s3uploadpluginid = Extensible::anyToLong(this->si_->get("x-ugrpluginid"));
+    if (this->si_->contains("x-ugrpluginid"))
+      cnfo.s3uploadpluginid = Extensible::anyToLong(this->si_->get("x-ugrpluginid"));
   } catch ( ... ) {}
   
   try {
-    cnfo.nchunks = Extensible::anyToLong(this->si_->get("x-s3-upload-nchunks"));
+    if (this->si_->contains("x-s3-upload-nchunks"))
+      cnfo.nchunks = Extensible::anyToLong(this->si_->get("x-s3-upload-nchunks"));
   } catch ( ... ) {}
   
   UgrCode code = UgrCatalog::getUgrConnector()->findNewLocation(
