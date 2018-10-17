@@ -1047,6 +1047,7 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
       
       
     }
+    else memset(&progressdata, 0, sizeof(progressdata));
     
     // Anyway advance the last parsed position
     boost::any to_append = (int)((p-myout.c_str()) + strlen(myfmt));
@@ -1061,6 +1062,7 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
       si_->set("ugr-3cp-stdoutprocessed", to_append);
     }
     
+    memset(&progressdata, 0, sizeof(progressdata));
     
   }
   
@@ -1235,6 +1237,7 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
       
       
     }
+    else memset(&progressdata, 0, sizeof(progressdata));
     
     // Anyway advance the last parsed position
     boost::any to_append = (int)((p-myout.c_str()) + strlen(myfmt));
@@ -1249,6 +1252,7 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
       si_->set("ugr-3cp-stdoutprocessed", to_append);
     }
     
+    memset(&progressdata, 0, sizeof(progressdata));
     
   }
   
