@@ -343,6 +343,11 @@ void UgrConnector::do_n2n(std::string &path) {
     }
   }
   
+  // Make sure that no spurious queries enter Ugr
+  int pos = path.find('&');
+  if (pos != std::string::npos)
+    path.erase(pos, std::string::npos);
+  
 }
 
 int UgrConnector::do_Stat(UgrFileInfo *fi) {
