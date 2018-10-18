@@ -42,7 +42,9 @@ UgrFileInfo::UgrFileInfo(UgrConnector & c, std::string &lfn) : context(c){
     lastreftime = time(0);
 
     atime = mtime = ctime = 0;
-
+    size = 0L;
+    unixflags = 0;
+    
     dirty = false;
     dirtyitems = false;
     pinned = 0;
