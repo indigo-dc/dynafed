@@ -442,7 +442,7 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
        *    "sys.path.append(\"/etc/ugr/conf.d/\")\n"
        *  );*/
       
-      global_tstate = PyEval_SaveThread();
+      //global_tstate = PyEval_SaveThread();
       
       PyEval_ReleaseLock();
     }
