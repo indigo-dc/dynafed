@@ -924,12 +924,14 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     Location copysrc = whereToRead(localsrcpath);
     
     std::vector<std::string> params;
+    
+    // Fetch from the stackinstance the path of the delegated x509 proxy
     std::string x509proxypath;
     if (si_->contains("x509_delegated_proxy_path")) {
       // Beware, this info may come from the frontend, e.g. lcgdm-dav
       x509proxypath = boost::any_cast<std::string>(si_->get("x509_delegated_proxy_path"));
     }
-    
+       
     Info(Logger::Lvl1, "UgrPoolManager", "Starting file push. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << copysrc[0].url.toString() << "' dest: '" << remotedesturl << "' proxy: '" << x509proxypath << "'");
     
     params.push_back(UgrCFG->GetString("glb.filepushhook", (char *)"/usr/bin/ugr-filepush"));
@@ -945,13 +947,13 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     
     // pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both
     
-    // Surely we pass the Authentication header
+    // Surely we pass the Authorization header
     std::string hdrline;
     const dmlite::SecurityContext *secctx = si_->getSecurityContext();
     if (secctx) {
-      hdrline = secctx->credentials.getString("http.Authentication", "");
+      hdrline = secctx->credentials.getString("http.Authorization", "");
       if (hdrline.size()) {
-        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authentication header to file pusher: '" << hdrline << "'");
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authorization header to file pusher: '" << hdrline << "'");
         
         params.push_back(hdrline);
       }
