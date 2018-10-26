@@ -772,7 +772,7 @@ Default value: true\\
 \subsection{Authorization of groups and users}
 
 When plugged into a DMLite setup (which is the normal way), Ugr can apply authorization schemes to the incoming requests.\\
-In order to make this effective, the frontend (normally Apache) must be configured in order to apply a form of \textit{authentication} to the incoming clients. The Ugr authorization scheme will
+In order to make this effective, the frontend (normally Apache) must be configured in order to apply a form of \textit{authentication} to the incoming clients. The Ugr \textit{authorization} scheme will
 honour the user and groups information that is filled by the frontend. No restrictions are applied to the kind of authentication applied by the frontend. For Grid usage, this is normally X509 with
 VOMS extensions, and also other Web-specific forms of authentication are supposed to work, e.g. Google, Facebook IDs, Federated Identities, etc. , provided that the frontend supports and correctly processes them.\\
 Please note that the Ugr authorization is applied after any possible name groups or fqan translation that the frontend may apply. This is valid also for the gridmap translations that the sysadmin may want to configure in the system.\\
@@ -787,13 +787,13 @@ What follows are the default authorization directives.\\
 Add a rule that authorizes a specific user to read, write into, or list. Spaces in the username are supported only if the username is enclosed in double quotes.\\
 The rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowusers[]: <username> <path prefix> [r][w][l][d]" \\
+\lstinline"glb.allowusers[]: <username> <path prefix> [r][w][l][d][c]" \\
 
 Parameters:\\
 \begin{itemize}
  \item username : the username or DN to match this rule
  \item path prefix : the path prefix this rule applies to
- \item read "r" , write "w" , list "l" , delete "d"
+ \item read "r" , write "w" , list "l" , delete "d", third-party COPY "c"
 \end{itemize}
 
 Example:\\
@@ -807,13 +807,13 @@ string "*" will match with any group name or FQAN that the client may present, b
 If the groupname is an empty string enclosed in double quotes ( "" ) then the rule will match incoming requests that have an empty list of FQANs.\\
 In any case, the rule applies to all the URLs whose path matches the given prefix. Please note that the rule applies to the full URL, inclusive of path prefixes that other Ugr directives may mask or translate.\\
 Syntax:\\
-\lstinline"glb.allowgroups[]: <groupname or fqan> <path prefix> [r][w][l][d]" \\
+\lstinline"glb.allowgroups[]: <groupname or fqan> <path prefix> [r][w][l][d][c]" \\
 
 Parameters:\\
 \begin{itemize}
  \item username : the username or DN to match this rule
  \item path prefix : the path prefix this rule applies to
- \item read "r" , write "w" , list "l" , delete "d"
+ \item read "r" , write "w" , list "l" , delete "d", third-party COPY "c"
 \end{itemize}
 
 Example:\\
@@ -864,7 +864,7 @@ Parameters:\\
  \item clientname : the username or DN of the client
  \item remoteaddr : IP address of the client
  \item resource : the filename or directory name for which the operation has been requested
- \item mode : read "r" , write "w" , list "l" , delete "d"
+ \item mode : read "r" , write "w" , list "l" , delete "d", third-party COPY "c"
  \item fqans : list of groups or FQANS the user belongs to. VOMS roles will appear here.
  \item keys : list of other authentication keys that Apache has filled while authenticating the client.
 \end{itemize}

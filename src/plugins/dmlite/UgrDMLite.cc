@@ -902,6 +902,11 @@ Location UgrPoolManager::whereToWrite(const std::string& path)
 DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std::string &remotedesturl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
   
   Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file push. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << localsrcpath << "' dest: '" << remotedesturl << "'");
+  
+  
+  
+  
+  
   // If not already running, start the copy job using the TaskExec, as a local process
   
   // We don't have a ticker to give life to this sad API, so we do what we can
@@ -915,8 +920,9 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
   
   if (id <= 0) {
     
-    
-    checkperm("UgrPoolManager::filePush", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localsrcpath.c_str(), 'r');
+    // Beware, we need to write into the local SE. We check here for the COPY
+    // permission. Wheretowrite will also check for the READ permission
+    checkperm("UgrPoolManager::filePush", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localsrcpath.c_str(), 'c');
     
     // We have the local LFN to be copied from. This needs to be located by Ugr and used
     // as a source for the copy
@@ -951,9 +957,9 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     std::string hdrline;
     const dmlite::SecurityContext *secctx = si_->getSecurityContext();
     if (secctx) {
-      hdrline = secctx->credentials.getString("http.Authorization", "");
+      hdrline = secctx->credentials.getString("http.TransferHeaderAuthorization", "");
       if (hdrline.size()) {
-        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authorization header to file pusher: '" << hdrline << "'");
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing TransferHeaderAuthorization header to file pusher: '" << hdrline << "'");
         
         params.push_back(hdrline);
       }
@@ -1081,12 +1087,8 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
     if (!t->resultcode)
       return DmStatus();
     
-    // If it looks like an HTTP number let's forward the original result code
-    if ((t->resultcode >= 200) && (t->resultcode < 600))
-      return DmStatus(t->resultcode, SSTR("Task id " << id << " failed copying '" << localsrcpath << "' to '" << remotedesturl << "' result code: " << t->resultcode));
-    
-    // Otherwise 422 will blame the user. HE gave bad URLs, not us!
-    return DmStatus(422, SSTR("Task id " << id << " failed copying '" << localsrcpath << "' to '" << remotedesturl << "' result code: " << t->resultcode));
+    // Let's forward the original result code
+    return DmStatus(t->resultcode, SSTR("Task id " << id << " failed pulling '" << localsrcpath << "' to '" << remotedesturl << "' result code: " << t->resultcode));
   }
   
   return DmStatus(EAGAIN, SSTR("Task id " << id << " has not yet finished"));
@@ -1096,6 +1098,10 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
 DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const std::string &remotesrcurl, int cksumcheck, char *cksumtype, dmlite_xferinfo *progressdata) {
   
   Info(Logger::Lvl2, "UgrPoolManager", "Requesting or checking file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << localdestpath << "'");
+  
+  
+  
+  
   // If not already running, start the copy job using the TaskExec, as a local process
   
   // We don't have a ticker to give life to this sad API, so we do what we can
@@ -1109,8 +1115,9 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
   
   if (id <= 0) {
     
-    // Beware, we need to write into the local SE
-    checkperm("UgrPoolManager::filePull", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localdestpath.c_str(), 'w');
+    // Beware, we need to write into the local SE. We check here for the COPY
+    // permission. Wheretowrite will also check for the WRITE permission
+    checkperm("UgrPoolManager::filePull", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localdestpath.c_str(), 'c');
     
     // We have the local LFN to be copied to. This needs to be located by Ugr and used
     // as a dest for the copy
@@ -1142,9 +1149,9 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     std::string hdrline;
     const dmlite::SecurityContext *secctx = si_->getSecurityContext();
     if (secctx) {
-      hdrline = secctx->credentials.getString("http.Authentication", "");
+      hdrline = secctx->credentials.getString("http.TransferHeaderAuthorization", "");
       if (hdrline.size()) {
-        Info(Logger::Lvl4, "UgrPoolManager", "Passing Authentication header to file pusher: '" << hdrline << "'");
+        Info(Logger::Lvl4, "UgrPoolManager", "Passing TransferHeaderAuthorization header to file puller: '" << hdrline << "'");
         params.push_back(hdrline);
       }
         else
@@ -1271,12 +1278,9 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     if (!t->resultcode)
       return DmStatus();
     
-    // If it looks like an HTTP number let's forward the original result code
-    if ((t->resultcode >= 200) && (t->resultcode < 600))
-      return DmStatus(t->resultcode, SSTR("Task id " << id << " failed pulling '" << remotesrcurl << "' to '" << localdestpath << "' result code: " << t->resultcode));
-    
-    // Otherwise 422 will blame the user. HE gave bad URLs, not us!
-    return DmStatus(422, SSTR("Task id " << id << " failed pulling '" << remotesrcurl << "' to '" << localdestpath << "' result code: " << t->resultcode));
+    // Let's forward the original result code
+    return DmStatus(t->resultcode, SSTR("Task id " << id << " failed pulling '" << remotesrcurl << "' to '" << localdestpath << "' result code: " << t->resultcode));
+
   }
   
   return DmStatus(EAGAIN, SSTR("Task id " << id << " has not yet finished"));
