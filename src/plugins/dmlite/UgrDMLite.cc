@@ -920,7 +920,7 @@ DmStatus UgrPoolManager::fileCopyPush(const std::string& localsrcpath, const std
   
   if (id <= 0) {
     
-    // Beware, we need to write into the local SE. We check here for the COPY
+    // Beware, we need to read from the local SE. We check here for the COPY
     // permission. Wheretowrite will also check for the READ permission
     checkperm("UgrPoolManager::filePush", UgrCatalog::getUgrConnector(), si_->getSecurityContext()->credentials, (char *)localsrcpath.c_str(), 'c');
     
