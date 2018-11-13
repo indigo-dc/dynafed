@@ -100,6 +100,16 @@ Requires:                       dmlite-libs%{?_isa} >= 1.11.0
 %description dmlite-plugin
 Plugin for using dmlite for %{name}
 
+%package tpc-gfal
+Summary:                        dmlite plugin for %{name}
+Group:                          Applications/Internet
+Requires:                       %{name}%{?_isa} = %{version}-%{release}
+Requires:                       gfal-all%{?_isa} >= 2.16.0
+Requires:                       davix%{?_isa} >= 0.7.0
+
+%description tpc-gfal
+Scripts that implement the cross-protocol third party copy (TPC) using gfal
+
 %package dmlite-frontend
 Summary:                        dmlite plugin for %{name}
 Group:                          Applications/Internet
@@ -211,6 +221,12 @@ make DESTDIR=%{buildroot} install
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientORA.conf
 %config(noreplace) %{_sysconfdir}/ugr/ugrdmliteclientMY.conf
 
+%files tpc-gfal
+%defattr (-,root,root)
+%attr (-,root,root)
+%config(noreplace) %{_libexecdir}/ugr/ugrpullscript_gfal.sh
+%config(noreplace) %{_libexecdir}/ugr/ugrpushscript_gfal.sh
+
 
 %files dmlite-frontend
 %defattr (-,root,root)
@@ -220,8 +236,9 @@ make DESTDIR=%{buildroot} install
 /var/www/html/dashboard/*
 
 %changelog
-* Wed Sep 26 2018 Fabrizio Furano <furano at cern.ch> - 1.4.0
+* Tue Nov 13 2018 Fabrizio Furano <furano at cern.ch> - 1.4.0
  - now requires dmlite >= 1.11
+ - new package tpc-gfal to install the third party copy scripts
 * Thu May 18 2016 Fabrizio Furano <furano at cern.ch> - 1.2.1-1
  - Little packaging fixes for inclusion into EPEL
 * Fri Jun 01 2012 Adrien Devresse <adevress at cern.ch> - 0.0.2-0.1-2012052812snap

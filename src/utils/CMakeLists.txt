@@ -11,7 +11,9 @@
 
 # tada
 
+install(PROGRAMS      ugrpullscript_gfal.sh
+        DESTINATION   ${CMAKE_INSTALL_PREFIX}/libexec/ugr)
 
-
-
+install(PROGRAMS      ugrpushscript_gfal.sh
+        DESTINATION   ${CMAKE_INSTALL_PREFIX}/libexec/ugr)
 
