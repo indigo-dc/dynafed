@@ -312,6 +312,14 @@ public:
         return availInfo.isOK();
     }
 
+    virtual bool canDoChecksum() {
+      std::string pfx("locplugin.");
+      pfx += name;
+      pfx += ".candochecksum";
+      
+      return UgrCFG->GetBool(pfx.c_str(), false);
+    }
+    
     /// Tells us if this plugin is invoked directly by UgrConnector (slave=false) or by another plugin (slave=true)
 
     bool isSlave() {

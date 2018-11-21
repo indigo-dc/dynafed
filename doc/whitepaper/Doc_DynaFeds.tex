@@ -910,7 +910,13 @@ if __name__ == "__main__":
 }
 
 \subsection{Location Plugin}
-The Location plugins (dmlite, lfc, DAV, HTTP, etc) have in common a group of parameters.
+The Location plugins (dmlite, lfc, DAV, HTTP, etc) have in common a group of parameters.\\
+
+\subsubsection{locplugin.$<$ID$>$.candochecksum}
+Set this to true if the plugin can be directly queried for checksums by a client that is redirected to it.
+Syntax:\\
+\lstinline"locplugin.<ID>.candochecksum: <true|false>"\\
+Default value: false\\
 
 \subsubsection{locplugin.$<$ID$>$.listable}
 Enable listing operations (e.g PROPFIND) on the collections referenced by the plugin.\\

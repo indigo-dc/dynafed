@@ -59,6 +59,7 @@ namespace dmlite {
         void set(const std::string&, va_list);
 
         virtual void setStackInstance(StackInstance* si) {
+          this->si_ = si;
         };
 
         virtual std::vector<Replica> getReplicas(const std::string&);
@@ -95,6 +96,8 @@ namespace dmlite {
             return UgrCatalog::conn;
         }
 
+    protected:
+      StackInstance* si_;
 
     private:
 

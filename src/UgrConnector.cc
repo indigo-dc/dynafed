@@ -31,7 +31,7 @@
 #include "LocationInfoHandler.hh"
 #include "UgrPluginLoader.hh"
 #include "UgrAuthorization.hh"
-
+#include "LocationPlugin.hh"
 #include <dlfcn.h>
 
 
@@ -312,6 +312,19 @@ int UgrConnector::init(char *cfgfile) {
     Info(UgrLogger::Lvl1, fname, "Initialization complete.");
 
     return 0;
+}
+
+
+bool UgrConnector::canEndpointDoChecksum(int pluginID) {
+  const size_t id = static_cast<size_t>(pluginID);
+  
+  if ( id >= locPlugins.size()){
+    Info(UgrLogger::Lvl1, "canEndpointDoChecksum", "Invalid plugin ID BUG !");
+    return false;
+  }
+  
+  
+  return locPlugins[pluginID]->canDoChecksum();
 }
 
 bool UgrConnector::isEndpointOK(int pluginID) {

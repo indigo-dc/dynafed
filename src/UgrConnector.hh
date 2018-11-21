@@ -140,7 +140,11 @@ public:
     
     // Tells us if the endpoint represented by the given pluginID is up or down
     bool isEndpointOK(int pluginID);
-
+    
+    // Tells us if the endpoint is able to calculate a checksum if a client
+    // is redirected to it
+    bool canEndpointDoChecksum(int pluginID);
+    
     /// Returns a pointer to the item with the list of the locations of the given lfn (ls).
     /// This could be a list of replicas
     /// Waits for some time that at least nitemswait items have arrived, ev returns TIMEOUT

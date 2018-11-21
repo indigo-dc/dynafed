@@ -206,7 +206,7 @@ void UgrCatalog::setSecurityContext(const SecurityContext *c) {
     secCredentials = c->credentials;
 }
 
-UgrCatalog::UgrCatalog() : DummyCatalog(NULL) {
+UgrCatalog::UgrCatalog() : DummyCatalog(NULL), si_(NULL) {
 
 }
 
@@ -230,7 +230,40 @@ void UgrCatalog::getChecksum(const std::string& path,
   csumvalue = "";
   Info(UgrLogger::Lvl2, "UgrCatalog::getReplicas", "Requesting redirection to the file location. path: '" << path << "'");
   
-  throw DmException(DMLITE_RDR_ON_CHECKSUM, "UgrConnector initialization failed.");
+  
+  // This will throw an exception if no file
+  std::vector<Replica> r = getReplicas(path);
+  
+  // Find the first replica produced by an endpoint that can provide checksums
+  bool rdrchksum = false;
+  unsigned int iok = -1;
+  for (unsigned int i = 0; i < r.size(); i++) {
+    long plid = r[i].getLong("x-ugrpluginid", -1);
+    if (plid < 0)
+      continue;
+    
+    // Now check if the plugin that produced this can calcualte checksums
+    rdrchksum = getUgrConnector()->canEndpointDoChecksum(plid);
+    if (rdrchksum) {
+      iok = i;
+      break;
+    }
+  }
+  
+  if (!rdrchksum) {
+    throw DmException(EINVAL, "No plugin can calculate a checksum for file '" + path + "'");
+  }
+  
+  
+  Chunk single( r[iok].rfn, 0, 1234);
+  
+  // This is quite ugly. This API can't return a location, hence we return it
+  // in the csumvalue field and then throw the right exception
+  csumvalue = single.url.toString();
+  Info(UgrLogger::Lvl3, "UgrPoolManager::whereToRead", " Path: " << path << " --> " << csumvalue);
+  
+
+  throw DmException(DMLITE_RDR_ON_CHECKSUM, "Requesting redirection to the file location.");
 }
 
 std::string UgrCatalog::getImplId() const throw () {
@@ -265,7 +298,11 @@ std::vector<Replica> UgrCatalog::getReplicas(const std::string &path) {
             r.fileid = 0;
             r.replicaid = 0;
             r.status = Replica::kAvailable;
-
+            
+            // This hack identifies the plugin that produced this replica
+            // It's used e.g. in getChecksum
+            r["x-ugrpluginid"] = i->pluginID;
+            
             // We need to get the server from the full url that we have
             r.rfn = i->name;
 
