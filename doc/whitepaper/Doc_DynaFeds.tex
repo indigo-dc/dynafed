@@ -1166,7 +1166,7 @@ where:\\
  \item \lstinline"cksumcheck" is an integer, whose value is nonzero if the copy has to verify the checksums
  \item \lstinline"cksumtype" is a string identifying the checksum type that has to be used, e.g. \lstinline"adler32"
  \item \lstinline"srcURL" is the full URL of the source file
- \item \lstinline"destURL" is the full URL of the destination file
+ \item \lstinline"destURL" is the full URL of the destination file or the local logical file name in case of a pull copy
  \item \lstinline"x509proxypath" is a local path pointing to the x509 delegated proxy certificate of the user that requested the file copy
  \item \lstinline"auth" is additional authorization information. In the case of Apache HTTPD this field comes from the
  content of the \lstinline"Authentication" header of the original COPY request
