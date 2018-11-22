@@ -1159,7 +1159,12 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     // We have the local LFN to be copied to. This needs to be located by Ugr and used
     // as a dest for the copy
     // Note that a file not found will be signalled by an exception here, which will reach the caller
-    Location copylocaldest = whereToWrite(localdestpath);
+    std::string copylocaldeststr = localdestpath;
+    
+    if (UgrCFG->GetBool("glb.filepullhook.usereplicaurl", false)) {
+      Location copylocaldest = whereToWrite(localdestpath);
+      copylocaldeststr = copylocaldest[0].url.toString();
+    }
     
     std::vector<std::string> params;
     std::string x509proxypath;
@@ -1168,7 +1173,7 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
       x509proxypath = boost::any_cast<std::string>(si_->get("x509_delegated_proxy_path"));
     }
     
-    Info(Logger::Lvl1, "UgrPoolManager", "Starting file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << copylocaldest[0].url.toString() << "' proxy: '" << x509proxypath << "'");
+    Info(Logger::Lvl1, "UgrPoolManager", "Starting file pull. chksumcheck: " << cksumcheck << " chksumtype: '" << cksumtype << "' src: '" << remotesrcurl << "' dest: '" << copylocaldeststr << "' proxy: '" << x509proxypath << "'");
     
     params.push_back(UgrCFG->GetString("glb.filepullhook", (char *)"/usr/bin/ugr-filepull"));
     params.push_back(boost::lexical_cast<std::string>(cksumcheck));
@@ -1177,7 +1182,7 @@ DmStatus UgrPoolManager::fileCopyPull(const std::string& localdestpath, const st
     else
       params.push_back(cksumtype);
     params.push_back(remotesrcurl);
-    params.push_back(copylocaldest[0].url.toString());
+    params.push_back(copylocaldeststr);
     params.push_back(x509proxypath);
     
     // pass any other interesting parameter, e.g. a transfer bearer token to be passed to source or dest or both

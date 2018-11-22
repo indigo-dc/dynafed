@@ -20,7 +20,16 @@ if [ "x$6" != "x" ]; then
   export BEARER_TOKEN="$6"
 fi
 
-cmd="gfal-copy -vv --just-copy --cert $5 --key $5 $3 $4"
+# NOTE: if the parameter glb.filepullhook.usereplicaurl is false (default)
+# this script has to be customized by inserting the URL prefix for Ugr
+# before $4
+# if the parameter glb.filepullhook.usereplicaurl is true then the commandline
+# can be simplified as follows:
+# cmd="gfal-copy -vv --just-copy --cert $5 --key $5 $3 $4"
+# In the latter case, if any S3 bucket is federated, it will not be possible to
+# pull files larger than 5GB (which is an S3 limit)
+# 
+cmd="gfal-copy -vv --just-copy --cert $5 --key $5 $3 https://myugr.mydomain.com/$4"
 echo "command: $cmd"
 $cmd 2>&1
 res=$?

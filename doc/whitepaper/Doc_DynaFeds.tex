@@ -475,6 +475,15 @@ Setting \lstinline"glb.addchildtoparentonstat" to \lstinline"false" disables thi
  
  For more information on Third Party COPY requests, please see the section \ref{noteonTPC}.\\
  
+\subsubsection{glb.filepullhook.usereplicaurl}
+ In the case of a "pull" third party copy, pass to the helper script a destination URL pointing to an endpoint, instead of passing as destination a path that is local to this Ugr instance (logical file name).
+  
+ Syntax:\\
+ 
+ \lstinline"glb.filepullhook.usereplicaurl:  <true | false>"\\
+ 
+ For more information on Third Party COPY requests, please see the section \ref{noteonTPC}.\\
+ 
 \subsubsection{glb.filepushhook}
  Specifies the full path to an executable (or executable script) that can push a file from one of the endpoints of the federation towards an external URL .\\
  
