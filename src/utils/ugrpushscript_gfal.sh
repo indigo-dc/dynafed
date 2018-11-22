@@ -24,9 +24,9 @@ fi
 
 if [ "x$5" == "x" ]
 then
-  cmd="gfal-copy -vv -DHTTP\ PLUGIN:ENABLE_REMOTE_COPY=false --just-copy $3 $4"
+  cmd="gfal-copy -vv --just-copy $3 $4"
 else
-  cmd="gfal-copy -vv -DHTTP\ PLUGIN:ENABLE_REMOTE_COPY=false --just-copy --cert $5 --key $5 $3 $4"
+  cmd="gfal-copy -vv --just-copy --cert $5 --key $5 $3 $4"
 fi
 
 echo "command: $cmd"

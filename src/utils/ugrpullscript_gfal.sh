@@ -29,7 +29,7 @@ fi
 # In the latter case, if any S3 bucket is federated, it will not be possible to
 # pull files larger than 5GB (which is an S3 limit)
 # 
-cmd="gfal-copy -vv -DHTTP\ PLUGIN:ENABLE_REMOTE_COPY=false --just-copy --cert $5 --key $5 $3 https://myugr.mydomain.com/$4"
+cmd="gfal-copy -vv --just-copy --cert $5 --key $5 $3 https://myugr.mydomain.com/$4"
 echo "command: $cmd"
 $cmd 2>&1
 res=$?
