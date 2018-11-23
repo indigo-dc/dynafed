@@ -30,7 +30,7 @@ else
 fi
 
 echo "command: $cmd"
-$cmd 2>&1
+$cmd "-DHTTP PLUGIN:ENABLE_REMOTE_COPY=false" 2>&1
 res=$?
 echo "res: $res"
 
