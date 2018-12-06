@@ -56,7 +56,7 @@ int UgrFileInfo::getBestReplicaIdx(std::string &clientlocation) {
     return 0;
 }
 
-int UgrFileInfo::waitForSomeUpdate(unique_lock<mutex> &l, int sectmout) {
+int UgrFileInfo::waitForSomeUpdate(boost::unique_lock<mutex> &l, int sectmout) {
 
     system_time const timeout = get_system_time() + posix_time::seconds(sectmout);
 
@@ -368,7 +368,7 @@ void UgrFileInfo::setPluginID(const short pluginID, bool dolock) {
     if (pluginID >= 0) {
       
       if (dolock) {
-	unique_lock<mutex> l2(*this);
+	boost::unique_lock<mutex> l2(*this);
 	ownerpluginIDs.insert(pluginID);
       }
       else
@@ -381,7 +381,7 @@ void UgrFileInfo::takeStat(const struct stat &st) {
     const char *fname = "UgrFileInfo::takeStat";
     Info(UgrLogger::Lvl4, fname, this->name << " sz:" << st.st_size << " mode:" << st.st_mode);
     
-    unique_lock<mutex> l2(*this);
+    boost::unique_lock<mutex> l2(*this);
     size = st.st_size;
     unixflags = st.st_mode;
     if (st.st_atim.tv_sec && (st.st_atim.tv_sec > atime)) atime = st.st_atim.tv_sec;
@@ -404,7 +404,7 @@ void UgrFileInfo::setToNoInfo() {
     const char *fname = "UgrFileInfo::setToNoInfo";
     Info(UgrLogger::Lvl4, fname, "Entering");
     
-    unique_lock<mutex> l2(*this);
+    boost::unique_lock<mutex> l2(*this);
     size = 0;
     unixflags = 0;
     atime = 0;
@@ -430,14 +430,14 @@ void UgrFileInfo::addReplica( const UgrFileItem_replica & replica){
 
 
     {
-        unique_lock<mutex> l2(*this);
+        boost::unique_lock<mutex> l2(*this);
         this->replicas.insert(std::move(local_replica));
     }
 
 }
 
 void UgrFileInfo::getReplicaList(UgrReplicaVec& reps){
-    unique_lock<mutex> l2(*this);
+    boost::unique_lock<mutex> l2(*this);
     reps.assign(replicas.begin(), replicas.end());
 }
 
