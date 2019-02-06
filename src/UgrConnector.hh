@@ -41,7 +41,7 @@ class UgrAuthorizationPlugin;
 /// return the path of the UgrConnector shared library
 const std::string & getUgrLibPath();
 
-
+    
 /// The main class that allows to interact with the system
 class UgrConnector{
 private:
@@ -257,7 +257,8 @@ public:
     /// replicas Status (Default: Checker)
     int filterAndSortReplicaList(UgrReplicaVec & replica, const UgrClientInfo & cli_info);
 
-
+    /// Utility to filter replicas on systems without enough free space
+    void filterFull(UgrReplicaVec &);
 
     //
     // internal usage only

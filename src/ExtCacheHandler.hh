@@ -29,13 +29,13 @@
 #include <queue>
 
 
+class PluginEndpointStatus;
+class StorageStats;
 
 
 /// This class implement basic functions that retrieve or store
 /// FileInfo objects in an external cache, that is shared by multiple
 /// concurrent instances of UGR
-
-class PluginEndpointStatus;
 
 class ExtCacheHandler {
 private:
@@ -63,6 +63,8 @@ private:
     std::string makekey_subitems(UgrFileInfo *fi);
     
     std::string makekey_endpointstatus(std::string endpointname);
+    std::string makekey_storagestats(std::string endpointname);
+        
 public:
 
 
@@ -75,6 +77,8 @@ public:
     
     int getEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
     int putEndpointStatus(PluginEndpointStatus *st, std::string endpointname);
+    
+    int getStorageStats(StorageStats &, std::string);
 
     int putMoninfo(std::string val);
     

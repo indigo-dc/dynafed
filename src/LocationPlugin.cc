@@ -23,6 +23,8 @@
 #include "libs/time_utils.h"
 #include <time.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
 
 
 
@@ -899,6 +901,11 @@ int LocationPlugin::Tick(time_t timenow) {
     if (availInfo.isExpired(timenow)) {
         pushOp(0, 0, wop_Check);
     }
+    
+    // Update storage stats
+    if (extCache) {
+        extCache->getStorageStats(storage_stats, name);
+    }
 
     return 0;
 }
@@ -1043,4 +1050,40 @@ void LocationPlugin::appendMonString(std::string &mons) {
   PluginEndpointStatus st;
   this->availInfo.getStatus(st);
   st.encodeToMonString(mons);
+}
+
+int StorageStats::deserialise(char *str_in)
+{
+    char *saveptr, *endptr, *tok;
+    char tmp_str[256];
+    strncpy(tmp_str, str_in, 256);
+    tok=strtok_r(tmp_str, "%", &saveptr);
+    tok=strtok_r(NULL, "%", &saveptr);
+    boost::unique_lock< boost::shared_mutex > l(workmutex);
+    if ((tok=strtok_r(NULL, "%", &saveptr)) != NULL) {
+        timestamp=strtol(tok, &endptr, 10);
+    } else {
+        return 1;
+    }
+    if ((tok=strtok_r(NULL, "%", &saveptr)) != NULL) {
+        quota=strtol(tok, &endptr, 10);
+    } else {
+        return 1;
+    }
+    if ((tok=strtok_r(NULL, "%", &saveptr)) != NULL) {
+        used=strtol(tok, &endptr, 10);
+    } else {
+        return 1;
+    }
+    if ((tok=strtok_r(NULL, "%", &saveptr)) != NULL) {
+        free=strtol(tok, &endptr, 10);
+    } else {
+        return 1;
+    }
+    if ((tok=strtok_r(NULL, "%", &saveptr)) != NULL) {
+        status=std::string(tok);
+    } else {
+        return 1;
+    }
+    return 0;
 }

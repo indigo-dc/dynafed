@@ -156,6 +156,24 @@ private:
 
 };
 
+
+class StorageStats {
+public:
+    StorageStats() : timestamp(0), quota(0), used(0), free(0) {};
+    int deserialise(char *);
+    long getfree() {
+        boost::shared_lock< boost::shared_mutex > l(workmutex);
+        return free;
+    }
+private:
+    boost::shared_mutex workmutex;
+    time_t timestamp;
+    long quota;
+    long used;
+    long free;
+    std::string status;
+};
+
 /** LocationPlugin
  * Base class for a plugin which gathers info about files from some source. No assumption
  * is made about what source is this.
@@ -209,6 +227,8 @@ public:
        std::function<void (void)> operation;
     };
 
+    
+    
 protected:
 
     /// The name assigned to this plugin from the creation
@@ -296,6 +316,8 @@ protected:
 
     /// Invokes a full round of CheckReplica towards other slave plugins
     virtual void req_checkreplica(UgrFileInfo *fi, std::string &repl);
+    
+    StorageStats storage_stats;
 
 public:
 

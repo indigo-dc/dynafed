@@ -543,7 +543,11 @@ int UgrLocPlugin_http::run_findNewLocation(const std::string & lfn, std::shared_
   std::string new_Location = HttpUtils::protocolHttpNormalize(canonical_name);
   HttpUtils::pathHttpNomalize(new_Location);
 
-  handler->addReplica(new_Location, getID());
+  UgrFileItem_replica r;
+  r.pluginID = getID();
+  r.name = new_Location;
+  r.freespace = storage_stats.getfree();
+  handler->addReplica(r, getID());
   LocPluginLogInfoThr(UgrLogger::Lvl3, fname, "newLocation found with success " << new_Location);
   return 0;
 

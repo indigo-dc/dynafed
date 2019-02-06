@@ -772,6 +772,9 @@ UgrCode UgrConnector::findNewLocation(const std::string & new_lfn, off64_t files
     // sort geographically
     if (client.s3uploadpluginid < 0)
       filterAndSortReplicaList(new_locations, client);
+   
+    // remove locations which do not have enough free space
+    filterFull(new_locations);
     
     // attempt to update the subdir set of new entry's parent, should increase dynamicity of listing
     if ( UgrCFG->GetBool("glb.addchildtoparentonput", true) )
@@ -1097,7 +1100,13 @@ int UgrConnector::checkperm(const char *fname,
     return 0;
 }
 
+bool isFull(const UgrFileItem_replica & rep) {
+    return rep.freespace < UgrCFG->GetLong("glb.minfreespace", -1);
+}
 
+void UgrConnector::filterFull(UgrReplicaVec & rvec) {
+    rvec.erase( std::remove_if(rvec.begin(), rvec.end(), isFull), rvec.end() );
+}
 
 
 const std::string & getUgrLibPath(){

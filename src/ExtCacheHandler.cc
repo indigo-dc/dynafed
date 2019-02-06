@@ -54,7 +54,9 @@ std::string ExtCacheHandler::makekey_endpointstatus(std::string endpointname) {
     return "endpoint_" + endpointname;
 }
 
-
+std::string ExtCacheHandler::makekey_storagestats(std::string endpointname) {
+    return "Ugrstoragestats_" + endpointname;
+}
 
 
 int ExtCacheHandler::getFileInfo(UgrFileInfo *fi) {
@@ -633,4 +635,39 @@ int ExtCacheHandler::putMoninfo(std::string val) {
   }
   
   return 0;
+}
+
+int ExtCacheHandler::getStorageStats(StorageStats & ss, std::string endpointname)
+{
+    const char *fname = "ExtCacheHandler::getStorageStats";
+    memcached_st *conn = getsyncconn();
+    if (!conn) return 0;
+    
+    size_t value_len = 0;
+    memcached_return err;
+    uint32_t flags;
+    std::string k;
+
+    k = makekey_storagestats(endpointname);
+
+    char *strnfo = memcached_get(conn, k.c_str(), k.length(),
+            &value_len, &flags, &err);
+ 
+    Info(UgrLogger::Lvl3, fname, "Memcached get Key='" << k << "' flags:" << flags << " Res: " << memcached_strerror(conn, err));
+    
+    releasesyncconn(conn);
+    
+    if (err != MEMCACHED_SUCCESS) {
+        return 1;
+    }
+    
+    Info(UgrLogger::Lvl3, fname, "Response: " << strnfo);
+    
+    if (ss.deserialise(strnfo) != 0) {
+        Error(fname, "Error parsing value " << strnfo);
+    }
+
+    free(strnfo);
+
+    return 0;
 }

@@ -87,7 +87,7 @@ public:
         PermissionDenied,
     };
 
-    UgrFileItem_replica(): UgrFileItem(), status(Available), latitude(0.0), longitude(0.0), tempDistance(0.0) {
+    UgrFileItem_replica(): UgrFileItem(), status(Available), latitude(0.0), longitude(0.0), tempDistance(0.0), freespace(0) {
         pluginID = -1;
     };
 
@@ -110,6 +110,9 @@ public:
     /// Alternative URL to reach the replica. In the case of an S3 PUT this will be a signed URL
     /// where to send a POST request
     std::string alternativeUrl;
+    
+    /// The free space available in the host system
+    long freespace;
 };
 
 

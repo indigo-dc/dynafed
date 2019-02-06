@@ -25,13 +25,5 @@ add_subdirectory(lfcclient)
 add_subdirectory(geoIP)
 add_subdirectory(geo_maxmindDB)
 add_subdirectory(noloop)
-
-
-
-
-
-
-
-
 add_subdirectory(MSAzureclient)
 add_subdirectory(authpython)
