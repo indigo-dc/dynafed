@@ -14,7 +14,7 @@
 
 
 
-
+boost::mutex UgrAuthorizationPlugin_py::pymtx;
 bool UgrAuthorizationPlugin_py::python_initdone = false;
 static PyThreadState *global_tstate;
 
@@ -160,7 +160,11 @@ int UgrAuthorizationPlugin_py::pyinit(myPyFuncInfo &funcnfo)
 // Initialize all the python vars that are needed to invoke the given function efficiently
 int UgrAuthorizationPlugin_py::pyterm(myPyFuncInfo &funcnfo)
 {
-
+  {
+    boost::lock_guard<boost::mutex> l(mtx);
+    python_initdone = false;
+  }
+  
   if (funcnfo.pFunc) {
     Py_XDECREF(funcnfo.pFunc);
   }
@@ -347,110 +351,11 @@ int UgrAuthorizationPlugin_py::pyxeqfunc2(int &retval, PyObject *pFunc,
 
 
 
-
-
-
-
-
 UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vector<std::string> & parms) : UgrAuthorizationPlugin(c, parms) {
   
   const char *fname = "UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py";
-  
-  {
-    
-    //
-    // Various hacks for initializing python, inspired by
-    // mod_python
-    // https://github.com/grisha/mod_python/blob/master/src/mod_python.c
-    //
-    
-
-    if (!python_initdone || !Py_IsInitialized()) {
-      python_initdone = true;
-      
-      //
-      // Diabolic python version checks
-      //
-      const char *py_compile_version = PY_VERSION;
-      const char *py_dynamic_version = 0;
-      
-      
-      py_dynamic_version = strtok((char *)Py_GetVersion(), " ");
-      
-      if (strcmp(py_compile_version, py_dynamic_version) != 0) {
-        Error(fname, "python_init: Python version mismatch, expected '" <<
-          py_compile_version << "', found '" << py_dynamic_version << "'");
-        Error(fname, "python_init: Python executable found '" <<
-                     Py_GetProgramFullPath() << "'");
-        Error(fname, "python_init: Python path being used '" << 
-                     Py_GetPath() << "'");
-        Error(fname, "python_init: ... continuing initialization anyway.");
-      }
-      else
-        Info(UgrLogger::Lvl1, fname, "python_init: found Python version  '" <<
-        py_dynamic_version << "'");
-      
-      
-      /* disable user site directories */
-      Py_NoUserSiteDirectory = 1;
-      
-      /* Initialze the main interpreter. */
-      #if PY_MAJOR_VERSION == 2 && \
-      (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
-      /*
-       * We do not want site.py to
-       * be imported because as of Python 2.7.9 it would cause a
-       * circular dependency related to _locale which breaks
-       * graceful restart so we set Py_NoSiteFlag to 1 just for this
-       * one time. (https://github.com/grisha/mod_python/issues/46)
-       */
-      Py_NoSiteFlag = 1;
-      #endif
-      
-      
-      Py_Initialize();
-      
-      #if PY_MAJOR_VERSION == 2 && \
-      (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
-      Py_NoSiteFlag = 0;
-      #endif
-      
-      PyEval_InitThreads();
-            
-      Py_InitModule("mylog", logMethods);
-      PyRun_SimpleString(
-        "import mylog\n"
-        "import sys\n"
-        "class StdoutCatcher:\n"
-        "\tdef write(self, str):\n"
-        "\t\tmylog.CaptureStdout(str)\n"
-        "class StderrCatcher:\n"
-        "\tdef write(self, str):\n"
-        "\t\tmylog.CaptureStderr(str)\n"
-        "sys.stdout = StdoutCatcher()\n"
-        "sys.stderr = StderrCatcher()\n"
-        "sys.path.append(\"/\")\n"
-        "sys.path.append(\"/etc/ugr/conf.d/\")\n"
-      );
-      
-      
-      /*
-       * 
-       *  PyRun_SimpleString(
-       *    "import sys\n"
-       *    "sys.path.append(\"/\")\n"
-       *    "sys.path.append(\"/etc/ugr/conf.d/\")\n"
-       *  );*/
-      
-      //global_tstate = PyEval_SaveThread();
-      
-      PyEval_ReleaseLock();
-    }
-  }
-  
   // Take the parms
   if (parms.size() != 4) {
-    pyterm(info_pyfunc);
     
     // here we should abort everything
     throw "Fatal error, wrong number of arguments in UgrAuthorizationPlugin_py"; 
@@ -460,18 +365,128 @@ UgrAuthorizationPlugin_py::UgrAuthorizationPlugin_py( UgrConnector & c, std::vec
   info_pyfunc.func = parms[3];
   
   Info(UgrLogger::Lvl1, fname, "Python authorization invokes function: " << info_pyfunc.func << " from module " << info_pyfunc.module);
-
-  if (pyinit(info_pyfunc)) {
-    pyterm(info_pyfunc);
-    
-    // here we should abort everything
-    throw "Fatal error, cannot initialize python authorization module"; 
+  
+  python_initdone = false;
+  
+  
+  //
+  // Diabolic python version checks
+  //
+  const char *py_compile_version = PY_VERSION;
+  const char *py_dynamic_version = 0;
+  
+  py_dynamic_version = strtok((char *)Py_GetVersion(), " ");
+  
+  if (strcmp(py_compile_version, py_dynamic_version) != 0) {
+    Error(fname, "python_init: Python version mismatch, expected '" <<
+    py_compile_version << "', found '" << py_dynamic_version << "'");
+    Error(fname, "python_init: Python executable found '" <<
+    Py_GetProgramFullPath() << "'");
+    Error(fname, "python_init: Python path being used '" << 
+    Py_GetPath() << "'");
+    Error(fname, "python_init: ... continuing initialization anyway.");
   }
+  else
+    Info(UgrLogger::Lvl1, fname, "python_init: found Python version  '" <<
+    py_dynamic_version << "'");
+  
+  
+}
 
+
+
+
+
+
+int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
+  const char *fname = "UgrAuthorizationPlugin_py::pypreinit";
+  bool doinit = false;
+  
+  {
+    boost::lock_guard<boost::mutex> l(pymtx);
+    doinit = (!python_initdone);
+    python_initdone = true;
+  }
+  //
+  // Various hacks for initializing python, inspired by
+  // mod_python
+  // https://github.com/grisha/mod_python/blob/master/src/mod_python.c
+  //
+  
+  
+  if (doinit) {
+    
+    /* disable user site directories */
+    Py_NoUserSiteDirectory = 1;
+    
+    /* Initialze the main interpreter. */
+    #if PY_MAJOR_VERSION == 2 && \
+    (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
+    /*
+     * We do not want site.py to
+     * be imported because as of Python 2.7.9 it would cause a
+     * circular dependency related to _locale which breaks
+     * graceful restart so we set Py_NoSiteFlag to 1 just for this
+     * one time. (https://github.com/grisha/mod_python/issues/46)
+     */
+    Py_NoSiteFlag = 1;
+    #endif
+    
+    
+    Py_Initialize();
+    
+    #if PY_MAJOR_VERSION == 2 && \
+    (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
+    Py_NoSiteFlag = 0;
+    #endif
+    
+    PyEval_InitThreads();
+    
+    Py_InitModule("mylog", logMethods);
+    PyRun_SimpleString(
+      "import mylog\n"
+      "import sys\n"
+      "class StdoutCatcher:\n"
+      "\tdef write(self, str):\n"
+      "\t\tmylog.CaptureStdout(str)\n"
+      "class StderrCatcher:\n"
+      "\tdef write(self, str):\n"
+      "\t\tmylog.CaptureStderr(str)\n"
+      "sys.stdout = StdoutCatcher()\n"
+      "sys.stderr = StderrCatcher()\n"
+      "sys.path.append(\"/\")\n"
+      "sys.path.append(\"/etc/ugr/conf.d/\")\n"
+    );
+    
+    
+    //global_tstate = PyEval_SaveThread();
+    
+    PyEval_ReleaseLock();
+    
+    
+    
+    if (pyinit(info_pyfunc)) {
+      pyterm(info_pyfunc);
+      
+      // here we should abort everything
+      //throw "Fatal error, cannot initialize python authorization module"; 
+      return 1;
+    }
+    
+    return 0;
+  }
+  
+  return 0;
 }
 
 
 UgrAuthorizationPlugin_py::~UgrAuthorizationPlugin_py() {
+    boost::lock_guard<boost::mutex> l(mtx);
+    
+    if (python_initdone)
+      pyterm(info_pyfunc);
+    
+    python_initdone = false;
   
 }
 
@@ -485,6 +500,10 @@ bool UgrAuthorizationPlugin_py::isallowed(const char *fname,
 
   
   
+  if (pypreinit(info_pyfunc)) {
+    Error(fname, "Could not initialize python. Denying access.");
+    return false;
+  }
   
   PyGILState_STATE gstate;
   gstate = PyGILState_Ensure();

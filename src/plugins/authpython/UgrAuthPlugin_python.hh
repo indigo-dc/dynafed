@@ -50,8 +50,9 @@ private:
   boost::mutex mtx;
   
   myPyFuncInfo info_pyfunc;
+  static boost::mutex pymtx;
   static bool python_initdone;
-  
+  int pypreinit(myPyFuncInfo &funcnfo);
   int pyinit(myPyFuncInfo &funcnfo);
   int pyterm(myPyFuncInfo &funcnfo);
   int pyxeqfunc2(int &retval, PyObject *pFunc,
