@@ -14,7 +14,7 @@
 
 
 
-boost::mutex UgrAuthorizationPlugin_py::pymtx;
+boost::recursive_mutex UgrAuthorizationPlugin_py::pymtx;
 bool UgrAuthorizationPlugin_py::python_initdone = false;
 static PyThreadState *global_tstate;
 
@@ -161,9 +161,13 @@ int UgrAuthorizationPlugin_py::pyinit(myPyFuncInfo &funcnfo)
 int UgrAuthorizationPlugin_py::pyterm(myPyFuncInfo &funcnfo)
 {
   {
-    boost::lock_guard<boost::mutex> l(mtx);
+    boost::lock_guard<boost::recursive_mutex> l(mtx);
     python_initdone = false;
   }
+  
+  
+  PyGILState_STATE gstate;
+  gstate = PyGILState_Ensure();
   
   if (funcnfo.pFunc) {
     Py_XDECREF(funcnfo.pFunc);
@@ -177,7 +181,10 @@ int UgrAuthorizationPlugin_py::pyterm(myPyFuncInfo &funcnfo)
   
   funcnfo.pModule = NULL;
 
-
+  
+  /* Release the thread. No Python API allowed beyond this point. */
+  PyGILState_Release(gstate);
+  
 return 0;
 }
 
@@ -403,7 +410,7 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
   bool doinit = false;
   
   {
-    boost::lock_guard<boost::mutex> l(pymtx);
+    boost::lock_guard<boost::recursive_mutex> l(mtx);
     doinit = (!python_initdone);
     python_initdone = true;
   }
@@ -415,6 +422,7 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
   
   
   if (doinit) {
+    boost::lock_guard<boost::recursive_mutex> l(pymtx);
     
     /* disable user site directories */
     Py_NoUserSiteDirectory = 1;
@@ -432,15 +440,24 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
     Py_NoSiteFlag = 1;
     #endif
     
-    
-    Py_Initialize();
+    if (!Py_IsInitialized())
+      Py_Initialize();
+
     
     #if PY_MAJOR_VERSION == 2 && \
     (PY_MINOR_VERSION < 7 || (PY_MINOR_VERSION == 7 && PY_MICRO_VERSION < 14))
     Py_NoSiteFlag = 0;
     #endif
     
-    PyEval_InitThreads();
+    if (!PyEval_ThreadsInitialized()) {
+      Info(UgrLogger::Lvl1, fname, "Initializing Python threads" );
+      PyEval_InitThreads();
+      PyThreadState* st = PyEval_SaveThread();
+      Info(UgrLogger::Lvl1, fname, "Python threads initialized. st: " << st );
+    }
+    
+    PyGILState_STATE gstate;
+    gstate = PyGILState_Ensure();
     
     Py_InitModule("mylog", logMethods);
     PyRun_SimpleString(
@@ -458,10 +475,7 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
       "sys.path.append(\"/etc/ugr/conf.d/\")\n"
     );
     
-    
-    //global_tstate = PyEval_SaveThread();
-    
-    PyEval_ReleaseLock();
+   
     
     
     
@@ -470,9 +484,15 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
       
       // here we should abort everything
       //throw "Fatal error, cannot initialize python authorization module"; 
+      
+      /* Release the thread. No Python API allowed beyond this point. */
+      PyGILState_Release(gstate);
       return 1;
     }
     
+    
+    /* Release the thread. No Python API allowed beyond this point. */
+    PyGILState_Release(gstate);
     return 0;
   }
   
@@ -481,7 +501,7 @@ int UgrAuthorizationPlugin_py::pypreinit(myPyFuncInfo &funcnfo) {
 
 
 UgrAuthorizationPlugin_py::~UgrAuthorizationPlugin_py() {
-    boost::lock_guard<boost::mutex> l(mtx);
+    boost::lock_guard<boost::recursive_mutex> l(mtx);
     
     if (python_initdone)
       pyterm(info_pyfunc);
