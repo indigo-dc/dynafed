@@ -47,10 +47,10 @@ public:
 private:
   
   
-  boost::mutex mtx;
+  boost::recursive_mutex mtx;
   
   myPyFuncInfo info_pyfunc;
-  static boost::mutex pymtx;
+  static boost::recursive_mutex pymtx;
   static bool python_initdone;
   int pypreinit(myPyFuncInfo &funcnfo);
   int pyinit(myPyFuncInfo &funcnfo);
